@@ -85,9 +85,9 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | Page | Uses | Shows |
 |---|---|---|
 | `OverviewPage` | `getSummary`, `PieChart`, `BarChart`, `InstallationTable` | Four stat cards, installations by status, installations per month, the five latest installations |
-| `SitesPage` | `usePaginatedList`, `useDeleteConfirmation`, `useFlashMessage`, `SiteTable` | Searchable, filterable, paginated sites with edit and delete |
+| `SitesPage` | `usePaginatedList`, `useDeleteConfirmation`, `useFlashMessage`, `SiteTable` | Searchable, filterable, sortable, paginated sites with edit and delete |
 | `SiteFormPage` | `useEntityForm` | Name, city, region and status fields |
-| `InstallationsPage` | `usePaginatedList`, `useDeleteConfirmation`, `useFlashMessage`, `InstallationTable` | Searchable, filterable, paginated installations with edit and delete |
+| `InstallationsPage` | `usePaginatedList`, `useDeleteConfirmation`, `useFlashMessage`, `InstallationTable` | Searchable, filterable, sortable, paginated installations with edit and delete |
 | `InstallationFormPage` | `useEntityForm`, `getSites`, `getTechnicians` | Equipment, site, technician, date and status fields |
 | `NotFoundPage` | — | Message and a link to the Overview |
 
@@ -96,8 +96,9 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | Component | Purpose | Used by |
 |---|---|---|
 | `Layout` | Sidebar `Drawer` (fixed on desktop, slide-in on mobile), top `AppBar` with the page title and Add button, page area | Every page |
-| `SiteTable` | Sites table with status chips, installation counts, edit and delete buttons | Sites page |
-| `InstallationTable` | Installations table; edit and delete buttons appear only when `onDelete` is passed | Overview, Installations page |
+| `SiteTable` | Sites table with sortable headers, status chips, installation counts, edit and delete buttons | Sites page |
+| `SortableHeader` | Header cell with a `TableSortLabel` arrow; a plain cell when there is no `onSort` | Both tables |
+| `InstallationTable` | Installations table; edit and delete buttons appear only when `onDelete` is passed, sortable headers only when `onSort` is passed | Overview, Installations page |
 | `StatusChip` | Coloured status label | Both tables |
 | `SearchField` | Text field with a search icon | Both list pages |
 | `FilterSelect` | Dropdown with an "All …" option | Both list pages |
@@ -110,7 +111,7 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 
 | Hook | Holds | Returns |
 |---|---|---|
-| `usePaginatedList(fetchList, initialFilters)` | Search text, filters, page, page size, rows, loading and error state | `rows`, `filters`, `searchInput`, `setSearchInput`, `updateFilter`, `paginationProps`, `reload`, `refreshAfterDelete` |
+| `usePaginatedList(fetchList, initialFilters, initialSort)` | Search text, filters, sort column and direction, page, page size, rows, loading and error state | `rows`, `filters`, `searchInput`, `setSearchInput`, `updateFilter`, `paginationProps`, `sortProps`, `reload`, `refreshAfterDelete` |
 | `useEntityForm(options)` | Form values, field errors, load and submit state, the idempotency key | `values`, `errors`, `isEditing`, `isLoading`, `loadError`, `submitError`, `isSubmitting`, `handleChange`, `handleSubmit` |
 | `useDeleteConfirmation({ deleteRequest, onDeleted })` | The item being deleted, deleting state, error | `item`, `open`, `dialogProps` |
 | `useFlashMessage()` | A success message passed from another page | `message`, `showMessage`, `clearMessage` |
@@ -119,6 +120,7 @@ The hooks return ready-made props for Material UI components, so connecting them
 
 ```jsx
 <TablePagination component="div" {...sites.paginationProps} />
+<SiteTable sites={sites.rows} onDelete={deletion.open} {...sites.sortProps} />
 <DeleteDialog {...deletion.dialogProps} title="Delete site?" message="…" />
 ```
 
