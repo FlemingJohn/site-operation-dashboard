@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { REGIONS, SITE_STATUSES } from '../constants.js';
-import { listQueryShape, optionalChoice, requiredText } from './commonSchemas.js';
+import { REGIONS, SITE_SORT_COLUMNS, SITE_STATUSES } from '../constants.js';
+import { listQueryShape, optionalChoice, requiredText, sortShape } from './commonSchemas.js';
 
 export const siteBody = z.object({
   name: requiredText('Enter a site name.', 150),
@@ -11,6 +11,7 @@ export const siteBody = z.object({
 
 export const siteListQuery = z.object({
   ...listQueryShape,
+  ...sortShape(SITE_SORT_COLUMNS, { sortBy: 'name', order: 'asc' }),
   status: optionalChoice(SITE_STATUSES, 'Choose a valid status.'),
   region: optionalChoice(REGIONS, 'Choose a valid region.'),
 });
