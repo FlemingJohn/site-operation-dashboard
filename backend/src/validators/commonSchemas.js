@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MESSAGES } from '../constants.js';
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MESSAGES, SORT_ORDERS } from '../constants.js';
 
 const MAX_SEARCH_LENGTH = 100;
 const PAGE_MESSAGE = 'Page must be a whole number of 1 or more.';
@@ -18,6 +18,11 @@ export const positiveId = (message) =>
 export const optionalChoice = (values, message) => z.enum(values, { error: message }).optional();
 
 export const idParams = z.object({ id: positiveId(MESSAGES.invalidId) });
+
+export const sortShape = (columns, { sortBy, order }) => ({
+  sortBy: z.enum(Object.keys(columns), { error: 'Choose a valid sort column.' }).default(sortBy),
+  order: z.enum(SORT_ORDERS, { error: 'Choose asc or desc.' }).default(order),
+});
 
 export const listQueryShape = {
   page: z.coerce.number({ error: PAGE_MESSAGE }).int(PAGE_MESSAGE).min(1, PAGE_MESSAGE).default(1),
