@@ -31,3 +31,7 @@ export const PAGE_SIZE_OPTIONS = [10, 20, 50];
 export const SEARCH_DELAY_MS = 300;
 
 export const MAX_SITE_OPTIONS = 100;
+
+export const SITE_DEFAULT_SORT = { sortBy: 'name', order: 'asc' };
+
+export const INSTALLATION_DEFAULT_SORT = { sortBy: 'installedOn', order: 'desc' };
