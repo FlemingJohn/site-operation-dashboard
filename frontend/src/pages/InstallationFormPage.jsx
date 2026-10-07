@@ -19,6 +19,7 @@ import ErrorAlert from '../components/ErrorAlert';
 import { INSTALLATION_STATUSES, MAX_SITE_OPTIONS } from '../constants';
 import { useEntityForm } from '../hooks/useEntityForm';
 import { getToday } from '../utils';
+import { installationSchema } from '../validation/installationSchema';
 
 const MAX_EQUIPMENT_LENGTH = 150;
 
@@ -30,26 +31,8 @@ const toFormValues = (installation) => ({
   status: installation.status,
 });
 
-const validate = ({ equipment, siteId, installedOn }) => {
-  const errors = {};
-  if (!equipment.trim()) errors.equipment = 'Enter the equipment name.';
-  if (!siteId) errors.siteId = 'Choose a site.';
-  if (!installedOn) errors.installedOn = 'Pick an installation date.';
-  return errors;
-};
-
-const saveInstallation = (values, id, idempotencyKey) => {
-  const installation = {
-    equipment: values.equipment.trim(),
-    siteId: Number(values.siteId),
-    technicianId: values.technicianId ? Number(values.technicianId) : null,
-    installedOn: values.installedOn,
-    status: values.status,
-  };
-  return id
-    ? updateInstallation(id, installation)
-    : createInstallation(installation, idempotencyKey);
-};
+const saveInstallation = (installation, id, idempotencyKey) =>
+  id ? updateInstallation(id, installation) : createInstallation(installation, idempotencyKey);
 
 const InstallationFormPage = () => {
   const { id } = useParams();
@@ -68,7 +51,7 @@ const InstallationFormPage = () => {
     },
     load: getInstallation,
     toFormValues,
-    validate,
+    schema: installationSchema,
     save: saveInstallation,
     entityName: 'Installation',
     successPath: '/installations',
