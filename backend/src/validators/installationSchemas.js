@@ -1,6 +1,12 @@
 import { z } from 'zod';
-import { INSTALLATION_STATUSES } from '../constants.js';
-import { listQueryShape, optionalChoice, positiveId, requiredText } from './commonSchemas.js';
+import { INSTALLATION_SORT_COLUMNS, INSTALLATION_STATUSES } from '../constants.js';
+import {
+  listQueryShape,
+  optionalChoice,
+  positiveId,
+  requiredText,
+  sortShape,
+} from './commonSchemas.js';
 
 export const installationBody = z.object({
   equipment: requiredText('Enter the equipment name.', 150),
@@ -17,6 +23,7 @@ export const installationBody = z.object({
 
 export const installationListQuery = z.object({
   ...listQueryShape,
+  ...sortShape(INSTALLATION_SORT_COLUMNS, { sortBy: 'installedOn', order: 'desc' }),
   siteId: positiveId('Choose a valid site.').optional(),
   status: optionalChoice(INSTALLATION_STATUSES, 'Choose a valid status.'),
 });
