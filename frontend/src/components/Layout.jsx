@@ -47,7 +47,7 @@ const Layout = () => {
   const navigation = (
     <>
       <Toolbar>
-        <Stack direction="row" alignItems="center" className="app-brand">
+        <Stack direction="row" className="app-brand">
           <Avatar variant="rounded" className="app-brand-mark">
             <BusinessOutlinedIcon fontSize="small" />
           </Avatar>
@@ -108,7 +108,7 @@ const Layout = () => {
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" component="h1" flexGrow={1}>
+            <Typography variant="h6" component="h1" className="app-page-title">
               {activeSection.label}
             </Typography>
             {showAddButton && (
