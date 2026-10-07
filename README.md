@@ -1,6 +1,16 @@
 # Site Operations Dashboard
 
-A full-stack dashboard for managing operational sites, tracking equipment installations and viewing operational summaries. Built with React, Node.js and PostgreSQL, and designed to be deployed on Microsoft Azure.
+A full-stack dashboard for managing operational sites, tracking equipment installations and viewing operational summaries. Built with React, Node.js and PostgreSQL, and deployed on Microsoft Azure.
+
+## Live demo
+
+| | URL |
+|---|---|
+| Application | https://orange-pebble-001c30b00.2.azurestaticapps.net |
+| API health check | https://siteops-dashboard-fj-api.azurewebsites.net/api/health |
+| API example | https://siteops-dashboard-fj-api.azurewebsites.net/api/summary |
+
+The API runs on the App Service free tier, which sleeps when idle. The first request after a quiet period can take 10–20 seconds; later requests are fast.
 
 ## Features
 
@@ -407,7 +417,7 @@ Outline:
 az login
 az group create --name rg-siteops --location southeastasia
 az appservice plan create --name plan-siteops --resource-group rg-siteops --is-linux --sku B1
-az webapp create --name <api-name> --resource-group rg-siteops --plan plan-siteops --runtime "NODE:22-lts"
+az webapp create --name <api-name> --resource-group rg-siteops --plan plan-siteops --runtime "NODE:24-lts"
 az staticwebapp create --name <web-name> --resource-group rg-siteops --location eastasia --sku Free
 az webapp config appsettings set --name <api-name> --resource-group rg-siteops --settings NODE_ENV=production ...
 az webapp deploy --name <api-name> --resource-group rg-siteops --src-path backend.zip --type zip
