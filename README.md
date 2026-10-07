@@ -405,7 +405,7 @@ Outline:
 
 ```powershell
 az login
-az group create --name rg-siteops --location centralindia
+az group create --name rg-siteops --location southeastasia
 az appservice plan create --name plan-siteops --resource-group rg-siteops --is-linux --sku B1
 az webapp create --name <api-name> --resource-group rg-siteops --plan plan-siteops --runtime "NODE:22-lts"
 az staticwebapp create --name <web-name> --resource-group rg-siteops --location eastasia --sku Free
