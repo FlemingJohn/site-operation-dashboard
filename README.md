@@ -40,26 +40,139 @@ A full-stack dashboard for managing operational sites, tracking equipment instal
 | **API:** GET/POST for sites and installations plus a summary endpoint | `/api/sites`, `/api/installations`, `/api/summary` |
 | **Source control:** Git and README | This repository and README; commits follow the Conventional Commits style |
 
-## Architecture
+## Client-server architecture
+
+The application follows a three-tier client-server architecture. The client renders the interface and never touches the database. The server owns every rule and every query. The database stores the data and is reachable only from the server.
 
 ```mermaid
 flowchart LR
-    U[Browser] --> F[React app<br/>Azure Static Web Apps]
-    F -- REST /api --> B[Express API<br/>Azure App Service]
-    B -- SQL over SSL --> D[(PostgreSQL<br/>Supabase)]
+    subgraph Client["Client tier · Azure Static Web Apps"]
+        B[Browser] --> R[React single-page app]
+    end
+
+    subgraph Server["Application tier · Azure App Service"]
+        A[Express REST API]
+    end
+
+    subgraph Data["Data tier · Supabase"]
+        D[(PostgreSQL)]
+    end
+
+    R -- "HTTPS · JSON · /api/*" --> A
+    A -- "JSON response" --> R
+    A -- "SQL over SSL · connection pool" --> D
+    D -- "rows" --> A
 ```
 
-The backend is layered so each part has one responsibility:
+### Tiers
 
-```
-Request → requestLogger → route → validate → idempotency → controller → service → PostgreSQL
-                                                                    ↘ errorHandler ↙
+| Tier | Runs on | Technology | Responsibility |
+|---|---|---|---|
+| Client | The user's browser, served by Azure Static Web Apps | React, React Router, Material UI | Renders pages, holds UI state, checks forms before sending, calls the API, shows results and errors |
+| Application server | Azure App Service | Node.js, Express | Validates every request, applies business rules, runs SQL, enforces idempotency, logs requests, returns JSON |
+| Database | Supabase | PostgreSQL | Stores users, sites and installations; enforces keys, constraints and delete rules |
+
+### Responsibilities
+
+| Concern | Client | Server |
+|---|---|---|
+| Rendering pages | ✅ | |
+| Navigation between pages | ✅ React Router | |
+| Form checks for instant feedback | ✅ | |
+| Authoritative validation | | ✅ Zod schemas |
+| Search, filtering, pagination | Sends the parameters | ✅ Runs them in SQL |
+| Summary metrics | Draws the cards and charts | ✅ Aggregates in SQL |
+| Database access | Never | ✅ Only through the connection pool |
+| Error messages | Shows them | ✅ Produces them in one error handler |
+| Duplicate submit protection | Sends an `Idempotency-Key` | ✅ Stores and replays responses |
+| Logging | | ✅ One line per request with a request id |
+| Secrets (database password, certificate) | Never | ✅ Environment variables only |
+
+Validation runs on both sides on purpose. The client check gives instant feedback; the server check is the one that counts, because any request can bypass the browser.
+
+### Communication contract
+
+| Aspect | Rule |
+|---|---|
+| Protocol | HTTPS in production |
+| Style | REST: resources are nouns (`/sites`, `/installations`), actions are HTTP methods |
+| Format | JSON request and response bodies, camelCase fields |
+| Base URL | `/api`. In development Vite forwards it to `localhost:5000`; in production `VITE_API_URL` points to App Service |
+| Cross-origin access | The server allows only `CORS_ORIGIN` and exposes `X-Request-Id` and `Idempotent-Replayed` |
+| Lists | `?page=&limit=&search=&...` → `{ data, pagination }` |
+| Errors | `{ message, errors? }` with a matching HTTP status |
+| Request headers | `Content-Type: application/json`, `Idempotency-Key` on create requests |
+| Response headers | `X-Request-Id` on every response |
+| State | Stateless. Each request carries everything the server needs, so App Service can run more than one instance. |
+
+### Request lifecycle
+
+Saving a new site from the Add site form:
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as React client
+    participant API as Express server
+    participant DB as PostgreSQL
+
+    User->>UI: Fill in the form and click Save site
+    UI->>UI: Check required fields
+    UI->>API: POST /api/sites + Idempotency-Key
+    API->>API: Log request, validate body
+    API->>DB: Reserve idempotency key
+    API->>DB: INSERT INTO sites
+    DB-->>API: New row
+    API->>DB: Store response for the key
+    API-->>UI: 201 Created + site JSON
+    UI-->>User: Return to Sites with "Site added"
 ```
 
-- **Routes** connect URLs to middleware and controllers
-- **Controllers** read the request and send the response
-- **Services** hold all SQL and business rules
-- **Middleware** handles logging, validation, idempotency and errors
+If anything fails, the server's error handler returns `{ message, errors }` and the client shows it as a red message under the field or at the top of the form.
+
+### Client structure
+
+```mermaid
+flowchart TB
+    P[Pages] --> H[Custom hooks]
+    P --> C[Components]
+    H --> AP[API modules]
+    AP --> CL[API client<br/>fetch · timeout · errors]
+    CL -- HTTP --> S[(Server)]
+```
+
+| Layer | Folder | Role |
+|---|---|---|
+| Pages | `src/pages` | One component per screen; composes hooks and components |
+| Components | `src/components` | Reusable UI: layout, tables, dialogs, filters |
+| Hooks | `src/hooks` | Reusable state logic: pagination, forms, delete confirmation, flash messages |
+| API modules | `src/api` | One function per endpoint |
+| API client | `src/api/client.js` | Builds URLs, sends requests, applies the 15-second timeout, converts failures into readable messages |
+
+### Server structure
+
+```mermaid
+flowchart TB
+    RQ[Request] --> LG[requestLogger]
+    LG --> RT[Routes]
+    RT --> VA[validate]
+    VA --> ID[idempotency]
+    ID --> CT[Controllers]
+    CT --> SV[Services]
+    SV --> PG[(PostgreSQL)]
+    RT -. error .-> EH[errorHandler]
+    CT -. error .-> EH
+    SV -. error .-> EH
+```
+
+| Layer | Folder | Role |
+|---|---|---|
+| Middleware | `src/middleware` | Logging, validation, idempotency, not found, error handling |
+| Routes | `src/routes` | Map each URL and method to its middleware and controller |
+| Controllers | `src/controllers` | Read the validated request and send the response; no SQL |
+| Services | `src/services` | All SQL and business rules; no knowledge of HTTP |
+| Validators | `src/validators` | Zod schemas for bodies, query strings and route parameters |
+| Config | `src/config` | Environment variables and the database connection pool |
 
 ## Project structure
 
