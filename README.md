@@ -391,38 +391,27 @@ Example queries demonstrating joins and aggregations are in `database/queries`. 
 
 ## Deployment on Azure
 
-### Backend: Azure App Service
+The application is deployed with the Azure CLI:
 
-1. Create a **Linux** App Service with the **Node 20 LTS** runtime or later.
-2. Deploy the `backend` folder, including `certs/supabase-ca.crt`.
-3. Under **Configuration → Application settings**, add:
+| Part | Azure service |
+|---|---|
+| Frontend | Azure Static Web Apps (Free) |
+| Backend | Azure App Service, Linux, Node.js |
+| Database | Supabase PostgreSQL (not on Azure) |
 
-   | Setting | Value |
-   |---|---|
-   | `NODE_ENV` | `production` |
-   | `DATABASE_URL` | Supabase session pooler connection string |
-   | `DATABASE_SSL` | `true` |
-   | `DATABASE_SSL_CA` | `certs/supabase-ca.crt` |
-   | `CORS_ORIGIN` | The Static Web Apps URL, for example `https://<name>.azurestaticapps.net` |
-   | `LOG_LEVEL` | `info` |
+All configuration is passed through environment variables: App Service application settings for the backend and `VITE_API_URL` at build time for the frontend.
 
-   App Service sets `PORT` automatically.
-4. Set the **startup command** to `npm start`.
-5. Under **Health check**, set the path to `/api/health`.
-6. Run `npm run db:migrate` and `npm run db:seed` once against the production database.
+Outline:
 
-Logs are written as JSON to stdout and can be viewed with **Log stream** or queried in Log Analytics.
+```powershell
+az login
+az group create --name rg-siteops --location centralindia
+az appservice plan create --name plan-siteops --resource-group rg-siteops --is-linux --sku B1
+az webapp create --name <api-name> --resource-group rg-siteops --plan plan-siteops --runtime "NODE:22-lts"
+az staticwebapp create --name <web-name> --resource-group rg-siteops --location eastasia --sku Free
+az webapp config appsettings set --name <api-name> --resource-group rg-siteops --settings NODE_ENV=production ...
+az webapp deploy --name <api-name> --resource-group rg-siteops --src-path backend.zip --type zip
+npx @azure/static-web-apps-cli deploy ./dist --deployment-token <token> --env production
+```
 
-### Frontend: Azure Static Web Apps
-
-1. Create a Static Web App connected to this repository.
-2. Build settings:
-
-   | Setting | Value |
-   |---|---|
-   | App location | `frontend` |
-   | Output location | `dist` |
-
-3. Add the build environment variable `VITE_API_URL` with the App Service URL, for example `https://<name>.azurewebsites.net`. Vite reads it at build time.
-
-`frontend/public/staticwebapp.config.json` sends every route to `index.html`, so links such as `/sites/3/edit` work after a page refresh.
+Step-by-step instructions, every setting, verification, updates, monitoring, cost and troubleshooting are in [docs/deployment.md](docs/deployment.md).
