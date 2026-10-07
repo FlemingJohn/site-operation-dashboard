@@ -146,7 +146,9 @@ If the site name already exists, the database rejects the insert, the server ret
 
 The inner layers of the client and server are described in [docs/backend.md](docs/backend.md).
 
-## Local setup
+## Local project setup
+
+Set up the three parts in this order: database, backend, frontend.
 
 ### Prerequisites
 
@@ -157,14 +159,16 @@ The inner layers of the client and server are described in [docs/backend.md](doc
 | PostgreSQL | 14 or later, installed locally or a Supabase project | `psql --version` |
 | Git | Any recent version | `git --version` |
 
-### 1. Get the code
+Get the code:
 
 ```bash
 git clone <repository-url>
 cd site-operation-dashboard
 ```
 
-### 2. Create the database
+### 1. Database setup
+
+Create an empty database. The backend creates the tables in the next part.
 
 **Option A: local PostgreSQL**
 
@@ -172,25 +176,32 @@ cd site-operation-dashboard
 psql -U postgres -c "CREATE DATABASE site_operations;"
 ```
 
+Connection string: `postgresql://postgres:<password>@localhost:5432/site_operations`
+
 **Option B: Supabase**
 
 1. Create a Supabase project.
 2. In **Connect**, copy the **Session pooler** connection string.
 3. In **Database Settings → SSL Configuration**, download the CA certificate and save it as `backend/certs/supabase-ca.crt`.
 
-### 3. Configure the backend
+### 2. Backend setup
+
+**Install dependencies**
 
 ```bash
 cd backend
 npm install
+```
+
+**Create the environment file**
+
+```bash
 cp .env.example .env
 ```
 
-On Windows PowerShell use `Copy-Item .env.example .env` instead of `cp`.
+On Windows PowerShell use `Copy-Item .env.example .env`.
 
-Edit `backend/.env`.
-
-For a local PostgreSQL database:
+Edit `backend/.env` for a local PostgreSQL database:
 
 ```
 NODE_ENV=development
@@ -201,7 +212,7 @@ CORS_ORIGIN=http://localhost:5173
 LOG_LEVEL=info
 ```
 
-For Supabase:
+Or for Supabase:
 
 ```
 NODE_ENV=development
@@ -223,9 +234,7 @@ LOG_LEVEL=info
 | `CORS_ORIGIN` | The frontend URL, `http://localhost:5173` |
 | `LOG_LEVEL` | `debug`, `info`, `warn` or `error` |
 
-### 4. Create the tables and sample data
-
-Still in the `backend` folder:
+**Create the tables and sample data**
 
 ```bash
 npm run db:migrate
@@ -234,7 +243,7 @@ npm run db:seed
 
 This creates the tables and loads 6 users, 12 sites and 112 installations.
 
-### 5. Start the backend
+**Start the API**
 
 ```bash
 npm run dev
@@ -249,17 +258,28 @@ INFO: Server listening on port 5000
 
 Open `http://localhost:5000/api/health`. It returns `{ "status": "ok", "database": "connected" }`.
 
-### 6. Start the frontend
+Leave this terminal running.
+
+### 3. Frontend setup
 
 In a second terminal, from the project root:
+
+**Install dependencies**
 
 ```bash
 cd frontend
 npm install
+```
+
+**Start the app**
+
+```bash
 npm run dev
 ```
 
-Open `http://localhost:5173`. Vite forwards every `/api` request to `http://localhost:5000`, so the frontend needs no `.env` file locally.
+Open `http://localhost:5173`. The Overview page shows the summary cards and charts from the sample data.
+
+No `.env` file is needed locally: Vite forwards every `/api` request to `http://localhost:5000`. `VITE_API_URL` in `frontend/.env.example` is only used for deployment, where it points to the deployed API.
 
 ### Troubleshooting
 
@@ -269,11 +289,11 @@ Open `http://localhost:5173`. Vite forwards every `/api` request to `http://loca
 | `DATABASE_SSL_CA: Required when DATABASE_SSL is true` | SSL is on without a certificate | Set `DATABASE_SSL=false` for local PostgreSQL, or add the Supabase certificate |
 | `Cannot connect to the database` with `ECONNREFUSED` | PostgreSQL is not running, or the host or port is wrong | Start PostgreSQL and check `DATABASE_URL` |
 | `password authentication failed` | Wrong user or password in `DATABASE_URL` | Correct the credentials |
-| `database "site_operations" does not exist` | The database was not created | Run step 2 |
-| `relation "sites" does not exist` | Migrations have not run | Run `npm run db:migrate` |
+| `database "site_operations" does not exist` | The database was not created | Run the database setup step |
+| `relation "sites" does not exist` | The tables were not created | Run `npm run db:migrate` in `backend` |
 | `EADDRINUSE` on port 5000 | Another program uses the port | Stop that program, or change `PORT` and the proxy target in `frontend/vite.config.js` |
 | The app shows "Cannot reach the server" | The backend is not running | Start it with `npm run dev` in `backend` |
-| Empty tables and charts | No sample data | Run `npm run db:seed` |
+| Empty tables and charts | No sample data | Run `npm run db:seed` in `backend` |
 
 ## Scripts
 
