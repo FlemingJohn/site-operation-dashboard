@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toFieldErrors } from '../validation/commonSchemas';
 
 export const useEntityForm = ({
   id,
   emptyValues,
   load,
   toFormValues,
-  validate,
+  schema,
   save,
   entityName,
   successPath,
@@ -53,15 +54,18 @@ export const useEntityForm = ({
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const validationErrors = validate(values);
-    setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
+    const result = schema.safeParse(values);
+    if (!result.success) {
+      setErrors(toFieldErrors(result.error.issues));
+      return;
+    }
 
+    setErrors({});
     setIsSubmitting(true);
     setSubmitError('');
 
     try {
-      await save(values, id, idempotencyKey);
+      await save(result.data, id, idempotencyKey);
       navigate(successPath, {
         state: { message: `${entityName} ${isEditing ? 'updated' : 'added'}` },
       });
