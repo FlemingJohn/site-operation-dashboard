@@ -1,8 +1,8 @@
 import { pool } from '../config/database.js';
-import { MESSAGES } from '../constants.js';
+import { INSTALLATION_SORT_COLUMNS, MESSAGES } from '../constants.js';
 import { HttpError } from '../utils/HttpError.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
-import { buildWhereClause, toLikePattern } from '../utils/sql.js';
+import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
 
 const INSTALLATION_FROM = `
   FROM installations i
@@ -41,10 +41,11 @@ export const findAll = async (query) => {
   const { where, values } = buildFilters(query);
   const limitParam = `$${values.length + 1}`;
   const offsetParam = `$${values.length + 2}`;
+  const orderBy = buildOrderBy(INSTALLATION_SORT_COLUMNS, query, 'i.id');
 
   const [rowsResult, countResult] = await Promise.all([
     pool.query(
-      `${INSTALLATION_SELECT} ${where} ${NEWEST_FIRST} LIMIT ${limitParam} OFFSET ${offsetParam}`,
+      `${INSTALLATION_SELECT} ${where} ${orderBy} LIMIT ${limitParam} OFFSET ${offsetParam}`,
       [...values, query.limit, getOffset(query)]
     ),
     pool.query(`SELECT COUNT(*)::int AS total ${INSTALLATION_FROM} ${where}`, values),
