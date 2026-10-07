@@ -13,9 +13,16 @@ import {
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { formatDate } from '../utils';
+import SortableHeader from './SortableHeader';
 import StatusChip from './StatusChip';
 
-const InstallationTable = ({ installations, isLoading = false, emptyMessage, onDelete }) => {
+const InstallationTable = ({
+  installations,
+  isLoading = false,
+  emptyMessage,
+  onDelete,
+  ...sortProps
+}) => {
   const showActions = Boolean(onDelete);
   const columnCount = showActions ? 6 : 5;
 
@@ -24,11 +31,11 @@ const InstallationTable = ({ installations, isLoading = false, emptyMessage, onD
       <Table className="data-table">
         <TableHead>
           <TableRow>
-            <TableCell>Equipment</TableCell>
-            <TableCell>Site</TableCell>
-            <TableCell>Technician</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Status</TableCell>
+            <SortableHeader column="equipment" label="Equipment" {...sortProps} />
+            <SortableHeader column="siteName" label="Site" {...sortProps} />
+            <SortableHeader column="technicianName" label="Technician" {...sortProps} />
+            <SortableHeader column="installedOn" label="Date" {...sortProps} />
+            <SortableHeader column="status" label="Status" {...sortProps} />
             {showActions && <TableCell align="right">Actions</TableCell>}
           </TableRow>
         </TableHead>
