@@ -158,7 +158,7 @@ const OverviewPage = () => {
                     <div key={item.id} className="donut-legend-row">
                       <span className={`donut-legend-dot donut-legend-dot-${item.id}`} />
                       <Typography variant="body2">{item.label}</Typography>
-                      <Typography variant="body2" fontWeight={500}>
+                      <Typography variant="body2" className="text-strong">
                         {item.value}{' '}
                         <Typography component="span" variant="caption" color="text.secondary">
                           {getPercentage(item.value, totalInstallations)}%
