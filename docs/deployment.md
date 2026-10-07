@@ -81,7 +81,7 @@ az webapp list-runtimes --os-type linux --output table
 
 ```powershell
 az appservice plan create --name $plan --resource-group $resourceGroup --location $location --is-linux --sku $sku
-az webapp create --name $api --resource-group $resourceGroup --plan $plan --runtime "NODE:22-lts"
+az webapp create --name $api --resource-group $resourceGroup --plan $plan --runtime "NODE:24-lts"
 ```
 
 **Frontend: Static Web App**
@@ -164,12 +164,14 @@ Run `npm run db:migrate` again after adding a migration. Do not run `npm run db:
 ## 6. Deploy the backend
 
 ```powershell
-Compress-Archive -Path backend/src, backend/certs, backend/package.json, backend/package-lock.json -DestinationPath backend.zip -Force
+tar -a -c -f backend.zip -C backend src certs package.json package-lock.json
 az webapp deploy --name $api --resource-group $resourceGroup --src-path backend.zip --type zip
 Remove-Item backend.zip
 ```
 
 The zip contains only what the server needs. `node_modules` and `.env` are left out; Azure installs the packages, and the settings come from step 4. `certs/supabase-ca.crt` must be included, or the backend cannot connect to the database.
+
+The zip is built with `tar`, which ships with Windows. Do not use PowerShell's `Compress-Archive`: it stores paths with backslashes (`src\server.js`), Linux reads the backslash as part of the file name, and the app fails to start with `Cannot find module '/home/site/wwwroot/src/server.js'`.
 
 Check the backend:
 
@@ -264,6 +266,7 @@ The Supabase database is not affected.
 | `The subscription is not registered to use namespace` | The subscription has not used this service before | `az provider register --namespace Microsoft.Web`, wait a minute and retry |
 | Health check returns 503 or times out | The backend failed to start | `az webapp log tail` shows the reason, usually a missing setting or database connection |
 | Log shows `Invalid environment configuration` | A setting is missing | Repeat the settings command in step 4 |
+| Log shows `Cannot find module '/home/site/wwwroot/src/server.js'` | The zip was built with `Compress-Archive` and has backslash paths | Build it with `tar` as in step 6 |
 | Log shows `ENOENT` for `certs/supabase-ca.crt` | The certificate was not in the zip | Save it in `backend/certs/` and repeat step 6 |
 | Log shows `Cannot connect to the database` | Wrong connection string, or the Supabase project is paused | Check `DATABASE_URL`; restore the project in the Supabase dashboard |
 | Browser console shows a CORS error | `CORS_ORIGIN` does not match the frontend URL exactly | Set it to `$webUrl`, with no trailing slash |
