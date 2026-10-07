@@ -42,137 +42,109 @@ A full-stack dashboard for managing operational sites, tracking equipment instal
 
 ## Client-server architecture
 
-The application follows a three-tier client-server architecture. The client renders the interface and never touches the database. The server owns every rule and every query. The database stores the data and is reachable only from the server.
+The application is split into three parts that each do one job and talk over the network:
+
+- The **client** shows things and asks for things.
+- The **server** checks things and decides.
+- The **database** stores things.
+
+The browser never talks to the database directly. Every request goes through the server.
 
 ```mermaid
 flowchart LR
-    subgraph Client["Client tier · Azure Static Web Apps"]
-        B[Browser] --> R[React single-page app]
-    end
+    C["Client<br/>React app in the browser<br/>Azure Static Web Apps"]
+    S["Server<br/>Express API<br/>Azure App Service"]
+    D[("Database<br/>PostgreSQL<br/>Supabase")]
 
-    subgraph Server["Application tier · Azure App Service"]
-        A[Express REST API]
-    end
-
-    subgraph Data["Data tier · Supabase"]
-        D[(PostgreSQL)]
-    end
-
-    R -- "HTTPS · JSON · /api/*" --> A
-    A -- "JSON response" --> R
-    A -- "SQL over SSL · connection pool" --> D
-    D -- "rows" --> A
+    C -- "HTTPS request · JSON" --> S
+    S -- "JSON response" --> C
+    S -- "SQL over SSL" --> D
+    D -- "rows" --> S
 ```
 
-### Tiers
+### Client: show and ask
 
-| Tier | Runs on | Technology | Responsibility |
-|---|---|---|---|
-| Client | The user's browser, served by Azure Static Web Apps | React, React Router, Material UI | Renders pages, holds UI state, checks forms before sending, calls the API, shows results and errors |
-| Application server | Azure App Service | Node.js, Express | Validates every request, applies business rules, runs SQL, enforces idempotency, logs requests, returns JSON |
-| Database | Supabase | PostgreSQL | Stores users, sites and installations; enforces keys, constraints and delete rules |
+- Draws the pages: Overview, Sites, Installations and the forms
+- Remembers what is on screen: current page, search text, form values
+- Checks forms for instant feedback, such as "Enter a site name."
+- Sends requests, such as "give me page 2 of the sites"
+- Shows the answer as tables, charts and messages
+- Never stores data, runs SQL or sees the database password
 
-### Responsibilities
+### Server: check and decide
 
-| Concern | Client | Server |
-|---|---|---|
-| Rendering pages | ✅ | |
-| Navigation between pages | ✅ React Router | |
-| Form checks for instant feedback | ✅ | |
-| Authoritative validation | | ✅ Zod schemas |
-| Search, filtering, pagination | Sends the parameters | ✅ Runs them in SQL |
-| Summary metrics | Draws the cards and charts | ✅ Aggregates in SQL |
-| Database access | Never | ✅ Only through the connection pool |
-| Error messages | Shows them | ✅ Produces them in one error handler |
-| Duplicate submit protection | Sends an `Idempotency-Key` | ✅ Stores and replays responses |
-| Logging | | ✅ One line per request with a request id |
-| Secrets (database password, certificate) | Never | ✅ Environment variables only |
+- Validates every request again; this is the check that counts, because a request can bypass the browser
+- Applies the business rules, such as unique site names and existing sites
+- Runs the SQL to read or change data
+- Returns JSON, or an error with a clear message
+- Logs every request
+- Is the only part allowed to connect to the database
 
-Validation runs on both sides on purpose. The client check gives instant feedback; the server check is the one that counts, because any request can bypass the browser.
+### Database: store and protect
 
-### Communication contract
+- Holds the `users`, `sites` and `installations` tables
+- Enforces required fields, unique site names and valid statuses
+- Enforces relationships, such as deleting a site's installations with the site
+- Accepts encrypted connections from the server only
 
-| Aspect | Rule |
+### How the client and server talk
+
+They exchange HTTP requests and JSON following REST. The URL names the resource, the method names the action and the status code reports the result.
+
+```
+Client:  GET  /api/sites?page=2&search=pune
+Server:  200  { "data": [...], "pagination": {...} }
+
+Client:  POST /api/sites  { "name": "Surat DC", "city": "Surat", "region": "West" }
+Server:  201  { "id": 13, "name": "Surat DC", ... }
+Server:  409  { "message": "A site with this name already exists." }
+```
+
+| Method | Action |
 |---|---|
-| Protocol | HTTPS in production |
-| Style | REST: resources are nouns (`/sites`, `/installations`), actions are HTTP methods |
-| Format | JSON request and response bodies, camelCase fields |
-| Base URL | `/api`. In development Vite forwards it to `localhost:5000`; in production `VITE_API_URL` points to App Service |
-| Cross-origin access | The server allows only `CORS_ORIGIN` and exposes `X-Request-Id` and `Idempotent-Replayed` |
-| Lists | `?page=&limit=&search=&...` → `{ data, pagination }` |
-| Errors | `{ message, errors? }` with a matching HTTP status |
-| Request headers | `Content-Type: application/json`, `Idempotency-Key` on create requests |
-| Response headers | `X-Request-Id` on every response |
-| State | Stateless. Each request carries everything the server needs, so App Service can run more than one instance. |
+| GET | Read |
+| POST | Create |
+| PUT | Update |
+| DELETE | Delete |
 
-### Request lifecycle
+| Status | Meaning |
+|---|---|
+| 2xx | Success |
+| 4xx | Problem with the request, such as invalid data or a missing record |
+| 5xx | Problem on the server |
 
-Saving a new site from the Add site form:
+### Why it is split this way
+
+| Benefit | In this project |
+|---|---|
+| Security | The database password lives only on the server; the browser cannot see it or run SQL |
+| One source of truth | Every rule lives on the server, so any future client, such as a mobile app, follows the same rules |
+| Separate deployment | The frontend and backend are deployed and updated independently |
+| Scaling | The server keeps no memory between requests, so Azure can run several copies of it |
+| Clear responsibilities | Frontend and backend work do not overlap, so each side is easier to understand and test |
+
+### One action from start to finish
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant UI as React client
-    participant API as Express server
-    participant DB as PostgreSQL
+    participant Client as Client (React)
+    participant Server as Server (Express)
+    participant DB as Database (PostgreSQL)
 
-    User->>UI: Fill in the form and click Save site
-    UI->>UI: Check required fields
-    UI->>API: POST /api/sites + Idempotency-Key
-    API->>API: Log request, validate body
-    API->>DB: Reserve idempotency key
-    API->>DB: INSERT INTO sites
-    DB-->>API: New row
-    API->>DB: Store response for the key
-    API-->>UI: 201 Created + site JSON
-    UI-->>User: Return to Sites with "Site added"
+    User->>Client: Click "Save site"
+    Client->>Client: Check the site name is not empty
+    Client->>Server: POST /api/sites
+    Server->>Server: Validate the data
+    Server->>DB: INSERT INTO sites
+    DB-->>Server: New row
+    Server-->>Client: 201 Created + site
+    Client-->>User: Show the Sites list with "Site added"
 ```
 
-If anything fails, the server's error handler returns `{ message, errors }` and the client shows it as a red message under the field or at the top of the form.
+If the site name already exists, the database rejects the insert, the server returns `409` with "A site with this name already exists.", and the client shows that message under the Site name field.
 
-### Client structure
-
-```mermaid
-flowchart TB
-    P[Pages] --> H[Custom hooks]
-    P --> C[Components]
-    H --> AP[API modules]
-    AP --> CL[API client<br/>fetch · timeout · errors]
-    CL -- HTTP --> S[(Server)]
-```
-
-| Layer | Folder | Role |
-|---|---|---|
-| Pages | `src/pages` | One component per screen; composes hooks and components |
-| Components | `src/components` | Reusable UI: layout, tables, dialogs, filters |
-| Hooks | `src/hooks` | Reusable state logic: pagination, forms, delete confirmation, flash messages |
-| API modules | `src/api` | One function per endpoint |
-| API client | `src/api/client.js` | Builds URLs, sends requests, applies the 15-second timeout, converts failures into readable messages |
-
-### Server structure
-
-```mermaid
-flowchart TB
-    RQ[Request] --> LG[requestLogger]
-    LG --> RT[Routes]
-    RT --> VA[validate]
-    VA --> ID[idempotency]
-    ID --> CT[Controllers]
-    CT --> SV[Services]
-    SV --> PG[(PostgreSQL)]
-    RT -. error .-> EH[errorHandler]
-    CT -. error .-> EH
-    SV -. error .-> EH
-```
-
-| Layer | Folder | Role |
-|---|---|---|
-| Middleware | `src/middleware` | Logging, validation, idempotency, not found, error handling |
-| Routes | `src/routes` | Map each URL and method to its middleware and controller |
-| Controllers | `src/controllers` | Read the validated request and send the response; no SQL |
-| Services | `src/services` | All SQL and business rules; no knowledge of HTTP |
-| Validators | `src/validators` | Zod schemas for bodies, query strings and route parameters |
-| Config | `src/config` | Environment variables and the database connection pool |
+The inner layers of the client and server are described in [Project structure](#project-structure) and [docs/backend.md](docs/backend.md).
 
 ## Project structure
 
