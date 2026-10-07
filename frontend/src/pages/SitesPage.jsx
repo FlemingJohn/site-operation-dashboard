@@ -6,7 +6,7 @@ import FilterSelect from '../components/FilterSelect';
 import SearchField from '../components/SearchField';
 import SiteTable from '../components/SiteTable';
 import SuccessSnackbar from '../components/SuccessSnackbar';
-import { REGIONS, SITE_STATUSES } from '../constants';
+import { REGIONS, SITE_DEFAULT_SORT, SITE_STATUSES } from '../constants';
 import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
 import { useFlashMessage } from '../hooks/useFlashMessage';
 import { usePaginatedList } from '../hooks/usePaginatedList';
@@ -14,7 +14,7 @@ import { usePaginatedList } from '../hooks/usePaginatedList';
 const INITIAL_FILTERS = { status: '', region: '' };
 
 const SitesPage = () => {
-  const sites = usePaginatedList(getSites, INITIAL_FILTERS);
+  const sites = usePaginatedList(getSites, INITIAL_FILTERS, SITE_DEFAULT_SORT);
   const flash = useFlashMessage();
   const deletion = useDeleteConfirmation({
     deleteRequest: deleteSite,
@@ -58,6 +58,7 @@ const SitesPage = () => {
           isLoading={sites.isLoading}
           emptyMessage="No sites match these filters."
           onDelete={deletion.open}
+          {...sites.sortProps}
         />
         <TablePagination component="div" {...sites.paginationProps} />
       </Card>
