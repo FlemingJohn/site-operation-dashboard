@@ -144,53 +144,41 @@ sequenceDiagram
 
 If the site name already exists, the database rejects the insert, the server returns `409` with "A site with this name already exists.", and the client shows that message under the Site name field.
 
-The inner layers of the client and server are described in [Project structure](#project-structure) and [docs/backend.md](docs/backend.md).
+The inner layers of the client and server are described in [docs/backend.md](docs/backend.md).
 
-## Project structure
-
-```
-site-operation-dashboard/
-├── frontend/                 React application
-│   ├── public/               favicon, Static Web Apps routing config
-│   └── src/
-│       ├── api/              fetch client and one module per resource
-│       ├── components/       Layout, tables, dialogs, form and filter controls
-│       ├── hooks/            reusable data, form and dialog logic
-│       ├── pages/            Overview, Sites, Installations and their forms
-│       └── styles/           MUI theme and global layout styles
-├── backend/                  Express API
-│   ├── scripts/              database migration and seed runners
-│   └── src/
-│       ├── config/           environment and database connection
-│       ├── routes/
-│       ├── controllers/
-│       ├── services/
-│       ├── validators/
-│       ├── middleware/
-│       └── utils/
-├── database/
-│   ├── migrations/           numbered schema scripts
-│   ├── seeds/                sample data
-│   └── queries/              join and aggregation examples
-└── docs/
-    ├── backend.md            API reference, idempotency, logging, Supabase
-    └── database.md           ER diagram, relationships, normalization
-```
-
-## Getting started
+## Local setup
 
 ### Prerequisites
 
-- Node.js 20.11 or later
-- A PostgreSQL 14+ database. The project uses [Supabase](https://supabase.com); any PostgreSQL server works.
+| Tool | Version | Check |
+|---|---|---|
+| Node.js | 20.11 or later | `node -v` |
+| npm | Included with Node.js | `npm -v` |
+| PostgreSQL | 14 or later, installed locally or a Supabase project | `psql --version` |
+| Git | Any recent version | `git --version` |
 
-### 1. Set up the database
+### 1. Get the code
+
+```bash
+git clone <repository-url>
+cd site-operation-dashboard
+```
+
+### 2. Create the database
+
+**Option A: local PostgreSQL**
+
+```bash
+psql -U postgres -c "CREATE DATABASE site_operations;"
+```
+
+**Option B: Supabase**
 
 1. Create a Supabase project.
 2. In **Connect**, copy the **Session pooler** connection string.
 3. In **Database Settings → SSL Configuration**, download the CA certificate and save it as `backend/certs/supabase-ca.crt`.
 
-### 2. Configure and start the backend
+### 3. Configure the backend
 
 ```bash
 cd backend
@@ -198,29 +186,72 @@ npm install
 cp .env.example .env
 ```
 
-Fill in `.env`:
+On Windows PowerShell use `Copy-Item .env.example .env` instead of `cp`.
+
+Edit `backend/.env`.
+
+For a local PostgreSQL database:
+
+```
+NODE_ENV=development
+PORT=5000
+DATABASE_URL=postgresql://postgres:<password>@localhost:5432/site_operations
+DATABASE_SSL=false
+CORS_ORIGIN=http://localhost:5173
+LOG_LEVEL=info
+```
+
+For Supabase:
+
+```
+NODE_ENV=development
+PORT=5000
+DATABASE_URL=postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres
+DATABASE_SSL=true
+DATABASE_SSL_CA=certs/supabase-ca.crt
+CORS_ORIGIN=http://localhost:5173
+LOG_LEVEL=info
+```
 
 | Variable | Description |
 |---|---|
-| `NODE_ENV` | `development` for readable, coloured logs |
-| `PORT` | API port, defaults to `5000` |
-| `DATABASE_URL` | Supabase session pooler connection string |
-| `DATABASE_SSL` | `true` for Supabase, `false` for a local database without SSL |
+| `NODE_ENV` | `development` prints readable, coloured logs |
+| `PORT` | API port; the frontend expects `5000` |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `DATABASE_SSL` | `false` for local PostgreSQL, `true` for Supabase |
 | `DATABASE_SSL_CA` | Path to the CA certificate, required when `DATABASE_SSL` is `true` |
-| `CORS_ORIGIN` | Frontend URL, `http://localhost:5173` locally |
+| `CORS_ORIGIN` | The frontend URL, `http://localhost:5173` |
 | `LOG_LEVEL` | `debug`, `info`, `warn` or `error` |
 
-Create the tables and load the sample data, then start the API:
+### 4. Create the tables and sample data
+
+Still in the `backend` folder:
 
 ```bash
 npm run db:migrate
 npm run db:seed
+```
+
+This creates the tables and loads 6 users, 12 sites and 112 installations.
+
+### 5. Start the backend
+
+```bash
 npm run dev
 ```
 
-Check it is running: `http://localhost:5000/api/health` returns `{ "status": "ok", "database": "connected" }`.
+The terminal shows:
 
-### 3. Start the frontend
+```
+INFO: Database connected
+INFO: Server listening on port 5000
+```
+
+Open `http://localhost:5000/api/health`. It returns `{ "status": "ok", "database": "connected" }`.
+
+### 6. Start the frontend
+
+In a second terminal, from the project root:
 
 ```bash
 cd frontend
@@ -228,7 +259,21 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`. In development Vite forwards `/api` requests to `http://localhost:5000`, so no frontend configuration is needed.
+Open `http://localhost:5173`. Vite forwards every `/api` request to `http://localhost:5000`, so the frontend needs no `.env` file locally.
+
+### Troubleshooting
+
+| Problem | Cause | Fix |
+|---|---|---|
+| `Invalid environment configuration` when the backend starts | A variable in `backend/.env` is missing or invalid | The message names the variable; add or correct it |
+| `DATABASE_SSL_CA: Required when DATABASE_SSL is true` | SSL is on without a certificate | Set `DATABASE_SSL=false` for local PostgreSQL, or add the Supabase certificate |
+| `Cannot connect to the database` with `ECONNREFUSED` | PostgreSQL is not running, or the host or port is wrong | Start PostgreSQL and check `DATABASE_URL` |
+| `password authentication failed` | Wrong user or password in `DATABASE_URL` | Correct the credentials |
+| `database "site_operations" does not exist` | The database was not created | Run step 2 |
+| `relation "sites" does not exist` | Migrations have not run | Run `npm run db:migrate` |
+| `EADDRINUSE` on port 5000 | Another program uses the port | Stop that program, or change `PORT` and the proxy target in `frontend/vite.config.js` |
+| The app shows "Cannot reach the server" | The backend is not running | Start it with `npm run dev` in `backend` |
+| Empty tables and charts | No sample data | Run `npm run db:seed` |
 
 ## Scripts
 
@@ -283,8 +328,37 @@ Full request and response examples, validation rules, error codes, idempotency a
 
 ```mermaid
 erDiagram
-    USERS |o--o{ INSTALLATIONS : "performs"
     SITES ||--o{ INSTALLATIONS : "has"
+    USERS |o--o{ INSTALLATIONS : "is assigned"
+
+    SITES {
+        serial id PK
+        varchar name UK
+        varchar city
+        varchar region
+        varchar status
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    INSTALLATIONS {
+        serial id PK
+        integer site_id FK
+        integer technician_id FK
+        varchar equipment
+        varchar status
+        date installed_on
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    USERS {
+        serial id PK
+        varchar full_name
+        varchar email UK
+        varchar role
+        timestamptz created_at
+    }
 ```
 
 | Relationship | Type |
@@ -293,7 +367,7 @@ erDiagram
 | `users` → `installations` | One-to-many, optional. Deleting a user keeps the installations as unassigned. |
 | `sites` ↔ `users` | Many-to-many through `installations` |
 
-Example queries demonstrating joins and aggregations are in `database/queries`. The full ER diagram, column definitions and normalization notes are in [docs/database.md](docs/database.md).
+Example queries demonstrating joins and aggregations are in `database/queries`. Column rules, constraints, the `idempotency_keys` table and normalization notes are in [docs/database.md](docs/database.md).
 
 ## Deployment on Azure
 
@@ -332,31 +406,3 @@ Logs are written as JSON to stdout and can be viewed with **Log stream** or quer
 3. Add the build environment variable `VITE_API_URL` with the App Service URL, for example `https://<name>.azurewebsites.net`. Vite reads it at build time.
 
 `frontend/public/staticwebapp.config.json` sends every route to `index.html`, so links such as `/sites/3/edit` work after a page refresh.
-
-## Design decisions
-
-| Decision | Reason |
-|---|---|
-| Plain SQL with `pg` instead of an ORM | Keeps joins and aggregations visible and reviewable |
-| Server-side pagination, search and filtering | The browser only loads one page of rows, however large the tables grow |
-| Material UI with a custom theme | Accessible, consistent components; styling lives in one theme file instead of inline styles |
-| Idempotency keys on create requests | A retried or double-submitted form never creates a duplicate record |
-| Row Level Security on every table | Blocks Supabase's automatic public REST API; the backend connects as the owner and is unaffected |
-| Session pooler connection | Works over IPv4 from Azure App Service and suits a long-running server |
-| Central error handler | One place turns errors into responses, so controllers stay short and no stack trace reaches the client |
-
-## Known limitations
-
-- There is no authentication; every visitor can view and edit data.
-- There are no automated tests. The API was verified manually against a real PostgreSQL instance.
-- Supabase free-tier projects pause after seven days without activity and must be restored from the Supabase dashboard.
-
-## Commit convention
-
-Commits follow [Conventional Commits](https://www.conventionalcommits.org):
-
-```
-feat: add installations list with server-side pagination
-fix: return 409 when a site name already exists
-docs: add database ER diagram
-```
