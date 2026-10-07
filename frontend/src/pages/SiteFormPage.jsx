@@ -137,7 +137,7 @@ const SiteFormPage = () => {
               </TextField>
             </Grid>
             <Grid size={12}>
-              <Stack direction="row" spacing={1} justifyContent="flex-end">
+              <Stack direction="row" spacing={1} className="form-actions">
                 <Button component={Link} to="/sites" variant="outlined" color="inherit">
                   Cancel
                 </Button>
