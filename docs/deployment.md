@@ -205,7 +205,7 @@ cd ..
 | Check | How | Expected |
 |---|---|---|
 | Backend health | `Invoke-RestMethod "$apiUrl/api/health"` | `status: ok`, `database: connected` |
-| Backend data | `Invoke-RestMethod "$apiUrl/api/summary"` | Totals for 12 sites and 112 installations |
+| Backend data | `Invoke-RestMethod "$apiUrl/api/summary"` | Totals for 5 sites and 5 installations |
 | Frontend | Open `$webUrl` in a browser | Overview page with cards and charts |
 | End to end | Add a site in the app | "Site added" message and the new row in the Sites list |
 | Logs | `az webapp log tail --name $api --resource-group $resourceGroup` | JSON lines for each request |
