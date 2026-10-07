@@ -8,7 +8,7 @@ import FilterSelect from '../components/FilterSelect';
 import InstallationTable from '../components/InstallationTable';
 import SearchField from '../components/SearchField';
 import SuccessSnackbar from '../components/SuccessSnackbar';
-import { INSTALLATION_STATUSES, MAX_SITE_OPTIONS } from '../constants';
+import { INSTALLATION_DEFAULT_SORT, INSTALLATION_STATUSES, MAX_SITE_OPTIONS } from '../constants';
 import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
 import { useFlashMessage } from '../hooks/useFlashMessage';
 import { usePaginatedList } from '../hooks/usePaginatedList';
@@ -19,7 +19,11 @@ const SITE_OPTIONS_ERROR = "Couldn't load sites for filtering.";
 const InstallationsPage = () => {
   const [siteOptions, setSiteOptions] = useState([]);
   const [siteOptionsError, setSiteOptionsError] = useState('');
-  const installations = usePaginatedList(getInstallations, INITIAL_FILTERS);
+  const installations = usePaginatedList(
+    getInstallations,
+    INITIAL_FILTERS,
+    INSTALLATION_DEFAULT_SORT
+  );
   const flash = useFlashMessage();
   const deletion = useDeleteConfirmation({
     deleteRequest: deleteInstallation,
@@ -74,6 +78,7 @@ const InstallationsPage = () => {
           isLoading={installations.isLoading}
           emptyMessage="No installations match these filters."
           onDelete={deletion.open}
+          {...installations.sortProps}
         />
         <TablePagination component="div" {...installations.paginationProps} />
       </Card>
