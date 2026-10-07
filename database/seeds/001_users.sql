@@ -3,5 +3,4 @@ INSERT INTO users (full_name, email, role) VALUES
   ('Ravi Kumar', 'ravi.kumar@siteops.example', 'technician'),
   ('Anita Sharma', 'anita.sharma@siteops.example', 'technician'),
   ('Mohan Rao', 'mohan.rao@siteops.example', 'technician'),
-  ('Priya Nair', 'priya.nair@siteops.example', 'technician'),
-  ('Arjun Mehta', 'arjun.mehta@siteops.example', 'technician');
+  ('Priya Nair', 'priya.nair@siteops.example', 'technician');
