@@ -13,6 +13,7 @@ The frontend is a React single-page application built with Vite and Material UI.
 | Icons | `@mui/icons-material` | Material SVG icons |
 | Charts | `@mui/x-charts` | Donut and bar charts on the Overview page |
 | Styling engine | `@emotion/react`, `@emotion/styled` | Required by Material UI |
+| Validation | `zod` 4 | Form schemas that mirror the backend's |
 
 HTTP requests use the browser's built-in `fetch`; no extra HTTP library is needed.
 
@@ -33,6 +34,7 @@ frontend/
     ├── utils.js                  Date helpers
     ├── api/                      One module per resource and a shared client
     ├── hooks/                    Reusable state logic
+    ├── validation/               Zod form schemas mirroring backend/src/validators
     ├── components/               Reusable UI pieces
     ├── pages/                    One component per screen
     └── styles/
@@ -156,7 +158,7 @@ sequenceDiagram
 
     User->>Form: Click "Save site"
     Form->>Hook: handleSubmit
-    Hook->>Hook: validate(values)
+    Hook->>Hook: schema.safeParse(values)
     alt Fields invalid
         Hook-->>Form: errors under each field
     else Fields valid
@@ -166,7 +168,7 @@ sequenceDiagram
     end
 ```
 
-- Each form checks required fields before sending, for instant feedback.
+- Each form is checked with a Zod schema before sending, for instant feedback. The schema also trims text and turns dropdown values into the types the API expects, such as `"3"` into `3` and an empty technician into `null`.
 - Errors returned by the server appear under the matching field.
 - Each form creates one `Idempotency-Key` when it opens and sends it with every submit, so a repeated click or retry never creates a duplicate.
 - After saving, the form returns to the list and the list shows "Site added" or "Installation updated".
@@ -194,6 +196,16 @@ sequenceDiagram
 | Other 4xx | The server's message, such as "A site with this name already exists." |
 
 The reference code matches the `X-Request-Id` in the backend log, so a reported error can be found in the logs.
+
+## Validation
+
+| File | Checks | Mirrors |
+|---|---|---|
+| `validation/siteSchema.js` | Name and city required and length-limited, region and status from the allowed lists | `backend/src/validators/siteSchemas.js` |
+| `validation/installationSchema.js` | Equipment required, site required, technician optional, `YYYY-MM-DD` date, status from the allowed list | `backend/src/validators/installationSchemas.js` |
+| `validation/commonSchemas.js` | Shared rules (`requiredText`, `positiveId`, `optionalId`) and `toFieldErrors`, which turns Zod issues into `{ field: message }` | `backend/src/validators/commonSchemas.js` |
+
+The frontend and backend use the same Zod version, the same rules and the same messages, kept as two copies so each side builds and deploys on its own. When a rule or message changes, change both. The browser check gives instant feedback; the server check is the one that counts, because any request can bypass the browser. Checks that need the database, such as a duplicate site name, happen only on the server and appear under the matching field.
 
 ## Error handling
 
