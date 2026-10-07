@@ -211,7 +211,7 @@ database/
 ```
 
 - **Migrations** create the schema. They are numbered so they run in order, and use `IF NOT EXISTS` / `CREATE OR REPLACE` so they can be run again safely.
-- **Seeds** load sample data: 6 users, 12 sites and 112 installations spread over the last five months. `000_reset.sql` empties the tables first.
+- **Seeds** load a small, hand-written sample: 5 users (1 admin, 4 technicians), 5 sites (one inactive, one with no installations) and 5 installations across all three statuses, spread over the last five months, with one unassigned. `000_reset.sql` empties the tables first.
 - **Queries** demonstrate joins and aggregations. Each file holds one query and is named after what it returns.
 
 `007_enable_row_level_security.sql` turns on Row Level Security for every table. Supabase exposes tables through its automatic REST API; with Row Level Security on and no policies, that API returns nothing, while the backend, which connects as the table owner, keeps full access. On a local PostgreSQL server it has no visible effect.
