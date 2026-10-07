@@ -15,6 +15,7 @@ import { createSite, getSite, updateSite } from '../api/siteApi';
 import ErrorAlert from '../components/ErrorAlert';
 import { REGIONS, SITE_STATUSES } from '../constants';
 import { useEntityForm } from '../hooks/useEntityForm';
+import { siteSchema } from '../validation/siteSchema';
 
 const EMPTY_SITE = { name: '', city: '', region: '', status: 'active' };
 const MAX_NAME_LENGTH = 150;
@@ -22,18 +23,8 @@ const MAX_CITY_LENGTH = 100;
 
 const toFormValues = ({ name, city, region, status }) => ({ name, city, region, status });
 
-const validate = ({ name, city, region }) => {
-  const errors = {};
-  if (!name.trim()) errors.name = 'Enter a site name.';
-  if (!city.trim()) errors.city = 'Enter a city.';
-  if (!region) errors.region = 'Choose a region.';
-  return errors;
-};
-
-const saveSite = (values, id, idempotencyKey) => {
-  const site = { ...values, name: values.name.trim(), city: values.city.trim() };
-  return id ? updateSite(id, site) : createSite(site, idempotencyKey);
-};
+const saveSite = (site, id, idempotencyKey) =>
+  id ? updateSite(id, site) : createSite(site, idempotencyKey);
 
 const SiteFormPage = () => {
   const { id } = useParams();
@@ -42,7 +33,7 @@ const SiteFormPage = () => {
     emptyValues: EMPTY_SITE,
     load: getSite,
     toFormValues,
-    validate,
+    schema: siteSchema,
     save: saveSite,
     entityName: 'Site',
     successPath: '/sites',
