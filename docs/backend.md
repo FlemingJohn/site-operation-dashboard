@@ -145,32 +145,32 @@ Runs four aggregation queries in parallel. Each one matches a file in `database/
 ```json
 {
   "totals": {
-    "sites": 12,
-    "activeSites": 9,
-    "installations": 112,
-    "completedInstallations": 86,
-    "inProgressInstallations": 18,
-    "pendingInstallations": 8
+    "sites": 5,
+    "activeSites": 4,
+    "installations": 5,
+    "completedInstallations": 3,
+    "inProgressInstallations": 1,
+    "pendingInstallations": 1
   },
   "statusBreakdown": [
-    { "status": "completed", "count": 86 },
-    { "status": "in_progress", "count": 18 },
-    { "status": "pending", "count": 8 }
+    { "status": "completed", "count": 3 },
+    { "status": "in_progress", "count": 1 },
+    { "status": "pending", "count": 1 }
   ],
   "monthlyInstallations": [
-    { "month": "2026-05", "label": "May", "count": 14 },
-    { "month": "2026-06", "label": "Jun", "count": 19 }
+    { "month": "2026-05", "label": "May", "count": 1 },
+    { "month": "2026-06", "label": "Jun", "count": 1 }
   ],
   "recentInstallations": [
     {
-      "id": 112,
-      "equipment": "Solar Inverter 50kW",
-      "status": "completed",
-      "installedOn": "2026-10-06",
-      "siteId": 5,
-      "siteName": "Ahmedabad Solar Farm",
-      "technicianId": 2,
-      "technicianName": "Ravi Kumar"
+      "id": 5,
+      "equipment": "CCTV Array",
+      "status": "pending",
+      "installedOn": "2026-10-04",
+      "siteId": 1,
+      "siteName": "Chennai Plant",
+      "technicianId": null,
+      "technicianName": null
     }
   ]
 }
