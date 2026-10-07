@@ -18,6 +18,7 @@ The API runs on the App Service free tier, which sleeps when idle. The first req
 - **Sites**: list, search by name or city, filter by status and region, add, edit and delete
 - **Installations**: list, search by equipment or technician, filter by site and status, add, edit and delete
 - **Server-side pagination** with a selectable page size
+- **Server-side sorting** by clicking a column header
 - **Validation** in the browser and on the server, with errors shown under each form field
 - **Safe retries**: create requests carry an `Idempotency-Key`, so a repeated submit never creates a duplicate
 - **Structured logging** with a request id on every log line and response
@@ -325,12 +326,12 @@ All endpoints are under `/api` and use JSON.
 |---|---|---|
 | GET | `/health` | API and database status |
 | GET | `/summary` | Totals, status breakdown, monthly counts, recent installations |
-| GET | `/sites` | Paginated list with `search`, `status`, `region` |
+| GET | `/sites` | Paginated list with `search`, `status`, `region`, `sortBy`, `order` |
 | GET | `/sites/:id` | One site |
 | POST | `/sites` | Create a site |
 | PUT | `/sites/:id` | Update a site |
 | DELETE | `/sites/:id` | Delete a site and its installations |
-| GET | `/installations` | Paginated list with `search`, `siteId`, `status` |
+| GET | `/installations` | Paginated list with `search`, `siteId`, `status`, `sortBy`, `order` |
 | GET | `/installations/:id` | One installation |
 | POST | `/installations` | Create an installation |
 | PUT | `/installations/:id` | Update an installation |
