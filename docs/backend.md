@@ -105,6 +105,7 @@ flowchart LR
 | Ids | Positive integers |
 | Pagination | `page` starts at 1, `limit` defaults to 10 and is capped at 100 |
 | Search | Case-insensitive partial match with `ILIKE`, always passed as a parameter |
+| Sorting | `sortBy` must be one of the listed columns and `order` is `asc` or `desc`. Column names map to fixed SQL expressions, so user input never reaches the `ORDER BY` text. Ties are broken by id so pages never overlap. |
 
 ## Endpoints
 
@@ -192,8 +193,10 @@ Runs four aggregation queries in parallel. Each one matches a file in `database/
 | `search` | string | | Matches site name or city |
 | `status` | string | | `active` or `inactive` |
 | `region` | string | | `North`, `South`, `East` or `West` |
+| `sortBy` | string | `name` | `name`, `region`, `status` or `installationCount` |
+| `order` | string | `asc` | `asc` or `desc` |
 
-Example: `GET /api/sites?page=1&limit=10&search=pune&status=active&region=West`
+Example: `GET /api/sites?page=1&limit=10&search=pune&status=active&region=West&sortBy=installationCount&order=desc`
 
 ```json
 {
@@ -253,8 +256,10 @@ Responds `204` with no body. The site's installations are deleted by `ON DELETE 
 | `search` | string | | Matches equipment or technician name |
 | `siteId` | integer | | An existing site id |
 | `status` | string | | `pending`, `in_progress` or `completed` |
+| `sortBy` | string | `installedOn` | `equipment`, `siteName`, `technicianName`, `installedOn` or `status` |
+| `order` | string | `desc` | `asc` or `desc` |
 
-Example: `GET /api/installations?page=1&limit=10&search=hvac&siteId=2&status=pending`
+Example: `GET /api/installations?page=1&limit=10&search=hvac&siteId=2&status=pending&sortBy=equipment&order=asc`
 
 ```json
 {
