@@ -14,8 +14,21 @@
 }
 
 .app-brand {
+  align-items: center;
   gap: 10px;
   padding: 4px 4px 0;
+}
+
+.app-page-title {
+  flex-grow: 1;
+}
+
+.text-strong {
+  font-weight: 500;
+}
+
+.form-actions {
+  justify-content: flex-end;
 }
 
 .app-brand-name {
