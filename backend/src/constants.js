@@ -1,0 +1,29 @@
+export const REGIONS = ['North', 'South', 'East', 'West'];
+
+export const SITE_STATUSES = ['active', 'inactive'];
+
+export const INSTALLATION_STATUSES = ['pending', 'in_progress', 'completed'];
+
+export const USER_ROLES = ['admin', 'technician'];
+
+export const DEFAULT_PAGE_SIZE = 10;
+
+export const MAX_PAGE_SIZE = 100;
+
+export const RECENT_INSTALLATIONS_LIMIT = 5;
+
+export const MESSAGES = {
+  fieldErrors: 'Please fix the highlighted fields.',
+  invalidId: 'Invalid id.',
+  invalidJson: 'The request body is not valid JSON.',
+  siteNotFound: 'This site no longer exists.',
+  installationNotFound: 'This installation no longer exists.',
+  routeNotFound: 'Route not found.',
+  duplicateSite: 'A site with this name already exists.',
+  missingReference: 'The selected site or technician no longer exists.',
+  invalidIdempotencyKey: 'Idempotency-Key must be a UUID.',
+  requestInProgress: 'This request is still being processed. Please wait a moment.',
+  requestMismatch: 'This request was already submitted with different details.',
+  unavailable: 'The service is temporarily unavailable. Please try again shortly.',
+  unexpected: 'Something went wrong. Please try again.',
+};
