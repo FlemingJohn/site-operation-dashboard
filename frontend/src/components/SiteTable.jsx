@@ -32,7 +32,7 @@ const SiteTable = ({ sites, isLoading = false, emptyMessage, onDelete }) => (
         {sites.map((site) => (
           <TableRow hover key={site.id}>
             <TableCell>
-              <Typography variant="body2" fontWeight={500}>
+              <Typography variant="body2" className="text-strong">
                 {site.name}
               </Typography>
               <Typography variant="caption" color="text.secondary">
