@@ -251,7 +251,7 @@ npm run db:migrate
 npm run db:seed
 ```
 
-This creates the tables and loads 6 users, 12 sites and 112 installations.
+This creates the tables and loads 5 users, 5 sites and 5 installations.
 
 **Start the API**
 
@@ -342,7 +342,7 @@ Paginated responses:
 ```json
 {
   "data": [],
-  "pagination": { "page": 1, "limit": 10, "total": 112, "totalPages": 12 }
+  "pagination": { "page": 1, "limit": 10, "total": 5, "totalPages": 1 }
 }
 ```
 
