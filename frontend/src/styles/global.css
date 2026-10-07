@@ -1,0 +1,185 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-nav {
+  width: 232px;
+  flex-shrink: 0;
+}
+
+.app-drawer-paper {
+  width: 232px;
+  box-sizing: border-box;
+}
+
+.app-brand {
+  gap: 10px;
+  padding: 4px 4px 0;
+}
+
+.app-brand-name {
+  color: #ffffff;
+}
+
+.app-brand-mark {
+  width: 30px;
+  height: 30px;
+  background-color: #2457d6;
+  color: #ffffff;
+}
+
+.app-main {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  padding: 24px;
+}
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.stat-icon-primary {
+  background-color: #e3ebfb;
+  color: #2457d6;
+}
+
+.stat-icon-success {
+  background-color: #e2f3e8;
+  color: #1e8a4c;
+}
+
+.stat-icon-neutral {
+  background-color: #eef0f3;
+  color: #18212f;
+}
+
+.chart-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.donut-layout {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+
+.donut-chart {
+  position: relative;
+  width: 170px;
+  height: 170px;
+}
+
+.donut-total {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-legend {
+  flex: 1;
+  min-width: 180px;
+  max-width: 280px;
+  display: grid;
+  gap: 14px;
+}
+
+.donut-legend-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.donut-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.donut-legend-dot-completed {
+  background-color: #1e8a4c;
+}
+
+.donut-legend-dot-in_progress {
+  background-color: #b86e00;
+}
+
+.donut-legend-dot-pending {
+  background-color: #a3acb9;
+}
+
+.bar-chart {
+  width: 100%;
+}
+
+.toolbar-search {
+  flex: 1 1 260px;
+}
+
+.toolbar-filter {
+  min-width: 170px;
+}
+
+.form-card {
+  max-width: 760px;
+}
+
+.data-table {
+  min-width: 680px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+@media (max-width: 899px) {
+  .app-nav {
+    width: 0;
+  }
+
+  .app-drawer-desktop {
+    display: none;
+  }
+
+  .app-content {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 900px) {
+  .app-drawer-mobile,
+  .app-menu-button {
+    display: none;
+  }
+}
