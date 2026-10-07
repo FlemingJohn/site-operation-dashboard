@@ -12,6 +12,23 @@ export const MAX_PAGE_SIZE = 100;
 
 export const RECENT_INSTALLATIONS_LIMIT = 5;
 
+export const SORT_ORDERS = ['asc', 'desc'];
+
+export const SITE_SORT_COLUMNS = {
+  name: 's.name',
+  region: 's.region',
+  status: 's.status',
+  installationCount: '"installationCount"',
+};
+
+export const INSTALLATION_SORT_COLUMNS = {
+  equipment: 'i.equipment',
+  siteName: 's.name',
+  technicianName: 'u.full_name',
+  installedOn: 'i.installed_on',
+  status: 'i.status',
+};
+
 export const MESSAGES = {
   fieldErrors: 'Please fix the highlighted fields.',
   invalidId: 'Invalid id.',
