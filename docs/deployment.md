@@ -45,7 +45,7 @@ Every later command uses these variables. App Service names must be unique acros
 
 ```powershell
 $resourceGroup = "rg-siteops"
-$location = "centralindia"
+$location = "southeastasia"
 $plan = "plan-siteops"
 $api = "siteops-api-<your-name>"
 $web = "siteops-web-<your-name>"
@@ -56,11 +56,11 @@ $sku = "B1"
 | Variable | Meaning |
 |---|---|
 | `$resourceGroup` | The group that holds every resource of this project |
-| `$location` | Region for the backend; Central India is closest to the sample data |
+| `$location` | Region for the backend; Southeast Asia (Singapore) is next to the Supabase database in `ap-southeast-1` |
 | `$plan` | The App Service plan, the server the backend runs on |
 | `$api` | The backend app; becomes `https://<name>.azurewebsites.net` |
 | `$web` | The frontend app |
-| `$webLocation` | Static Web Apps is offered in a few regions only; East Asia is the closest to India |
+| `$webLocation` | Static Web Apps is offered in a few regions only; East Asia is the closest. The files are served from a global network, so the region matters little |
 | `$sku` | App Service tier: `B1` or `F1` (see [Cost](#cost)) |
 
 ## 3. Create the resources
