@@ -164,8 +164,11 @@ erDiagram
 | `installations_site_id_fkey` | `installations` | Foreign key | Links each installation to its site |
 | `installations_technician_id_fkey` | `installations` | Foreign key | Links each installation to its technician |
 | `CHECK` constraints | all tables | Check | Restrict `region`, `status` and `role` to their allowed values |
-| `idx_installations_site_id` | `installations` | Index | Speeds up joins and filters by site |
-| `idx_installations_technician_id` | `installations` | Index | Speeds up joins by technician |
+| `idx_installations_site_id_installed_on` | `installations` | Index | One site's installations, newest first |
+| `idx_installations_installed_on` | `installations` | Index | Latest installations and date ranges |
+| `idx_installations_status` | `installations` | Index | Status filter |
+| `idx_installations_technician_id` | `installations` | Index | Joins to `users` |
+| `idx_sites_status`, `idx_sites_region` | `sites` | Index | Status and region filters |
 | `sites_set_updated_at`, `installations_set_updated_at` | `sites`, `installations` | Trigger | Refresh `updated_at` on every update |
 
 ## Normalization
@@ -191,7 +194,8 @@ database/
 │   ├── 004_create_updated_at_trigger.sql
 │   ├── 005_create_foreign_key_indexes.sql
 │   ├── 006_create_idempotency_keys.sql
-│   └── 007_enable_row_level_security.sql
+│   ├── 007_enable_row_level_security.sql
+│   └── 008_create_query_indexes.sql
 ├── seeds/
 │   ├── 000_reset.sql
 │   ├── 001_users.sql
@@ -211,8 +215,8 @@ database/
 ```
 
 - **Migrations** create the schema. They are numbered so they run in order, and use `IF NOT EXISTS` / `CREATE OR REPLACE` so they can be run again safely.
-- **Seeds** load a small, hand-written sample: 5 users (1 admin, 4 technicians), 5 sites (one inactive, one with no installations) and 5 installations across all three statuses, spread over the last five months, with one unassigned. `000_reset.sql` empties the tables first.
-- **Queries** demonstrate joins and aggregations. Each file holds one query and is named after what it returns.
+- **Seeds** load a small, hand-written sample: 5 users (1 admin, 4 technicians), 5 sites (one inactive, one with no installations) and 5 installations across all three statuses, spread over the last five months, with one unassigned. Installations refer to sites by name and to technicians by email, not by id. `000_reset.sql` empties the tables first.
+- **Queries** are standalone examples of joins and aggregations to run by hand. Each file holds one query and is named after what it returns. The SQL the application runs lives in `backend/src/services`; where an example matches an API query, it uses the same structure and column names in snake_case, while the API returns them in camelCase.
 
 `007_enable_row_level_security.sql` turns on Row Level Security for every table. Supabase exposes tables through its automatic REST API; with Row Level Security on and no policies, that API returns nothing, while the backend, which connects as the table owner, keeps full access. On a local PostgreSQL server it has no visible effect.
 
@@ -222,12 +226,65 @@ database/
 |---|---|---|
 | `joins/installation_details.sql` | `INNER JOIN` + `LEFT JOIN` across all three tables | The ten latest installations with site and technician names |
 | `joins/technician_sites.sql` | The many-to-many relationship, `STRING_AGG` | Each technician with the sites they have worked at |
-| `aggregations/dashboard_totals.sql` | `COUNT`, `COUNT ... FILTER`, subqueries | Site and installation totals for the summary cards |
+| `aggregations/dashboard_totals.sql` | `WITH` (common table expressions), `COUNT ... FILTER`, `CROSS JOIN` | Site and installation totals for the summary cards |
 | `aggregations/installations_per_site.sql` | `LEFT JOIN` + `GROUP BY` | Installation count per site, including sites with none |
 | `aggregations/status_breakdown.sql` | Window function `SUM(...) OVER ()` | Installations per status with a percentage |
-| `aggregations/monthly_installations.sql` | `generate_series` + `LEFT JOIN` | Installations per month for the last six months, including empty months |
+| `aggregations/monthly_installations.sql` | `generate_series`, `LEFT JOIN` on a date range | Installations per month for the last six months, including empty months |
 | `aggregations/completion_rate_by_region.sql` | `FILTER`, `NULLIF` | Completion rate per region |
 | `aggregations/technician_workload.sql` | `LEFT JOIN` + conditional count | Total and open jobs per technician |
+
+## Query optimization
+
+### Techniques used
+
+| Technique | Where | Effect |
+|---|---|---|
+| Indexes on filtered and sorted columns | `005`, `008` migrations | PostgreSQL finds matching rows without reading the whole table |
+| Aggregation in SQL | Summary queries | `COUNT`, `FILTER` and `GROUP BY` return a handful of numbers instead of every row |
+| Joins instead of one query per row | Installation and site lists | Site and technician names arrive in the same query as the installations |
+| Pagination in SQL | List queries | `LIMIT` and `OFFSET` send one page, not the whole table |
+| Filtering in SQL | List queries | Search and filters are `WHERE` conditions, not done in the browser |
+| Named columns | All queries | Only the columns the API needs are read and sent |
+| Parallel queries | Lists and summary | The page and its total count, and the four summary queries, run at the same time |
+| Range conditions on raw columns | Monthly installations | `installed_on >= start AND installed_on < next_month` can use an index; `DATE_TRUNC('month', installed_on) = month` cannot |
+| Connection pooling | Backend `pg.Pool` and the Supabase session pooler | Connections are reused instead of opened for every request |
+| Parameterized queries | All backend queries | Values travel as `$1`, `$2`, which prevents SQL injection and lets PostgreSQL reuse query plans |
+
+### Indexes
+
+| Index | Columns | Serves |
+|---|---|---|
+| `idx_installations_site_id_installed_on` | `site_id, installed_on DESC` | Installations of one site, newest first; the per-site installation count |
+| `idx_installations_installed_on` | `installed_on DESC, id DESC` | The installations list and recent installations, ordered newest first; the monthly date ranges |
+| `idx_installations_status` | `status` | The installation status filter |
+| `idx_installations_technician_id` | `technician_id` | Joins from installations to users |
+| `idx_sites_status` | `status` | The site status filter |
+| `idx_sites_region` | `region` | The site region filter |
+| `sites_name_key` | `name` | Created by the `UNIQUE` constraint; also serves `ORDER BY name` on the sites list |
+
+`008_create_query_indexes.sql` removes the single-column `idx_installations_site_id` from migration `005`: an index on `(site_id, installed_on)` also serves lookups by `site_id` alone, so keeping both would only slow down writes.
+
+### Not indexed
+
+| Query | Reason |
+|---|---|
+| Summary totals | They count every row, so the whole table is read regardless of indexes |
+| Search with `ILIKE '%text%'` | A normal index only matches from the start of a value. A trigram index (`pg_trgm`) would be needed and is not worth the extension at this data size |
+| `users.role` | The table is tiny; PostgreSQL reads it directly |
+
+Indexes speed up reads but every insert and update must also maintain them, so only columns the application filters, sorts or joins on are indexed. On very small tables PostgreSQL may still choose to read the whole table, because that is cheaper than using an index; the indexes take effect as the data grows.
+
+## SQL conventions
+
+- Keywords in upper case, table and column names in `snake_case`
+- One clause per line: `SELECT`, `FROM`, `JOIN`, `WHERE`, `GROUP BY`, `ORDER BY`
+- Short, consistent aliases: `s` for sites, `i` for installations, `u` for users
+- Columns listed by name; no `SELECT *`
+- Multi-step queries split into named `WITH` parts instead of nested subqueries
+- Constraints on their own indented line under the column they protect
+- Seed data refers to related rows by natural keys such as site name and email, not by id
+- One statement or one object per file, with the file named after what it creates or returns
+- Values from users always passed as parameters, never concatenated into SQL
 
 ## Local setup
 
