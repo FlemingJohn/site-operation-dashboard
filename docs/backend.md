@@ -356,7 +356,7 @@ Every error response has the same shape:
 | Database unreachable | 503 | `The service is temporarily unavailable. Please try again shortly.` |
 | Anything else | 500 | `Something went wrong. Please try again.` |
 
-Field messages in `errors` use the same wording as the frontend form checks, for example `Enter a site name.` and `Choose a region.`, so the user sees one consistent message whether the browser or the server catches the problem.
+Field messages in `errors` use the same wording as the frontend form checks, for example `Enter a site name.` and `Choose a region.`, so the user sees one consistent message whether the browser or the server catches the problem. The frontend's Zod schemas in `frontend/src/validation` mirror `src/validators`; when a rule or message changes, change both.
 
 For `5xx` responses the frontend appends the first eight characters of the `X-Request-Id` header, for example `Something went wrong. Please try again. (Reference: b1e2c3d4)`. The `cors` middleware lists `X-Request-Id` in `exposedHeaders` so the browser can read it.
 
