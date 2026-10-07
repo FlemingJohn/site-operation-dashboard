@@ -1,8 +1,8 @@
 import { pool } from '../config/database.js';
-import { MESSAGES } from '../constants.js';
+import { MESSAGES, SITE_SORT_COLUMNS } from '../constants.js';
 import { HttpError } from '../utils/HttpError.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
-import { buildWhereClause, toLikePattern } from '../utils/sql.js';
+import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
 
 const SITE_SELECT = `
   SELECT
@@ -32,10 +32,11 @@ export const findAll = async (query) => {
   const { where, values } = buildFilters(query);
   const limitParam = `$${values.length + 1}`;
   const offsetParam = `$${values.length + 2}`;
+  const orderBy = buildOrderBy(SITE_SORT_COLUMNS, query, 's.id');
 
   const [rowsResult, countResult] = await Promise.all([
     pool.query(
-      `${SITE_SELECT} ${where} GROUP BY s.id ORDER BY s.name LIMIT ${limitParam} OFFSET ${offsetParam}`,
+      `${SITE_SELECT} ${where} GROUP BY s.id ${orderBy} LIMIT ${limitParam} OFFSET ${offsetParam}`,
       [...values, query.limit, getOffset(query)]
     ),
     pool.query(`SELECT COUNT(*)::int AS total FROM sites s ${where}`, values),
