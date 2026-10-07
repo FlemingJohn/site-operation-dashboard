@@ -45,7 +45,7 @@ The API runs on the App Service free tier, which sleeps when idle. The first req
 | **Backend:** error handling | One central error handler, consistent `{ message, errors }` responses, PostgreSQL error codes mapped to 400 / 409 |
 | **Backend:** logging | Pino with one line per request, level by status code, request ids, redacted secrets |
 | **Database:** normalized `Sites`, `Installations`, `Users` tables | Third normal form with foreign keys, check constraints and delete rules |
-| **Database:** joins, aggregations, optimized queries | Joins across all three tables, `COUNT ... FILTER`, window functions, `generate_series`; foreign-key indexes, parallel queries and SQL-side aggregation |
+| **Database:** joins, aggregations, optimized queries | Joins across all three tables, `WITH` queries, `COUNT ... FILTER`, window functions, `generate_series`; indexes on every filtered, sorted and joined column, index-friendly date ranges, SQL-side pagination and aggregation, parallel queries. See [Query optimization](docs/database.md#query-optimization) |
 | **Azure:** deployment with environment variables | Frontend on Static Web Apps, backend on App Service; all configuration through environment variables |
 | **API:** GET/POST for sites and installations plus a summary endpoint | `/api/sites`, `/api/installations`, `/api/summary` |
 | **Source control:** Git and README | This repository and README; commits follow the Conventional Commits style |
