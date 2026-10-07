@@ -12,19 +12,25 @@ import {
 } from '@mui/material';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import SortableHeader from './SortableHeader';
 import StatusChip from './StatusChip';
 
 const COLUMN_COUNT = 5;
 
-const SiteTable = ({ sites, isLoading = false, emptyMessage, onDelete }) => (
+const SiteTable = ({ sites, isLoading = false, emptyMessage, onDelete, ...sortProps }) => (
   <TableContainer>
     <Table className="data-table">
       <TableHead>
         <TableRow>
-          <TableCell>Site</TableCell>
-          <TableCell>Region</TableCell>
-          <TableCell>Status</TableCell>
-          <TableCell align="right">Installations</TableCell>
+          <SortableHeader column="name" label="Site" {...sortProps} />
+          <SortableHeader column="region" label="Region" {...sortProps} />
+          <SortableHeader column="status" label="Status" {...sortProps} />
+          <SortableHeader
+            column="installationCount"
+            label="Installations"
+            align="right"
+            {...sortProps}
+          />
           <TableCell align="right">Actions</TableCell>
         </TableRow>
       </TableHead>
