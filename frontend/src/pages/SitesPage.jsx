@@ -6,6 +6,7 @@ import ListToolbar from '../components/ListToolbar';
 import SiteTable from '../components/SiteTable';
 import SuccessSnackbar from '../components/SuccessSnackbar';
 import { REGIONS, SITE_DEFAULT_SORT, SITE_STATUSES } from '../constants';
+import { FIELD_ICONS } from '../fieldIcons';
 import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
 import { useFlashMessage } from '../hooks/useFlashMessage';
 import { usePaginatedList } from '../hooks/usePaginatedList';
@@ -13,8 +14,20 @@ import { usePaginatedList } from '../hooks/usePaginatedList';
 const INITIAL_FILTERS = { status: '', region: '' };
 
 const SITE_FILTERS = [
-  { name: 'status', label: 'Status', allLabel: 'All statuses', options: SITE_STATUSES },
-  { name: 'region', label: 'Region', allLabel: 'All regions', options: REGIONS },
+  {
+    name: 'status',
+    label: 'Status',
+    allLabel: 'All statuses',
+    options: SITE_STATUSES,
+    icon: FIELD_ICONS.status,
+  },
+  {
+    name: 'region',
+    label: 'Region',
+    allLabel: 'All regions',
+    options: REGIONS,
+    icon: FIELD_ICONS.region,
+  },
 ];
 
 const SitesPage = () => {
@@ -49,7 +62,8 @@ const SitesPage = () => {
         <SiteTable
           sites={sites.rows}
           isLoading={sites.isLoading}
-          emptyMessage="No sites match these filters."
+          emptyMessage={sites.clearFilters ? 'No sites match these filters.' : 'No sites yet.'}
+          onClearFilters={sites.clearFilters}
           onDelete={deletion.open}
           {...sites.sortProps}
         />
