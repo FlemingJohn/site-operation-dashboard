@@ -3,14 +3,19 @@ import { HttpError } from '../utils/HttpError.js';
 
 const UNIQUE_VIOLATION = '23505';
 const FOREIGN_KEY_VIOLATION = '23503';
-const SITE_NAME_CONSTRAINT = 'sites_name_key';
 const UNAVAILABLE_CODES = new Set(['ECONNREFUSED', 'ENOTFOUND', 'ETIMEDOUT', '57P01', '57P03', '53300']);
+
+const UNIQUE_FIELDS = {
+  sites_name_key: { field: 'name', message: MESSAGES.duplicateSite },
+  users_email_key: { field: 'email', message: MESSAGES.duplicateEmail },
+};
 
 const toHttpError = (error) => {
   if (error instanceof HttpError) return error;
 
-  if (error.code === UNIQUE_VIOLATION && error.constraint === SITE_NAME_CONSTRAINT) {
-    return new HttpError(409, MESSAGES.duplicateSite, { name: MESSAGES.duplicateSite });
+  const duplicate = error.code === UNIQUE_VIOLATION && UNIQUE_FIELDS[error.constraint];
+  if (duplicate) {
+    return new HttpError(409, duplicate.message, { [duplicate.field]: duplicate.message });
   }
   if (error.code === FOREIGN_KEY_VIOLATION) return new HttpError(400, MESSAGES.missingReference);
   if (error.type === 'entity.parse.failed') return new HttpError(400, MESSAGES.invalidJson);
