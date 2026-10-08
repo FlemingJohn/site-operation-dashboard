@@ -9,7 +9,10 @@ WITH months AS (
 SELECT
   TO_CHAR(m.month_start, 'YYYY-MM') AS month,
   TO_CHAR(m.month_start, 'Mon') AS label,
-  COUNT(i.id) AS count
+  COUNT(i.id) AS count,
+  COUNT(i.id) FILTER (WHERE i.status = 'completed') AS completed,
+  COUNT(i.id) FILTER (WHERE i.status = 'in_progress') AS in_progress,
+  COUNT(i.id) FILTER (WHERE i.status = 'pending') AS pending
 FROM months m
 LEFT JOIN installations i
   ON i.installed_on >= m.month_start
