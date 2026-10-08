@@ -157,11 +157,17 @@
 }
 
 .toolbar-search {
-  flex: 1 1 260px;
+  width: 100%;
 }
 
-.toolbar-filter {
-  min-width: 170px;
+.filter-chips {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-menu {
+  width: 280px;
+  padding: 16px;
 }
 
 .form-card {
