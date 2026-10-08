@@ -34,6 +34,7 @@ erDiagram
         serial id PK
         varchar full_name "NOT NULL, max 100"
         varchar email UK "NOT NULL, max 150"
+        varchar phone "NULL, max 20"
         varchar role "admin | technician, default technician"
         timestamptz created_at "default NOW()"
     }
@@ -56,10 +57,10 @@ The same diagram in plain text:
 │ PK id          serial       │ 1       * │ PK id             serial       │           │ PK id          serial       │
 │ UQ name        varchar(150) ├───────────┤ FK site_id        integer      │ *    0..1 │    full_name   varchar(100) │
 │    city        varchar(100) │           │ FK technician_id  integer      ├───────────┤ UQ email       varchar(150) │
-│    region      varchar(10)  │           │    equipment      varchar(150) │           │    role        varchar(20)  │
-│    status      varchar(10)  │           │    status         varchar(20)  │           │    created_at  timestamptz  │
-│    created_at  timestamptz  │           │    installed_on   date         │           └─────────────────────────────┘
-│    updated_at  timestamptz  │           │    created_at     timestamptz  │
+│    region      varchar(10)  │           │    equipment      varchar(150) │           │    phone       varchar(20)  │
+│    status      varchar(10)  │           │    status         varchar(20)  │           │    role        varchar(20)  │
+│    created_at  timestamptz  │           │    installed_on   date         │           │    created_at  timestamptz  │
+│    updated_at  timestamptz  │           │    created_at     timestamptz  │           └─────────────────────────────┘
 └─────────────────────────────┘           │    updated_at     timestamptz  │
                                           └────────────────────────────────┘
 
@@ -142,6 +143,7 @@ erDiagram
 | `id` | `SERIAL` | Primary key |
 | `full_name` | `VARCHAR(100)` | Required |
 | `email` | `VARCHAR(150)` | Required, unique |
+| `phone` | `VARCHAR(20)` | Optional; digits, spaces, `+` and `-`, checked by the API |
 | `role` | `VARCHAR(20)` | `admin` or `technician`, defaults to `technician` |
 | `created_at` | `TIMESTAMPTZ` | Defaults to `NOW()` |
 
@@ -195,7 +197,8 @@ database/
 │   ├── 005_create_foreign_key_indexes.sql
 │   ├── 006_create_idempotency_keys.sql
 │   ├── 007_enable_row_level_security.sql
-│   └── 008_create_query_indexes.sql
+│   ├── 008_create_query_indexes.sql
+│   └── 009_add_user_phone.sql
 ├── seeds/
 │   ├── 000_reset.sql
 │   ├── 001_users.sql
