@@ -1,15 +1,14 @@
-import { Avatar, Card, CardContent, Typography } from '@mui/material';
+import { Card, CardContent, Typography } from '@mui/material';
+import CardIcon from './CardIcon';
 
-const StatCard = ({ label, value, note, icon: Icon, tone, visual }) => (
+const StatCard = ({ label, value, note, icon, tone, visual }) => (
   <Card className="stat-card">
     <CardContent>
       <div className="stat-header">
         <Typography variant="body2" color="text.secondary">
           {label}
         </Typography>
-        <Avatar variant="rounded" className={`stat-icon stat-icon-${tone}`}>
-          <Icon fontSize="small" />
-        </Avatar>
+        <CardIcon icon={icon} tone={tone} />
       </div>
       <div className="stat-value-row">
         <Typography variant="h4">{value}</Typography>
