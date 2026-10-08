@@ -6,3 +6,8 @@ export const formatDate = (isoDate) =>
   });
 
 export const getToday = () => new Date().toLocaleDateString('en-CA');
+
+export const toOptions = (items, labelKey) =>
+  items.map((item) => ({ value: String(item.id), label: item[labelKey] }));
+
+export const getPercentage = (part, total) => (total === 0 ? 0 : Math.round((part / total) * 100));
