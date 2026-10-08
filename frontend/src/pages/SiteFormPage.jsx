@@ -13,7 +13,9 @@ import {
 } from '@mui/material';
 import { createSite, getSite, updateSite } from '../api/siteApi';
 import ErrorAlert from '../components/ErrorAlert';
+import FieldIcon from '../components/FieldIcon';
 import { REGIONS, SITE_STATUSES } from '../constants';
+import { FIELD_ICONS } from '../fieldIcons';
 import { useEntityForm } from '../hooks/useEntityForm';
 import { siteSchema } from '../validation/siteSchema';
 
@@ -71,7 +73,10 @@ const SiteFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.name)}
                 helperText={form.errors.name}
-                slotProps={{ htmlInput: { maxLength: MAX_NAME_LENGTH } }}
+                slotProps={{
+                  input: { startAdornment: <FieldIcon icon={FIELD_ICONS.site} /> },
+                  htmlInput: { maxLength: MAX_NAME_LENGTH },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -85,7 +90,10 @@ const SiteFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.city)}
                 helperText={form.errors.city}
-                slotProps={{ htmlInput: { maxLength: MAX_CITY_LENGTH } }}
+                slotProps={{
+                  input: { startAdornment: <FieldIcon icon={FIELD_ICONS.city} /> },
+                  htmlInput: { maxLength: MAX_CITY_LENGTH },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -100,6 +108,7 @@ const SiteFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.region)}
                 helperText={form.errors.region}
+                slotProps={{ input: { startAdornment: <FieldIcon icon={FIELD_ICONS.region} /> } }}
               >
                 {REGIONS.map(({ value, label }) => (
                   <MenuItem key={value} value={value}>
@@ -119,6 +128,7 @@ const SiteFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.status)}
                 helperText={form.errors.status}
+                slotProps={{ input: { startAdornment: <FieldIcon icon={FIELD_ICONS.status} /> } }}
               >
                 {SITE_STATUSES.map(({ value, label }) => (
                   <MenuItem key={value} value={value}>
