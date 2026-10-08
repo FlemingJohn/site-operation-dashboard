@@ -29,6 +29,12 @@ export const INSTALLATION_SORT_COLUMNS = {
   status: 'i.status',
 };
 
+export const USER_SORT_COLUMNS = {
+  fullName: 'u.full_name',
+  email: 'u.email',
+  role: 'u.role',
+};
+
 export const MESSAGES = {
   fieldErrors: 'Please fix the highlighted fields.',
   invalidId: 'Invalid id.',
@@ -37,6 +43,7 @@ export const MESSAGES = {
   installationNotFound: 'This installation no longer exists.',
   routeNotFound: 'Route not found.',
   duplicateSite: 'A site with this name already exists.',
+  duplicateEmail: 'A user with this email already exists.',
   missingReference: 'The selected site or technician no longer exists.',
   invalidIdempotencyKey: 'Idempotency-Key must be a UUID.',
   requestInProgress: 'This request is still being processed. Please wait a moment.',
