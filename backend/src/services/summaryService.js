@@ -1,6 +1,13 @@
 import { pool } from '../config/database.js';
-import { RECENT_INSTALLATIONS_LIMIT } from '../constants.js';
+import { BREAKDOWN_LIMIT, RECENT_INSTALLATIONS_LIMIT } from '../constants.js';
 import { findRecent } from './installationService.js';
+
+const STATUS_COUNTS = `
+    COUNT(i.id)::int AS count,
+    COUNT(i.id) FILTER (WHERE i.status = 'completed')::int AS completed,
+    COUNT(i.id) FILTER (WHERE i.status = 'in_progress')::int AS "inProgress",
+    COUNT(i.id) FILTER (WHERE i.status = 'pending')::int AS pending
+`;
 
 const TOTALS_QUERY = `
   WITH site_totals AS (
@@ -49,7 +56,7 @@ const MONTHLY_INSTALLATIONS_QUERY = `
   SELECT
     TO_CHAR(m.month_start, 'YYYY-MM') AS month,
     TO_CHAR(m.month_start, 'Mon') AS label,
-    COUNT(i.id)::int AS count
+    ${STATUS_COUNTS}
   FROM months m
   LEFT JOIN installations i
     ON i.installed_on >= m.month_start
@@ -58,11 +65,60 @@ const MONTHLY_INSTALLATIONS_QUERY = `
   ORDER BY m.month_start
 `;
 
+const INSTALLATIONS_BY_SITE_QUERY = `
+  SELECT
+    s.name AS label,
+    ${STATUS_COUNTS}
+  FROM sites s
+  LEFT JOIN installations i ON i.site_id = s.id
+  GROUP BY s.id
+  ORDER BY count DESC, label
+  LIMIT $1
+`;
+
+const INSTALLATIONS_BY_TECHNICIAN_QUERY = `
+  WITH technician_counts AS (
+    SELECT
+      u.full_name AS label,
+      FALSE AS is_unassigned,
+      ${STATUS_COUNTS}
+    FROM users u
+    LEFT JOIN installations i ON i.technician_id = u.id
+    WHERE u.role = 'technician'
+    GROUP BY u.id
+  ),
+  unassigned_counts AS (
+    SELECT
+      'Unassigned' AS label,
+      TRUE AS is_unassigned,
+      ${STATUS_COUNTS}
+    FROM installations i
+    WHERE i.technician_id IS NULL
+  )
+  SELECT label, count, completed, "inProgress", pending
+  FROM (
+    SELECT * FROM technician_counts
+    UNION ALL
+    SELECT * FROM unassigned_counts WHERE count > 0
+  ) workload
+  ORDER BY is_unassigned, count DESC, label
+  LIMIT $1
+`;
+
 export const getSummary = async () => {
-  const [totals, statusBreakdown, monthlyInstallations, recentInstallations] = await Promise.all([
+  const [
+    totals,
+    statusBreakdown,
+    monthlyInstallations,
+    installationsBySite,
+    installationsByTechnician,
+    recentInstallations,
+  ] = await Promise.all([
     pool.query(TOTALS_QUERY),
     pool.query(STATUS_BREAKDOWN_QUERY),
     pool.query(MONTHLY_INSTALLATIONS_QUERY),
+    pool.query(INSTALLATIONS_BY_SITE_QUERY, [BREAKDOWN_LIMIT]),
+    pool.query(INSTALLATIONS_BY_TECHNICIAN_QUERY, [BREAKDOWN_LIMIT]),
     findRecent(RECENT_INSTALLATIONS_LIMIT),
   ]);
 
@@ -70,6 +126,8 @@ export const getSummary = async () => {
     totals: totals.rows[0],
     statusBreakdown: statusBreakdown.rows,
     monthlyInstallations: monthlyInstallations.rows,
+    installationsBySite: installationsBySite.rows,
+    installationsByTechnician: installationsByTechnician.rows,
     recentInstallations,
   };
 };
