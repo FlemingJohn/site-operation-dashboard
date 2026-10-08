@@ -34,6 +34,12 @@ const toFormValues = (installation) => ({
   status: installation.status,
 });
 
+const getSiteOptions = (sites, selectedSiteId) =>
+  toOptions(
+    sites.filter((site) => site.status === 'active' || String(site.id) === selectedSiteId),
+    'name'
+  );
+
 const saveInstallation = (installation, id, idempotencyKey) =>
   id ? updateInstallation(id, installation) : createInstallation(installation, idempotencyKey);
 
@@ -63,7 +69,7 @@ const InstallationFormPage = () => {
   useEffect(() => {
     Promise.all([getSites({ limit: MAX_SELECT_OPTIONS }), getTechnicians()])
       .then(([siteResult, technicianList]) => {
-        setSites(toOptions(siteResult.data, 'name'));
+        setSites(siteResult.data);
         setTechnicians(toOptions(technicianList, 'fullName'));
       })
       .catch((err) => setOptionsError(err.message));
@@ -117,7 +123,7 @@ const InstallationFormPage = () => {
                 id="installation-site"
                 label="Site"
                 required
-                options={sites}
+                options={getSiteOptions(sites, form.values.siteId)}
                 value={form.values.siteId}
                 onChange={(value) => form.setFieldValue('siteId', value)}
                 icon={FIELD_ICONS.site}
