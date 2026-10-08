@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, LinearProgress, Typography } from '@mui/material';
 import { PieChart } from '@mui/x-charts/PieChart';
+import DonutLargeOutlinedIcon from '@mui/icons-material/DonutLargeOutlined';
 import { INSTALLATION_STATUSES } from '../constants';
 import { STATUS_CHART_COLORS } from '../styles/theme';
 import { getPercentage } from '../utils';
+import CardIcon from './CardIcon';
 
 const DONUT_SIZE = 220;
 
@@ -16,7 +18,11 @@ const StatusDonutCard = ({ statusBreakdown, total }) => {
 
   return (
     <Card className="chart-card">
-      <CardHeader title="Installations by status" subheader="All time" />
+      <CardHeader
+        avatar={<CardIcon icon={DonutLargeOutlinedIcon} />}
+        title="Installations by status"
+        subheader="All time"
+      />
       <CardContent className="chart-card-content">
         <div className="donut-layout">
           <div className="donut-chart">
