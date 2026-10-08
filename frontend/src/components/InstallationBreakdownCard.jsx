@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
+import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
+import { FIELD_ICONS } from '../fieldIcons';
 import { STATUS_CHART_COLORS } from '../styles/theme';
+import CardIcon from './CardIcon';
 
-const CHART_HEIGHT = 240;
+const CHART_HEIGHT = 260;
 const MIN_AXIS_MAX = 3;
-const NAME_AXIS_WIDTH = 150;
+const VALUE_AXIS_LABEL = 'Installations';
 
 const STATUS_SERIES = [
   { dataKey: 'completed', label: 'Completed', color: STATUS_CHART_COLORS.completed },
@@ -16,18 +19,24 @@ const STATUS_SERIES = [
 const VIEWS = {
   month: {
     label: 'By month',
+    icon: FIELD_ICONS.date,
+    axisLabel: 'Month',
     subheader: 'Last 6 months, split by status',
     dataKey: 'monthlyInstallations',
     isHorizontal: false,
   },
   site: {
     label: 'By site',
+    icon: FIELD_ICONS.site,
+    axisLabel: 'Site',
     subheader: 'Per site, busiest first',
     dataKey: 'installationsBySite',
     isHorizontal: true,
   },
   technician: {
     label: 'By technician',
+    icon: FIELD_ICONS.person,
+    axisLabel: 'Technician',
     subheader: 'Per technician, busiest first',
     dataKey: 'installationsByTechnician',
     isHorizontal: true,
@@ -36,14 +45,23 @@ const VIEWS = {
 
 const getAxisMax = (rows) => Math.max(MIN_AXIS_MAX, ...rows.map((row) => row.count));
 
-const getAxes = (rows, isHorizontal) => {
+const getAxes = (rows, { axisLabel, isHorizontal }) => {
+  const size = isHorizontal ? { width: 'auto' } : { height: 'auto' };
+  const valueSize = isHorizontal ? { height: 'auto' } : { width: 'auto' };
   const categoryAxis = {
     scaleType: 'band',
     dataKey: 'label',
+    label: axisLabel,
     categoryGapRatio: isHorizontal ? 0.45 : 0.7,
-    ...(isHorizontal && { width: NAME_AXIS_WIDTH }),
+    ...size,
   };
-  const valueAxis = { min: 0, max: getAxisMax(rows), tickMinStep: 1 };
+  const valueAxis = {
+    label: VALUE_AXIS_LABEL,
+    min: 0,
+    max: getAxisMax(rows),
+    tickMinStep: 1,
+    ...valueSize,
+  };
 
   return isHorizontal
     ? { xAxis: [valueAxis], yAxis: [categoryAxis] }
@@ -52,25 +70,28 @@ const getAxes = (rows, isHorizontal) => {
 
 const InstallationBreakdownCard = ({ summary }) => {
   const [view, setView] = useState('month');
-  const { subheader, dataKey, isHorizontal } = VIEWS[view];
-  const rows = summary[dataKey];
+  const currentView = VIEWS[view];
+  const rows = summary[currentView.dataKey];
 
   return (
     <Card className="chart-card">
       <CardHeader
+        avatar={<CardIcon icon={BarChartOutlinedIcon} />}
         title="Installations"
-        subheader={subheader}
+        subheader={currentView.subheader}
         action={
           <ToggleButtonGroup
             exclusive
             size="small"
+            className="chart-toggle"
             value={view}
             onChange={(event, nextView) => nextView && setView(nextView)}
             aria-label="Group installations by"
           >
-            {Object.entries(VIEWS).map(([key, { label }]) => (
-              <ToggleButton key={key} value={key}>
-                {label}
+            {Object.entries(VIEWS).map(([key, { label, icon: Icon }]) => (
+              <ToggleButton key={key} value={key} aria-label={label} title={label}>
+                <Icon fontSize="small" />
+                <span className="chart-toggle-label">{label}</span>
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
@@ -80,12 +101,12 @@ const InstallationBreakdownCard = ({ summary }) => {
         <BarChart
           height={CHART_HEIGHT}
           dataset={rows}
-          layout={isHorizontal ? 'horizontal' : 'vertical'}
+          layout={currentView.isHorizontal ? 'horizontal' : 'vertical'}
           series={STATUS_SERIES}
-          grid={isHorizontal ? { vertical: true } : { horizontal: true }}
+          grid={currentView.isHorizontal ? { vertical: true } : { horizontal: true }}
           borderRadius={4}
           slotProps={{ legend: { position: { vertical: 'bottom', horizontal: 'center' } } }}
-          {...getAxes(rows, isHorizontal)}
+          {...getAxes(rows, currentView)}
         />
       </CardContent>
     </Card>
