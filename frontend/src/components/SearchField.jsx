@@ -1,7 +1,7 @@
 import { InputAdornment, TextField } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
-const SearchField = ({ value, onChange, placeholder, label }) => (
+const SearchField = ({ value, onChange, placeholder, label, action }) => (
   <TextField
     className="toolbar-search"
     size="small"
@@ -15,6 +15,7 @@ const SearchField = ({ value, onChange, placeholder, label }) => (
             <SearchIcon fontSize="small" />
           </InputAdornment>
         ),
+        endAdornment: action && <InputAdornment position="end">{action}</InputAdornment>,
       },
       htmlInput: { 'aria-label': label },
     }}
