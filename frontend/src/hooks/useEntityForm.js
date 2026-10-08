@@ -45,11 +45,12 @@ export const useEntityForm = ({
     };
   }, [id, load, toFormValues]);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+  const setFieldValue = (name, value) => {
     setValues((current) => ({ ...current, [name]: value }));
     setErrors((current) => ({ ...current, [name]: '' }));
   };
+
+  const handleChange = (event) => setFieldValue(event.target.name, event.target.value);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -84,6 +85,7 @@ export const useEntityForm = ({
     loadError,
     submitError,
     isSubmitting,
+    setFieldValue,
     handleChange,
     handleSubmit,
   };
