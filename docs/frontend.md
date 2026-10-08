@@ -11,7 +11,7 @@ The frontend is a React single-page application built with Vite and Material UI.
 | Routing | `react-router-dom` 7 | Page URLs, links and navigation |
 | Components | `@mui/material` 9 | Layout, tables, forms, dialogs, alerts |
 | Icons | `@mui/icons-material` | Material SVG icons |
-| Charts | `@mui/x-charts` | Donut and bar charts on the Overview page |
+| Charts | `@mui/x-charts` | Donut, stacked bar, sparkline and gauge on the Overview page |
 | Styling engine | `@emotion/react`, `@emotion/styled` | Required by Material UI |
 | Validation | `zod` 4 | Form schemas that mirror the backend's |
 
@@ -31,7 +31,8 @@ frontend/
     ├── main.jsx                  Theme, CSS baseline and router
     ├── App.jsx                   Routes, each page loaded on demand
     ├── constants.js              Statuses, regions, colours, page sizes
-    ├── utils.js                  Date helpers
+    ├── utils.js                  Date, percentage and option helpers
+    ├── fieldIcons.js             One icon per field, shared by table headers and form fields
     ├── api/                      One module per resource and a shared client
     ├── hooks/                    Reusable state logic
     ├── validation/               Zod form schemas mirroring backend/src/validators
@@ -69,7 +70,7 @@ Components never call the API, and the API layer never touches the UI. Each laye
 
 | URL | Page | Purpose |
 |---|---|---|
-| `/` | `OverviewPage` | Summary cards, status donut chart, monthly bar chart, recent installations |
+| `/` | `OverviewPage` | Summary cards, status donut chart, installations chart by month, site or technician, recent installations |
 | `/sites` | `SitesPage` | Site list with search, status and region filters, pagination, delete |
 | `/sites/new` | `SiteFormPage` | Create a site |
 | `/sites/:id/edit` | `SiteFormPage` | Edit a site |
@@ -86,11 +87,11 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 
 | Page | Uses | Shows |
 |---|---|---|
-| `OverviewPage` | `getSummary`, `PieChart`, `BarChart`, `InstallationTable` | Four stat cards, installations by status, installations per month, the five latest installations |
+| `OverviewPage` | `getSummary`, `StatCard`, `StatusDonutCard`, `InstallationBreakdownCard`, `InstallationTable` | Four stat cards (installations with a sparkline, completion rate with a gauge), installations by status, installations by month, site or technician, the five latest installations |
 | `SitesPage` | `usePaginatedList`, `useDeleteConfirmation`, `useFlashMessage`, `SiteTable` | Searchable, filterable, sortable, paginated sites with edit and delete |
 | `SiteFormPage` | `useEntityForm` | Name, city, region and status fields |
 | `InstallationsPage` | `usePaginatedList`, `useDeleteConfirmation`, `useFlashMessage`, `InstallationTable` | Searchable, filterable, sortable, paginated installations with edit and delete |
-| `InstallationFormPage` | `useEntityForm`, `getSites`, `getTechnicians` | Equipment, site, technician, date and status fields |
+| `InstallationFormPage` | `useEntityForm`, `OptionAutocomplete`, `getSites`, `getTechnicians` | Equipment, site, technician, date and status fields. Site and Technician are type-to-filter fields; clearing Technician means unassigned |
 | `UsersPage` | `usePaginatedList`, `useFlashMessage`, `UserTable` | Searchable, filterable, sortable, paginated users |
 | `UserFormPage` | `useEntityForm` | Full name, email, phone and role fields |
 | `NotFoundPage` | — | Message and a link to the Overview |
@@ -102,12 +103,18 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `Layout` | Sidebar `Drawer` (fixed on desktop, slide-in on mobile), top `AppBar` with the page title and Add button, page area | Every page |
 | `SiteTable` | Sites table with sortable headers, status chips, installation counts, edit and delete buttons | Sites page |
 | `UserTable` | Users table with sortable headers, phone and role chips | Users page |
-| `SortableHeader` | Header cell with a `TableSortLabel` arrow; a plain cell when there is no `onSort` | All list tables |
+| `TableHeaderCell` | Header cell with the column's icon and, when `onSort` and `column` are passed, a `TableSortLabel` arrow | All tables |
+| `EmptyTableRow` | Icon and message when a table has no rows, with a Clear filters button when filters are active | All tables |
+| `FieldIcon` | Icon at the start of a form field (`InputAdornment`); turns blue while the field is focused | All forms and the filter menu |
+| `OptionAutocomplete` | MUI `Autocomplete` for `{ value, label }` options. Shows the label, returns the value, and returns `''` when cleared | Installation form, Site filter |
+| `StatCard` | Summary card with label, icon, value, an optional small chart and a note | Overview |
+| `StatusDonutCard` | Donut chart of installations by status with a legend and percentage bars | Overview |
+| `InstallationBreakdownCard` | One stacked `BarChart` with a `ToggleButtonGroup`: by month (vertical bars) or by site or technician (horizontal bars, busiest first). The chart keeps the same height in every view | Overview |
 | `InstallationTable` | Installations table; edit and delete buttons appear only when `onDelete` is passed, sortable headers only when `onSort` is passed | Overview, Installations page |
 | `StatusChip` | Coloured status label | Both tables |
 | `ListToolbar` | Search bar with a filter button inside it. The button opens a `Popover` of filters, shows a `Badge` with the number of active filters, and each active filter appears as a removable `Chip` under the bar. "Clear all" resets the filters and keeps the search text | All list pages |
 | `SearchField` | Text field with a search icon and an optional button at the end | `ListToolbar` |
-| `FilterSelect` | Dropdown with an "All …" option | `ListToolbar` |
+| `FilterSelect` | Dropdown with an "All …" option and a field icon. Filters marked `searchable` use `OptionAutocomplete` instead | `ListToolbar` |
 | `DeleteDialog` | Confirmation dialog with a deleting state and an inline error | Both list pages |
 | `SuccessSnackbar` | Green confirmation message at the bottom of the screen | Both list pages |
 | `ErrorAlert` | Red message with optional Retry and Back buttons | Overview, list pages, form pages |
@@ -117,8 +124,8 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 
 | Hook | Holds | Returns |
 |---|---|---|
-| `usePaginatedList(fetchList, initialFilters, initialSort)` | Search text, filters, sort column and direction, page, page size, rows, loading and error state | `rows`, `filters`, `searchInput`, `setSearchInput`, `updateFilter`, `paginationProps`, `sortProps`, `reload`, `refreshAfterDelete` |
-| `useEntityForm(options)` | Form values, field errors, load and submit state, the idempotency key | `values`, `errors`, `isEditing`, `isLoading`, `loadError`, `submitError`, `isSubmitting`, `handleChange`, `handleSubmit` |
+| `usePaginatedList(fetchList, initialFilters, initialSort)` | Search text, filters, sort column and direction, page, page size, rows, loading and error state | `rows`, `filters`, `searchInput`, `setSearchInput`, `updateFilter`, `clearFilters` (only while a search or filter is active), `paginationProps`, `sortProps`, `reload`, `refreshAfterDelete` |
+| `useEntityForm(options)` | Form values, field errors, load and submit state, the idempotency key | `values`, `errors`, `isEditing`, `isLoading`, `loadError`, `submitError`, `isSubmitting`, `setFieldValue`, `handleChange`, `handleSubmit` |
 | `useDeleteConfirmation({ deleteRequest, onDeleted })` | The item being deleted, deleting state, error | `item`, `open`, `dialogProps` |
 | `useFlashMessage()` | A success message passed from another page | `message`, `showMessage`, `clearMessage` |
 
