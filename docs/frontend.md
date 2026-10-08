@@ -101,6 +101,7 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | Component | Purpose | Used by |
 |---|---|---|
 | `Layout` | Sidebar `Drawer` (fixed on desktop, slide-in on mobile), top `AppBar` with the page title and Add button, page area | Every page |
+| `SidebarNav` | Brand, page links and, on desktop, a Collapse sidebar button. Based on MUI's mini variant drawer: collapsed, the sidebar shrinks from 232px to 64px, labels fade out and each icon shows its page name as a tooltip. The choice is saved in `localStorage`. Phones keep the slide-in menu | `Layout` |
 | `SiteTable` | Sites table with sortable headers, status chips, installation counts, edit and delete buttons | Sites page |
 | `UserTable` | Users table with sortable headers, phone and role chips | Users page |
 | `TableHeaderCell` | Header cell with the column's icon and, when `onSort` and `column` are passed, a `TableSortLabel` arrow | All tables |
@@ -128,6 +129,7 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `useEntityForm(options)` | Form values, field errors, load and submit state, the idempotency key | `values`, `errors`, `isEditing`, `isLoading`, `loadError`, `submitError`, `isSubmitting`, `setFieldValue`, `handleChange`, `handleSubmit` |
 | `useDeleteConfirmation({ deleteRequest, onDeleted })` | The item being deleted, deleting state, error | `item`, `open`, `dialogProps` |
 | `useFlashMessage()` | A success message passed from another page | `message`, `showMessage`, `clearMessage` |
+| `useStoredFlag(key)` | A true/false value kept in `localStorage`; falls back to `false` when storage is unavailable | `[value, toggle]` |
 
 The hooks return ready-made props for Material UI components, so connecting them takes one line:
 
