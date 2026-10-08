@@ -30,8 +30,17 @@ export const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 export const SEARCH_DELAY_MS = 300;
 
-export const MAX_SITE_OPTIONS = 100;
+export const MAX_SELECT_OPTIONS = 100;
 
 export const SITE_DEFAULT_SORT = { sortBy: 'name', order: 'asc' };
 
 export const INSTALLATION_DEFAULT_SORT = { sortBy: 'installedOn', order: 'desc' };
+
+export const USER_ROLES = [
+  { value: 'admin', label: 'Admin' },
+  { value: 'technician', label: 'Technician' },
+];
+
+export const ROLE_LABELS = Object.fromEntries(USER_ROLES.map(({ value, label }) => [value, label]));
+
+export const USER_DEFAULT_SORT = { sortBy: 'fullName', order: 'asc' };
