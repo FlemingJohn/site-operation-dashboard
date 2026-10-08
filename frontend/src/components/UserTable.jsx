@@ -9,19 +9,26 @@ import {
   Typography,
 } from '@mui/material';
 import { ROLE_LABELS } from '../constants';
-import SortableHeader from './SortableHeader';
+import { FIELD_ICONS } from '../fieldIcons';
+import EmptyTableRow from './EmptyTableRow';
+import TableHeaderCell from './TableHeaderCell';
 
 const COLUMN_COUNT = 4;
 
-const UserTable = ({ users, isLoading = false, emptyMessage, ...sortProps }) => (
+const UserTable = ({ users, isLoading = false, emptyMessage, onClearFilters, ...sortProps }) => (
   <TableContainer>
     <Table className="data-table">
       <TableHead>
         <TableRow>
-          <SortableHeader column="fullName" label="Name" {...sortProps} />
-          <SortableHeader column="email" label="Email" {...sortProps} />
-          <TableCell>Phone</TableCell>
-          <SortableHeader column="role" label="Role" {...sortProps} />
+          <TableHeaderCell
+            column="fullName"
+            label="Name"
+            icon={FIELD_ICONS.person}
+            {...sortProps}
+          />
+          <TableHeaderCell column="email" label="Email" icon={FIELD_ICONS.email} {...sortProps} />
+          <TableHeaderCell label="Phone" icon={FIELD_ICONS.phone} />
+          <TableHeaderCell column="role" label="Role" icon={FIELD_ICONS.role} {...sortProps} />
         </TableRow>
       </TableHead>
       <TableBody>
@@ -40,11 +47,11 @@ const UserTable = ({ users, isLoading = false, emptyMessage, ...sortProps }) => 
           </TableRow>
         ))}
         {!isLoading && users.length === 0 && (
-          <TableRow>
-            <TableCell colSpan={COLUMN_COUNT} align="center">
-              {emptyMessage}
-            </TableCell>
-          </TableRow>
+          <EmptyTableRow
+            colSpan={COLUMN_COUNT}
+            message={emptyMessage}
+            onClearFilters={onClearFilters}
+          />
         )}
       </TableBody>
     </Table>
