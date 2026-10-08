@@ -1,9 +1,8 @@
-import { Card, LinearProgress, Stack, TablePagination } from '@mui/material';
+import { Card, LinearProgress, TablePagination } from '@mui/material';
 import { deleteSite, getSites } from '../api/siteApi';
 import DeleteDialog from '../components/DeleteDialog';
 import ErrorAlert from '../components/ErrorAlert';
-import FilterSelect from '../components/FilterSelect';
-import SearchField from '../components/SearchField';
+import ListToolbar from '../components/ListToolbar';
 import SiteTable from '../components/SiteTable';
 import SuccessSnackbar from '../components/SuccessSnackbar';
 import { REGIONS, SITE_DEFAULT_SORT, SITE_STATUSES } from '../constants';
@@ -12,6 +11,11 @@ import { useFlashMessage } from '../hooks/useFlashMessage';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 
 const INITIAL_FILTERS = { status: '', region: '' };
+
+const SITE_FILTERS = [
+  { name: 'status', label: 'Status', allLabel: 'All statuses', options: SITE_STATUSES },
+  { name: 'region', label: 'Region', allLabel: 'All regions', options: REGIONS },
+];
 
 const SitesPage = () => {
   const sites = usePaginatedList(getSites, INITIAL_FILTERS, SITE_DEFAULT_SORT);
@@ -26,28 +30,17 @@ const SitesPage = () => {
 
   return (
     <>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-        <SearchField
-          value={sites.searchInput}
-          onChange={sites.setSearchInput}
-          placeholder="Search by site or city"
-          label="Search sites"
-        />
-        <FilterSelect
-          label="Status"
-          allLabel="All statuses"
-          value={sites.filters.status}
-          options={SITE_STATUSES}
-          onChange={(value) => sites.updateFilter('status', value)}
-        />
-        <FilterSelect
-          label="Region"
-          allLabel="All regions"
-          value={sites.filters.region}
-          options={REGIONS}
-          onChange={(value) => sites.updateFilter('region', value)}
-        />
-      </Stack>
+      <ListToolbar
+        search={{
+          value: sites.searchInput,
+          onChange: sites.setSearchInput,
+          placeholder: 'Search by site or city',
+          label: 'Search sites',
+        }}
+        filters={SITE_FILTERS}
+        values={sites.filters}
+        onFilterChange={sites.updateFilter}
+      />
 
       {sites.error && <ErrorAlert message={sites.error} onRetry={sites.reload} />}
 
