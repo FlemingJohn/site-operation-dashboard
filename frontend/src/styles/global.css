@@ -56,11 +56,39 @@
   padding: 24px;
 }
 
+.stat-card {
+  height: 100%;
+}
+
 .stat-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
+}
+
+.stat-value-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  min-height: 46px;
+}
+
+.stat-visual {
+  flex-shrink: 0;
+}
+
+.stat-gauge .MuiGauge-valueArc {
+  fill: #1e8a4c;
+}
+
+.stat-gauge .MuiGauge-referenceArc {
+  fill: #eef0f3;
+}
+
+.stat-sparkline .MuiLineChart-area {
+  fill-opacity: 0.16;
 }
 
 .stat-icon {
@@ -89,6 +117,11 @@
   flex-direction: column;
 }
 
+.chart-card .MuiCardHeader-root {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
 .chart-card-content {
   flex: 1;
   display: flex;
@@ -106,8 +139,8 @@
 
 .donut-chart {
   position: relative;
-  width: 170px;
-  height: 170px;
+  width: 220px;
+  height: 220px;
 }
 
 .donut-total {
@@ -125,6 +158,33 @@
   max-width: 280px;
   display: grid;
   gap: 14px;
+}
+
+.donut-legend-item {
+  display: grid;
+  gap: 6px;
+}
+
+.donut-legend-bar {
+  height: 6px;
+  border-radius: 3px;
+  background-color: #eef0f3;
+}
+
+.donut-legend-bar .MuiLinearProgress-bar {
+  border-radius: 3px;
+}
+
+.donut-legend-bar-completed .MuiLinearProgress-bar {
+  background-color: #1e8a4c;
+}
+
+.donut-legend-bar-in_progress .MuiLinearProgress-bar {
+  background-color: #b86e00;
+}
+
+.donut-legend-bar-pending .MuiLinearProgress-bar {
+  background-color: #a3acb9;
 }
 
 .donut-legend-row {
@@ -152,10 +212,6 @@
   background-color: #a3acb9;
 }
 
-.bar-chart {
-  width: 100%;
-}
-
 .toolbar-search {
   width: 100%;
 }
@@ -176,6 +232,37 @@
 
 .data-table {
   min-width: 680px;
+}
+
+.table-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.table-header-icon {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.field-icon {
+  color: #5f6b7a;
+}
+
+.Mui-focused .field-icon {
+  color: #2457d6;
+}
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 24px 0;
+}
+
+.empty-state-icon {
+  font-size: 40px;
+  color: #c5ccd6;
 }
 
 .nowrap {
