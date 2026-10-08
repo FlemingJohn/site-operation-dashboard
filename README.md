@@ -17,6 +17,8 @@ The API runs on the App Service free tier, which sleeps when idle. The first req
 - **Overview dashboard** with summary cards, an installations-by-status donut chart, an installations-per-month bar chart and the latest installations
 - **Sites**: list, search by name or city, filter by status and region, add, edit and delete
 - **Installations**: list, search by equipment or technician, filter by site and status, add, edit and delete
+- **Users**: list, search by name or email, filter by role, add admins and technicians with an optional phone number
+- **Filter menu** inside the search bar, with the active filters shown as removable chips
 - **Server-side pagination** with a selectable page size
 - **Server-side sorting** by clicking a column header
 - **Validation** in the browser and on the server, with errors shown under each form field
@@ -336,7 +338,8 @@ All endpoints are under `/api` and use JSON.
 | POST | `/installations` | Create an installation |
 | PUT | `/installations/:id` | Update an installation |
 | DELETE | `/installations/:id` | Delete an installation |
-| GET | `/users?role=technician` | Technicians for the installation form |
+| GET | `/users` | Paginated list with `search`, `role`, `sortBy`, `order` |
+| POST | `/users` | Create a user (`Idempotency-Key` supported) |
 
 Paginated responses:
 
@@ -387,6 +390,7 @@ erDiagram
         serial id PK
         varchar full_name
         varchar email UK
+        varchar phone
         varchar role
         timestamptz created_at
     }
