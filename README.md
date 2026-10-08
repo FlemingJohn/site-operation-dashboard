@@ -14,11 +14,13 @@ The API runs on the App Service free tier, which sleeps when idle. The first req
 
 ## Features
 
-- **Overview dashboard** with summary cards, an installations-by-status donut chart, an installations-per-month bar chart and the latest installations
+- **Overview dashboard** with summary cards (a sparkline and a completion gauge), an installations-by-status donut chart, an installations chart that switches between month, site and technician, and the latest installations
 - **Sites**: list, search by name or city, filter by status and region, add, edit and delete
 - **Installations**: list, search by equipment or technician, filter by site and status, add, edit and delete
 - **Users**: list, search by name or email, filter by role, add admins and technicians with an optional phone number
 - **Filter menu** inside the search bar, with the active filters shown as removable chips
+- **Type-to-filter fields** (MUI Autocomplete) for site and technician in the installation form and the site filter
+- **Icons** in every table header and form field, and an empty state with a Clear filters button
 - **Server-side pagination** with a selectable page size
 - **Server-side sorting** by clicking a column header
 - **Validation** in the browser and on the server, with errors shown under each form field
