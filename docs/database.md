@@ -106,7 +106,7 @@ erDiagram
 
 | Action | Rule | Reason |
 |---|---|---|
-| Delete a site | `ON DELETE CASCADE` removes its installations | An installation cannot exist without its site. |
+| Delete a site | `ON DELETE CASCADE` removes its installations | An installation cannot exist without its site. The app asks for the site name before deleting a site that has installations, and suggests setting it to Inactive instead to keep the history. |
 | Delete a user | `ON DELETE SET NULL` keeps the installations as unassigned | Installation history is kept when a technician leaves. |
 
 ## Tables
