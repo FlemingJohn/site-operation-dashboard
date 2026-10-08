@@ -1,7 +1,14 @@
 import { TableCell, TableSortLabel } from '@mui/material';
 
-const SortableHeader = ({ column, label, align, sortBy, order, onSort }) => {
-  if (!onSort) return <TableCell align={align}>{label}</TableCell>;
+const TableHeaderCell = ({ column, label, icon: Icon, align, sortBy, order, onSort }) => {
+  const content = (
+    <span className="table-header">
+      {Icon && <Icon className="table-header-icon" />}
+      {label}
+    </span>
+  );
+
+  if (!onSort || !column) return <TableCell align={align}>{content}</TableCell>;
 
   const isActive = sortBy === column;
 
@@ -12,10 +19,10 @@ const SortableHeader = ({ column, label, align, sortBy, order, onSort }) => {
         direction={isActive ? order : 'asc'}
         onClick={() => onSort(column)}
       >
-        {label}
+        {content}
       </TableSortLabel>
     </TableCell>
   );
 };
 
-export default SortableHeader;
+export default TableHeaderCell;
