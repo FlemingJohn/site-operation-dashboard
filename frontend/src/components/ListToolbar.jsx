@@ -1,7 +1,17 @@
 import { useState } from 'react';
-import { Badge, Button, Chip, IconButton, Popover, Stack, Tooltip, Typography } from '@mui/material';
+import {
+  Badge,
+  Button,
+  Chip,
+  IconButton,
+  Popover,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import FilterSelect from './FilterSelect';
+import OptionAutocomplete from './OptionAutocomplete';
 import SearchField from './SearchField';
 
 const getOptionLabel = (options, value) =>
@@ -56,16 +66,23 @@ const ListToolbar = ({ search, filters, values, onFilterChange }) => {
       >
         <Stack spacing={2}>
           <Typography variant="subtitle2">Filters</Typography>
-          {filters.map(({ name, label, allLabel, options }) => (
-            <FilterSelect
-              key={name}
-              label={label}
-              allLabel={allLabel}
-              value={values[name]}
-              options={options}
-              onChange={(value) => onFilterChange(name, value)}
-            />
-          ))}
+          {filters.map(({ name, label, allLabel, options, icon, searchable }) => {
+            const FilterField = searchable ? OptionAutocomplete : FilterSelect;
+            return (
+              <FilterField
+                key={name}
+                id={`filter-${name}`}
+                label={label}
+                allLabel={allLabel}
+                placeholder={allLabel}
+                icon={icon}
+                size="small"
+                value={values[name]}
+                options={options}
+                onChange={(value) => onFilterChange(name, value)}
+              />
+            );
+          })}
           <Stack direction="row" className="form-actions">
             <Button size="small" onClick={clearAll} disabled={activeFilters.length === 0}>
               Clear all
