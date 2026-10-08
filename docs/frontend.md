@@ -76,6 +76,8 @@ Components never call the API, and the API layer never touches the UI. Each laye
 | `/installations` | `InstallationsPage` | Installation list with search, site and status filters, pagination, delete |
 | `/installations/new` | `InstallationFormPage` | Create an installation |
 | `/installations/:id/edit` | `InstallationFormPage` | Edit an installation |
+| `/users` | `UsersPage` | User list with search, role filter, sorting and pagination |
+| `/users/new` | `UserFormPage` | Create a user |
 | any other URL | `NotFoundPage` | "Page not found" with a link back |
 
 Every page is loaded with `React.lazy`, so the browser downloads a page's code, including the chart library, only when that page is opened.
@@ -89,6 +91,8 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `SiteFormPage` | `useEntityForm` | Name, city, region and status fields |
 | `InstallationsPage` | `usePaginatedList`, `useDeleteConfirmation`, `useFlashMessage`, `InstallationTable` | Searchable, filterable, sortable, paginated installations with edit and delete |
 | `InstallationFormPage` | `useEntityForm`, `getSites`, `getTechnicians` | Equipment, site, technician, date and status fields |
+| `UsersPage` | `usePaginatedList`, `useFlashMessage`, `UserTable` | Searchable, filterable, sortable, paginated users |
+| `UserFormPage` | `useEntityForm` | Full name, email, phone and role fields |
 | `NotFoundPage` | — | Message and a link to the Overview |
 
 ## Components
@@ -97,11 +101,13 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 |---|---|---|
 | `Layout` | Sidebar `Drawer` (fixed on desktop, slide-in on mobile), top `AppBar` with the page title and Add button, page area | Every page |
 | `SiteTable` | Sites table with sortable headers, status chips, installation counts, edit and delete buttons | Sites page |
-| `SortableHeader` | Header cell with a `TableSortLabel` arrow; a plain cell when there is no `onSort` | Both tables |
+| `UserTable` | Users table with sortable headers, phone and role chips | Users page |
+| `SortableHeader` | Header cell with a `TableSortLabel` arrow; a plain cell when there is no `onSort` | All list tables |
 | `InstallationTable` | Installations table; edit and delete buttons appear only when `onDelete` is passed, sortable headers only when `onSort` is passed | Overview, Installations page |
 | `StatusChip` | Coloured status label | Both tables |
-| `SearchField` | Text field with a search icon | Both list pages |
-| `FilterSelect` | Dropdown with an "All …" option | Both list pages |
+| `ListToolbar` | Search bar with a filter button inside it. The button opens a `Popover` of filters, shows a `Badge` with the number of active filters, and each active filter appears as a removable `Chip` under the bar. "Clear all" resets the filters and keeps the search text | All list pages |
+| `SearchField` | Text field with a search icon and an optional button at the end | `ListToolbar` |
+| `FilterSelect` | Dropdown with an "All …" option | `ListToolbar` |
 | `DeleteDialog` | Confirmation dialog with a deleting state and an inline error | Both list pages |
 | `SuccessSnackbar` | Green confirmation message at the bottom of the screen | Both list pages |
 | `ErrorAlert` | Red message with optional Retry and Back buttons | Overview, list pages, form pages |
