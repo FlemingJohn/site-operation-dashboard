@@ -164,6 +164,18 @@
   row-gap: 8px;
 }
 
+.chart-toggle {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.chart-toggle .MuiToggleButton-root {
+  gap: 6px;
+  padding-inline: 12px;
+  text-transform: none;
+  white-space: nowrap;
+}
+
 .chart-card-content {
   flex: 1;
   display: flex;
@@ -318,6 +330,12 @@
   .app-drawer-desktop .MuiListSubheader-root,
   .app-drawer-desktop .MuiListItemText-root {
     transition: none;
+  }
+}
+
+@media (max-width: 599px) {
+  .chart-toggle-label {
+    display: none;
   }
 }
 
