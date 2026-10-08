@@ -13,13 +13,16 @@ import {
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { formatDate } from '../utils';
-import SortableHeader from './SortableHeader';
+import { FIELD_ICONS } from '../fieldIcons';
+import EmptyTableRow from './EmptyTableRow';
+import TableHeaderCell from './TableHeaderCell';
 import StatusChip from './StatusChip';
 
 const InstallationTable = ({
   installations,
   isLoading = false,
   emptyMessage,
+  onClearFilters,
   onDelete,
   ...sortProps
 }) => {
@@ -31,11 +34,36 @@ const InstallationTable = ({
       <Table className="data-table">
         <TableHead>
           <TableRow>
-            <SortableHeader column="equipment" label="Equipment" {...sortProps} />
-            <SortableHeader column="siteName" label="Site" {...sortProps} />
-            <SortableHeader column="technicianName" label="Technician" {...sortProps} />
-            <SortableHeader column="installedOn" label="Date" {...sortProps} />
-            <SortableHeader column="status" label="Status" {...sortProps} />
+            <TableHeaderCell
+              column="equipment"
+              label="Equipment"
+              icon={FIELD_ICONS.equipment}
+              {...sortProps}
+            />
+            <TableHeaderCell
+              column="siteName"
+              label="Site"
+              icon={FIELD_ICONS.site}
+              {...sortProps}
+            />
+            <TableHeaderCell
+              column="technicianName"
+              label="Technician"
+              icon={FIELD_ICONS.person}
+              {...sortProps}
+            />
+            <TableHeaderCell
+              column="installedOn"
+              label="Date"
+              icon={FIELD_ICONS.date}
+              {...sortProps}
+            />
+            <TableHeaderCell
+              column="status"
+              label="Status"
+              icon={FIELD_ICONS.status}
+              {...sortProps}
+            />
             {showActions && <TableCell align="right">Actions</TableCell>}
           </TableRow>
         </TableHead>
@@ -80,11 +108,11 @@ const InstallationTable = ({
             </TableRow>
           ))}
           {!isLoading && installations.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={columnCount} align="center">
-                {emptyMessage}
-              </TableCell>
-            </TableRow>
+            <EmptyTableRow
+              colSpan={columnCount}
+              message={emptyMessage}
+              onClearFilters={onClearFilters}
+            />
           )}
         </TableBody>
       </Table>
