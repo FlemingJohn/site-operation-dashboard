@@ -2,17 +2,10 @@ import { Suspense, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
   AppBar,
-  Avatar,
   Button,
   Drawer,
   IconButton,
   LinearProgress,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  ListSubheader,
-  Stack,
   Toolbar,
   Typography,
 } from '@mui/material';
@@ -22,7 +15,9 @@ import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
+import { useStoredFlag } from '../hooks/useStoredFlag';
 import ErrorBoundary from './ErrorBoundary';
+import SidebarNav from './SidebarNav';
 
 const SECTIONS = [
   { path: '/', label: 'Overview', icon: DashboardOutlinedIcon },
@@ -36,6 +31,8 @@ const SECTIONS = [
   { path: '/users', label: 'Users', icon: PeopleOutlinedIcon, addLabel: 'Add user' },
 ];
 
+const SIDEBAR_COLLAPSED_KEY = 'siteops.sidebarCollapsed';
+
 const getActiveSection = (pathname) =>
   SECTIONS.find((section) => section.path !== '/' && pathname.startsWith(section.path)) ??
   SECTIONS[0];
@@ -43,43 +40,16 @@ const getActiveSection = (pathname) =>
 const Layout = () => {
   const { pathname } = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCollapsed, toggleCollapsed] = useStoredFlag(SIDEBAR_COLLAPSED_KEY);
   const activeSection = getActiveSection(pathname);
   const showAddButton = activeSection.addLabel && pathname === activeSection.path;
 
-  const navigation = (
-    <>
-      <Toolbar>
-        <Stack direction="row" className="app-brand">
-          <Avatar variant="rounded" className="app-brand-mark">
-            <BusinessOutlinedIcon fontSize="small" />
-          </Avatar>
-          <Typography variant="h6" className="app-brand-name">
-            SiteOps
-          </Typography>
-        </Stack>
-      </Toolbar>
-      <List subheader={<ListSubheader>Operations</ListSubheader>}>
-        {SECTIONS.map(({ path, label, icon: Icon }) => (
-          <ListItemButton
-            key={path}
-            component={Link}
-            to={path}
-            selected={activeSection.path === path}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <ListItemIcon>
-              <Icon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary={label} />
-          </ListItemButton>
-        ))}
-      </List>
-    </>
-  );
-
   return (
     <div className="app">
-      <nav className="app-nav" aria-label="Main navigation">
+      <nav
+        className={`app-nav${isCollapsed ? ' app-nav-collapsed' : ''}`}
+        aria-label="Main navigation"
+      >
         <Drawer
           variant="temporary"
           open={isMenuOpen}
@@ -87,7 +57,11 @@ const Layout = () => {
           className="app-drawer-mobile"
           classes={{ paper: 'app-drawer-paper' }}
         >
-          {navigation}
+          <SidebarNav
+            sections={SECTIONS}
+            activePath={activeSection.path}
+            onNavigate={() => setIsMenuOpen(false)}
+          />
         </Drawer>
         <Drawer
           variant="permanent"
@@ -95,7 +69,12 @@ const Layout = () => {
           className="app-drawer-desktop"
           classes={{ paper: 'app-drawer-paper' }}
         >
-          {navigation}
+          <SidebarNav
+            sections={SECTIONS}
+            activePath={activeSection.path}
+            isCollapsed={isCollapsed}
+            onToggle={toggleCollapsed}
+          />
         </Drawer>
       </nav>
 
