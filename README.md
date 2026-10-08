@@ -12,6 +12,38 @@ A full-stack dashboard for managing operational sites, tracking equipment instal
 
 The API runs on the App Service free tier, which sleeps when idle. The first request after a quiet period can take 10–20 seconds; later requests are fast.
 
+## Screenshots
+
+### Overview
+Summary cards with a sparkline and a completion gauge, the status donut, the installations chart (by month, site or technician) and the latest installations.
+
+![Overview page](docs/screenshots/overview.png)
+
+### Sites
+Sortable columns with icons, status chips, installation counts, and the search bar with its filter menu.
+
+![Sites list](docs/screenshots/sites.png)
+
+### Add site
+Every field starts with the same icon as its table column.
+
+![Add site form](docs/screenshots/add-site.png)
+
+### Delete a site with installations
+The dialog says how many installation records will also be deleted, points to Edit for marking the site inactive instead, and keeps Delete disabled until the site name is typed.
+
+![Delete site confirmation](docs/screenshots/delete-site.png)
+
+### Azure resources
+The App Service plan and the API in Southeast Asia, and the Static Web App for the frontend, all in the `rg-siteops` resource group.
+
+![Azure resources](docs/screenshots/azure-resources.png)
+
+### Azure log stream
+Production logs from the API: one JSON line per request with its request id, method, URL, status code and response time.
+
+![Azure log stream](docs/screenshots/azure-log-stream.png)
+
 ## Features
 
 - **Overview dashboard** with summary cards (a sparkline and a completion gauge), an installations-by-status donut chart, an installations chart that switches between month, site and technician, and the latest installations
