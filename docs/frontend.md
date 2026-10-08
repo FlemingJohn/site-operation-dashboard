@@ -110,7 +110,8 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `OptionAutocomplete` | MUI `Autocomplete` for `{ value, label }` options. Shows the label, returns the value, and returns `''` when cleared | Installation form, Site filter |
 | `StatCard` | Summary card with label, icon, value, an optional small chart and a note | Overview |
 | `StatusDonutCard` | Donut chart of installations by status with a legend and percentage bars | Overview |
-| `InstallationBreakdownCard` | One stacked `BarChart` with a `ToggleButtonGroup`: by month (vertical bars) or by site or technician (horizontal bars, busiest first). The chart keeps the same height in every view | Overview |
+| `InstallationBreakdownCard` | One stacked `BarChart` with a `ToggleButtonGroup`: by month (vertical bars) or by site or technician (horizontal bars, busiest first). Both axes have titles (Month, Site or Technician, and Installations); axis sizes are set to `'auto'` so MUI measures the labels and titles never overlap them. The three toggle buttons share one width and show an icon with their name, or only the icon on narrow screens. The chart keeps the same height in every view | Overview |
+| `CardIcon` | The rounded icon tile used in stat cards and in the chart and table card headers | Overview |
 | `InstallationTable` | Installations table; edit and delete buttons appear only when `onDelete` is passed, sortable headers only when `onSort` is passed | Overview, Installations page |
 | `StatusChip` | Coloured status label | Both tables |
 | `ListToolbar` | Search bar with a filter button inside it. The button opens a `Popover` of filters, shows a `Badge` with the number of active filters, and each active filter appears as a removable `Chip` under the bar. "Clear all" resets the filters and keeps the search text | All list pages |
