@@ -91,7 +91,7 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `SitesPage` | `usePaginatedList`, `useDeleteConfirmation`, `useFlashMessage`, `SiteTable` | Searchable, filterable, sortable, paginated sites with edit and delete |
 | `SiteFormPage` | `useEntityForm` | Name, city, region and status fields |
 | `InstallationsPage` | `usePaginatedList`, `useDeleteConfirmation`, `useFlashMessage`, `InstallationTable` | Searchable, filterable, sortable, paginated installations with edit and delete |
-| `InstallationFormPage` | `useEntityForm`, `OptionAutocomplete`, `getSites`, `getTechnicians` | Equipment, site, technician, date and status fields. Site and Technician are type-to-filter fields; clearing Technician means unassigned |
+| `InstallationFormPage` | `useEntityForm`, `OptionAutocomplete`, `getSites`, `getTechnicians` | Equipment, site, technician, date and status fields. Site and Technician are type-to-filter fields; clearing Technician means unassigned. The Site list offers active sites only, plus the current site when editing an installation at an inactive one |
 | `UsersPage` | `usePaginatedList`, `useFlashMessage`, `UserTable` | Searchable, filterable, sortable, paginated users |
 | `UserFormPage` | `useEntityForm` | Full name, email, phone and role fields |
 | `NotFoundPage` | — | Message and a link to the Overview |
@@ -117,7 +117,8 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `ListToolbar` | Search bar with a filter button inside it. The button opens a `Popover` of filters, shows a `Badge` with the number of active filters, and each active filter appears as a removable `Chip` under the bar. "Clear all" resets the filters and keeps the search text | All list pages |
 | `SearchField` | Text field with a search icon and an optional button at the end | `ListToolbar` |
 | `FilterSelect` | Dropdown with an "All …" option and a field icon. Filters marked `searchable` use `OptionAutocomplete` instead | `ListToolbar` |
-| `DeleteDialog` | Confirmation dialog with a deleting state and an inline error | Both list pages |
+| `DeleteDialog` | Confirmation dialog with a deleting state and an inline error. With `confirmText`, Delete stays disabled until that exact text is typed | Both list pages |
+| `SiteDeleteDialog` | Site wording for `DeleteDialog`. A site with no installations gets a plain confirmation. A site with installations says how many records will also be deleted, links to Edit so the site can be set to Inactive instead, and asks for the site name before Delete is enabled | Sites page |
 | `SuccessSnackbar` | Green confirmation message at the bottom of the screen | Both list pages |
 | `ErrorAlert` | Red message with optional Retry and Back buttons | Overview, list pages, form pages |
 | `ErrorBoundary` | Replaces a crashed page with a recovery message instead of a blank screen | `Layout` |
@@ -137,7 +138,7 @@ The hooks return ready-made props for Material UI components, so connecting them
 ```jsx
 <TablePagination component="div" {...sites.paginationProps} />
 <SiteTable sites={sites.rows} onDelete={deletion.open} {...sites.sortProps} />
-<DeleteDialog {...deletion.dialogProps} title="Delete site?" message="…" />
+<SiteDeleteDialog site={deletion.item} {...deletion.dialogProps} />
 ```
 
 ## Data flow
