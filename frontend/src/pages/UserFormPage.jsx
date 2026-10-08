@@ -11,7 +11,9 @@ import {
   TextField,
 } from '@mui/material';
 import { createUser } from '../api/userApi';
+import FieldIcon from '../components/FieldIcon';
 import { USER_ROLES } from '../constants';
+import { FIELD_ICONS } from '../fieldIcons';
 import { useEntityForm } from '../hooks/useEntityForm';
 import { userSchema } from '../validation/userSchema';
 
@@ -53,7 +55,10 @@ const UserFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.fullName)}
                 helperText={form.errors.fullName}
-                slotProps={{ htmlInput: { maxLength: MAX_NAME_LENGTH } }}
+                slotProps={{
+                  input: { startAdornment: <FieldIcon icon={FIELD_ICONS.person} /> },
+                  htmlInput: { maxLength: MAX_NAME_LENGTH },
+                }}
               />
             </Grid>
             <Grid size={12}>
@@ -68,7 +73,10 @@ const UserFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.email)}
                 helperText={form.errors.email}
-                slotProps={{ htmlInput: { maxLength: MAX_EMAIL_LENGTH } }}
+                slotProps={{
+                  input: { startAdornment: <FieldIcon icon={FIELD_ICONS.email} /> },
+                  htmlInput: { maxLength: MAX_EMAIL_LENGTH },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -82,7 +90,10 @@ const UserFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.phone)}
                 helperText={form.errors.phone}
-                slotProps={{ htmlInput: { maxLength: MAX_PHONE_LENGTH } }}
+                slotProps={{
+                  input: { startAdornment: <FieldIcon icon={FIELD_ICONS.phone} /> },
+                  htmlInput: { maxLength: MAX_PHONE_LENGTH },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -96,6 +107,7 @@ const UserFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.role)}
                 helperText={form.errors.role}
+                slotProps={{ input: { startAdornment: <FieldIcon icon={FIELD_ICONS.role} /> } }}
               >
                 {USER_ROLES.map(({ value, label }) => (
                   <MenuItem key={value} value={value}>
