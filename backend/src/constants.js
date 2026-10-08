@@ -12,6 +12,8 @@ export const MAX_PAGE_SIZE = 100;
 
 export const RECENT_INSTALLATIONS_LIMIT = 5;
 
+export const BREAKDOWN_LIMIT = 8;
+
 export const SORT_ORDERS = ['asc', 'desc'];
 
 export const SITE_SORT_COLUMNS = {
