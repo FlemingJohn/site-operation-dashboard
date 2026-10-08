@@ -5,12 +5,21 @@ import ListToolbar from '../components/ListToolbar';
 import SuccessSnackbar from '../components/SuccessSnackbar';
 import UserTable from '../components/UserTable';
 import { USER_DEFAULT_SORT, USER_ROLES } from '../constants';
+import { FIELD_ICONS } from '../fieldIcons';
 import { useFlashMessage } from '../hooks/useFlashMessage';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 
 const INITIAL_FILTERS = { role: '' };
 
-const USER_FILTERS = [{ name: 'role', label: 'Role', allLabel: 'All roles', options: USER_ROLES }];
+const USER_FILTERS = [
+  {
+    name: 'role',
+    label: 'Role',
+    allLabel: 'All roles',
+    options: USER_ROLES,
+    icon: FIELD_ICONS.role,
+  },
+];
 
 const UsersPage = () => {
   const users = usePaginatedList(getUsers, INITIAL_FILTERS, USER_DEFAULT_SORT);
@@ -37,7 +46,8 @@ const UsersPage = () => {
         <UserTable
           users={users.rows}
           isLoading={users.isLoading}
-          emptyMessage="No users match these filters."
+          emptyMessage={users.clearFilters ? 'No users match these filters.' : 'No users yet.'}
+          onClearFilters={users.clearFilters}
           {...users.sortProps}
         />
         <TablePagination component="div" {...users.paginationProps} />
