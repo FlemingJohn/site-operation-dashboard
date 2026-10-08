@@ -16,9 +16,12 @@ import { createInstallation, getInstallation, updateInstallation } from '../api/
 import { getSites } from '../api/siteApi';
 import { getTechnicians } from '../api/userApi';
 import ErrorAlert from '../components/ErrorAlert';
+import FieldIcon from '../components/FieldIcon';
+import OptionAutocomplete from '../components/OptionAutocomplete';
 import { INSTALLATION_STATUSES, MAX_SELECT_OPTIONS } from '../constants';
+import { FIELD_ICONS } from '../fieldIcons';
 import { useEntityForm } from '../hooks/useEntityForm';
-import { getToday } from '../utils';
+import { getToday, toOptions } from '../utils';
 import { installationSchema } from '../validation/installationSchema';
 
 const MAX_EQUIPMENT_LENGTH = 150;
@@ -60,8 +63,8 @@ const InstallationFormPage = () => {
   useEffect(() => {
     Promise.all([getSites({ limit: MAX_SELECT_OPTIONS }), getTechnicians()])
       .then(([siteResult, technicianList]) => {
-        setSites(siteResult.data);
-        setTechnicians(technicianList);
+        setSites(toOptions(siteResult.data, 'name'));
+        setTechnicians(toOptions(technicianList, 'fullName'));
       })
       .catch((err) => setOptionsError(err.message));
   }, []);
@@ -103,48 +106,38 @@ const InstallationFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.equipment)}
                 helperText={form.errors.equipment}
-                slotProps={{ htmlInput: { maxLength: MAX_EQUIPMENT_LENGTH } }}
+                slotProps={{
+                  input: { startAdornment: <FieldIcon icon={FIELD_ICONS.equipment} /> },
+                  htmlInput: { maxLength: MAX_EQUIPMENT_LENGTH },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              <OptionAutocomplete
                 id="installation-site"
-                name="siteId"
                 label="Site"
-                select
-                fullWidth
                 required
-                value={sites.length > 0 ? form.values.siteId : ''}
-                onChange={form.handleChange}
+                options={sites}
+                value={form.values.siteId}
+                onChange={(value) => form.setFieldValue('siteId', value)}
+                icon={FIELD_ICONS.site}
+                placeholder="Type a site name"
                 error={Boolean(form.errors.siteId)}
                 helperText={form.errors.siteId}
-              >
-                {sites.map((site) => (
-                  <MenuItem key={site.id} value={String(site.id)}>
-                    {site.name}
-                  </MenuItem>
-                ))}
-              </TextField>
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              <OptionAutocomplete
                 id="installation-technician"
-                name="technicianId"
                 label="Technician"
-                select
-                fullWidth
-                value={technicians.length > 0 ? form.values.technicianId : ''}
-                onChange={form.handleChange}
+                options={technicians}
+                value={form.values.technicianId}
+                onChange={(value) => form.setFieldValue('technicianId', value)}
+                icon={FIELD_ICONS.person}
+                placeholder="Unassigned"
                 error={Boolean(form.errors.technicianId)}
                 helperText={form.errors.technicianId}
-              >
-                <MenuItem value="">Unassigned</MenuItem>
-                {technicians.map((technician) => (
-                  <MenuItem key={technician.id} value={String(technician.id)}>
-                    {technician.fullName}
-                  </MenuItem>
-                ))}
-              </TextField>
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
@@ -158,7 +151,10 @@ const InstallationFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.installedOn)}
                 helperText={form.errors.installedOn}
-                slotProps={{ inputLabel: { shrink: true } }}
+                slotProps={{
+                  input: { startAdornment: <FieldIcon icon={FIELD_ICONS.date} /> },
+                  inputLabel: { shrink: true },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -172,6 +168,7 @@ const InstallationFormPage = () => {
                 onChange={form.handleChange}
                 error={Boolean(form.errors.status)}
                 helperText={form.errors.status}
+                slotProps={{ input: { startAdornment: <FieldIcon icon={FIELD_ICONS.status} /> } }}
               >
                 {INSTALLATION_STATUSES.map(({ value, label }) => (
                   <MenuItem key={value} value={value}>
