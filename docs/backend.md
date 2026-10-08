@@ -36,7 +36,8 @@ backend/
     ├── routes/
     │   ├── index.js
     │   ├── siteRoutes.js
-    │   └── installationRoutes.js
+    │   ├── installationRoutes.js
+    │   └── userRoutes.js
     ├── controllers/
     │   ├── healthController.js
     │   ├── siteController.js
@@ -123,7 +124,8 @@ flowchart LR
 | POST | `/api/installations` | Create an installation | 201 |
 | PUT | `/api/installations/:id` | Replace an installation's details | 200 |
 | DELETE | `/api/installations/:id` | Delete an installation | 204 |
-| GET | `/api/users` | List users, optionally filtered by role | 200 |
+| GET | `/api/users` | Paginated list of users | 200 |
+| POST | `/api/users` | Create a user | 201 |
 
 ### GET /api/health
 
@@ -323,15 +325,47 @@ Responds `204` with no body, or `404` if the id does not exist.
 
 | Query parameter | Rules |
 |---|---|
+| `page` | 1 or more, defaults to `1` |
+| `limit` | 1 to 100, defaults to `10` |
+| `search` | Optional, matches full name or email |
 | `role` | Optional, `admin` or `technician` |
+| `sortBy` | `fullName`, `email` or `role`, defaults to `fullName` |
+| `order` | `asc` or `desc`, defaults to `asc` |
 
 ```json
-[
-  { "id": 2, "fullName": "Ravi Kumar", "email": "ravi.kumar@siteops.example", "role": "technician" }
-]
+{
+  "data": [
+    {
+      "id": 2,
+      "fullName": "Ravi Kumar",
+      "email": "ravi.kumar@siteops.example",
+      "phone": "+91 98400 10002",
+      "role": "technician",
+      "createdAt": "2026-10-07T18:44:33.287Z"
+    }
+  ],
+  "pagination": { "page": 1, "limit": 10, "total": 1, "totalPages": 1 }
+}
 ```
 
-The installation form uses `GET /api/users?role=technician` to fill the technician dropdown.
+The installation form uses `GET /api/users?role=technician&limit=100` to fill the technician dropdown.
+
+### POST /api/users
+
+Headers: `Content-Type: application/json`, `Idempotency-Key: <uuid>` (see [Idempotency](#idempotency)).
+
+```json
+{ "fullName": "Suresh Babu", "email": "suresh.babu@siteops.example", "phone": "+91 98400 10006", "role": "technician" }
+```
+
+| Field | Rules |
+|---|---|
+| `fullName` | Required, trimmed, 1 to 100 characters |
+| `email` | Required, valid email, stored in lower case, up to 150 characters, unique |
+| `phone` | Optional, `null` or 7 to 20 characters of digits, spaces, `+` and `-` |
+| `role` | Optional, `admin` or `technician`, defaults to `technician` |
+
+Responds `201` with the created user. Responds `409` if the email is already used. Users have no password: they are staff records for assigning installations, not login accounts.
 
 ## Errors
 
@@ -356,6 +390,7 @@ Every error response has the same shape:
 | Record does not exist | 404 | `This site no longer exists.` / `This installation no longer exists.` |
 | Unknown route | 404 | `Route not found.` |
 | Duplicate site name (PostgreSQL `23505`) | 409 | `A site with this name already exists.` with `errors.name` set to the same text |
+| Duplicate user email (PostgreSQL `23505`) | 409 | `A user with this email already exists.` with `errors.email` set to the same text |
 | Same `Idempotency-Key` still being processed | 409 | `This request is still being processed. Please wait a moment.` |
 | Same `Idempotency-Key` sent with a different body | 422 | `This request was already submitted with different details.` |
 | Database unreachable | 503 | `The service is temporarily unavailable. Please try again shortly.` |
@@ -433,7 +468,7 @@ The key is reserved with `INSERT ... ON CONFLICT (key) DO NOTHING`. Only one of 
 
 ### Where it applies
 
-The `idempotency` middleware is attached to `POST /api/sites` and `POST /api/installations`. The frontend generates the key with `crypto.randomUUID()` when a form opens and sends the same key for every submit of that form, so a retried submit is recognised as the same request.
+The `idempotency` middleware is attached to `POST /api/sites`, `POST /api/installations` and `POST /api/users`. The frontend generates the key with `crypto.randomUUID()` when a form opens and sends the same key for every submit of that form, so a retried submit is recognised as the same request.
 
 ### Database scripts
 
