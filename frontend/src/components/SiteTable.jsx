@@ -12,22 +12,42 @@ import {
 } from '@mui/material';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import SortableHeader from './SortableHeader';
+import { FIELD_ICONS } from '../fieldIcons';
+import EmptyTableRow from './EmptyTableRow';
+import TableHeaderCell from './TableHeaderCell';
 import StatusChip from './StatusChip';
 
 const COLUMN_COUNT = 5;
 
-const SiteTable = ({ sites, isLoading = false, emptyMessage, onDelete, ...sortProps }) => (
+const SiteTable = ({
+  sites,
+  isLoading = false,
+  emptyMessage,
+  onClearFilters,
+  onDelete,
+  ...sortProps
+}) => (
   <TableContainer>
     <Table className="data-table">
       <TableHead>
         <TableRow>
-          <SortableHeader column="name" label="Site" {...sortProps} />
-          <SortableHeader column="region" label="Region" {...sortProps} />
-          <SortableHeader column="status" label="Status" {...sortProps} />
-          <SortableHeader
+          <TableHeaderCell column="name" label="Site" icon={FIELD_ICONS.site} {...sortProps} />
+          <TableHeaderCell
+            column="region"
+            label="Region"
+            icon={FIELD_ICONS.region}
+            {...sortProps}
+          />
+          <TableHeaderCell
+            column="status"
+            label="Status"
+            icon={FIELD_ICONS.status}
+            {...sortProps}
+          />
+          <TableHeaderCell
             column="installationCount"
             label="Installations"
+            icon={FIELD_ICONS.equipment}
             align="right"
             {...sortProps}
           />
@@ -75,11 +95,11 @@ const SiteTable = ({ sites, isLoading = false, emptyMessage, onDelete, ...sortPr
           </TableRow>
         ))}
         {!isLoading && sites.length === 0 && (
-          <TableRow>
-            <TableCell colSpan={COLUMN_COUNT} align="center">
-              {emptyMessage}
-            </TableCell>
-          </TableRow>
+          <EmptyTableRow
+            colSpan={COLUMN_COUNT}
+            message={emptyMessage}
+            onClearFilters={onClearFilters}
+          />
         )}
       </TableBody>
     </Table>
