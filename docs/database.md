@@ -230,11 +230,11 @@ database/
 | `joins/installation_details.sql` | `INNER JOIN` + `LEFT JOIN` across all three tables | The ten latest installations with site and technician names |
 | `joins/technician_sites.sql` | The many-to-many relationship, `STRING_AGG` | Each technician with the sites they have worked at |
 | `aggregations/dashboard_totals.sql` | `WITH` (common table expressions), `COUNT ... FILTER`, `CROSS JOIN` | Site and installation totals for the summary cards |
-| `aggregations/installations_per_site.sql` | `LEFT JOIN` + `GROUP BY` | Installation count per site, including sites with none |
+| `aggregations/installations_per_site.sql` | `LEFT JOIN` + `GROUP BY` + `COUNT ... FILTER` | Installations per site split by status, busiest first, including sites with none |
 | `aggregations/status_breakdown.sql` | Window function `SUM(...) OVER ()` | Installations per status with a percentage |
-| `aggregations/monthly_installations.sql` | `generate_series`, `LEFT JOIN` on a date range | Installations per month for the last six months, including empty months |
+| `aggregations/monthly_installations.sql` | `generate_series`, `LEFT JOIN` on a date range, `COUNT ... FILTER` | Installations per month for the last six months split by status, including empty months |
 | `aggregations/completion_rate_by_region.sql` | `FILTER`, `NULLIF` | Completion rate per region |
-| `aggregations/technician_workload.sql` | `LEFT JOIN` + conditional count | Total and open jobs per technician |
+| `aggregations/technician_workload.sql` | `LEFT JOIN`, `UNION ALL`, `COUNT ... FILTER` | Installations per technician split by status, busiest first, with unassigned work as its own row |
 
 ## Query optimization
 
