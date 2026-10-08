@@ -25,6 +25,12 @@ export const COLORS = {
   pending: '#a3acb9',
 };
 
+export const STATUS_CHART_COLORS = {
+  completed: COLORS.success,
+  in_progress: COLORS.warning,
+  pending: COLORS.pending,
+};
+
 const CHIP_TONES = {
   success: { color: COLORS.success, backgroundColor: COLORS.successSoft },
   warning: { color: COLORS.warning, backgroundColor: COLORS.warningSoft },
