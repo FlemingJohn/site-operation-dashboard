@@ -16,7 +16,7 @@ import { createInstallation, getInstallation, updateInstallation } from '../api/
 import { getSites } from '../api/siteApi';
 import { getTechnicians } from '../api/userApi';
 import ErrorAlert from '../components/ErrorAlert';
-import { INSTALLATION_STATUSES, MAX_SITE_OPTIONS } from '../constants';
+import { INSTALLATION_STATUSES, MAX_SELECT_OPTIONS } from '../constants';
 import { useEntityForm } from '../hooks/useEntityForm';
 import { getToday } from '../utils';
 import { installationSchema } from '../validation/installationSchema';
@@ -58,7 +58,7 @@ const InstallationFormPage = () => {
   });
 
   useEffect(() => {
-    Promise.all([getSites({ limit: MAX_SITE_OPTIONS }), getTechnicians()])
+    Promise.all([getSites({ limit: MAX_SELECT_OPTIONS }), getTechnicians()])
       .then(([siteResult, technicianList]) => {
         setSites(siteResult.data);
         setTechnicians(technicianList);
