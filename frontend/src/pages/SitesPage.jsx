@@ -1,8 +1,8 @@
 import { Card, LinearProgress, TablePagination } from '@mui/material';
 import { deleteSite, getSites } from '../api/siteApi';
-import DeleteDialog from '../components/DeleteDialog';
 import ErrorAlert from '../components/ErrorAlert';
 import ListToolbar from '../components/ListToolbar';
+import SiteDeleteDialog from '../components/SiteDeleteDialog';
 import SiteTable from '../components/SiteTable';
 import SuccessSnackbar from '../components/SuccessSnackbar';
 import { REGIONS, SITE_DEFAULT_SORT, SITE_STATUSES } from '../constants';
@@ -70,14 +70,7 @@ const SitesPage = () => {
         <TablePagination component="div" {...sites.paginationProps} />
       </Card>
 
-      <DeleteDialog
-        {...deletion.dialogProps}
-        title="Delete site?"
-        message={
-          deletion.item &&
-          `${deletion.item.name} and its ${deletion.item.installationCount} installation records will be permanently deleted.`
-        }
-      />
+      <SiteDeleteDialog site={deletion.item} {...deletion.dialogProps} />
 
       <SuccessSnackbar message={flash.message} onClose={flash.clearMessage} />
     </>
