@@ -1,9 +1,11 @@
 SELECT
   s.name AS site_name,
-  s.region,
-  s.status,
-  COUNT(i.id) AS installation_count
+  COUNT(i.id) AS count,
+  COUNT(i.id) FILTER (WHERE i.status = 'completed') AS completed,
+  COUNT(i.id) FILTER (WHERE i.status = 'in_progress') AS in_progress,
+  COUNT(i.id) FILTER (WHERE i.status = 'pending') AS pending
 FROM sites s
 LEFT JOIN installations i ON i.site_id = s.id
-GROUP BY s.id, s.name, s.region, s.status
-ORDER BY installation_count DESC, site_name;
+GROUP BY s.id
+ORDER BY count DESC, site_name
+LIMIT 8;
