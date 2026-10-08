@@ -18,6 +18,14 @@ export const usePaginatedList = (fetchList, initialFilters, initialSort) => {
     setPage(0);
   }, []);
 
+  const clearFilters = () => {
+    setSearchInput('');
+    setFilters({ search: '', ...initialFilters });
+    setPage(0);
+  };
+
+  const hasActiveFilters = Object.values(filters).some(Boolean);
+
   const changeSort = (column) => {
     setSort((current) => ({
       sortBy: column,
@@ -86,6 +94,7 @@ export const usePaginatedList = (fetchList, initialFilters, initialSort) => {
     searchInput,
     setSearchInput,
     updateFilter,
+    clearFilters: hasActiveFilters ? clearFilters : undefined,
     paginationProps,
     sortProps,
     reload,
