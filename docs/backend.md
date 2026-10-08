@@ -143,7 +143,7 @@ If the database cannot be reached the response is `503`:
 
 ### GET /api/summary
 
-Runs four aggregation queries in parallel. Each one matches a file in `database/queries/aggregations/`.
+Runs six queries in parallel. Each one matches a file in `database/queries/aggregations/`.
 
 ```json
 {
@@ -161,8 +161,15 @@ Runs four aggregation queries in parallel. Each one matches a file in `database/
     { "status": "pending", "count": 1 }
   ],
   "monthlyInstallations": [
-    { "month": "2026-05", "label": "May", "count": 1 },
-    { "month": "2026-06", "label": "Jun", "count": 1 }
+    { "month": "2026-09", "label": "Sep", "count": 1, "completed": 0, "inProgress": 0, "pending": 1 },
+    { "month": "2026-10", "label": "Oct", "count": 2, "completed": 0, "inProgress": 1, "pending": 1 }
+  ],
+  "installationsBySite": [
+    { "label": "Chennai Plant", "count": 2, "completed": 1, "inProgress": 0, "pending": 1 }
+  ],
+  "installationsByTechnician": [
+    { "label": "Ravi Kumar", "count": 2, "completed": 1, "inProgress": 1, "pending": 0 },
+    { "label": "Unassigned", "count": 1, "completed": 0, "inProgress": 0, "pending": 1 }
   ],
   "recentInstallations": [
     {
@@ -183,7 +190,9 @@ Runs four aggregation queries in parallel. Each one matches a file in `database/
 |---|---|
 | `totals` | `COUNT` and `COUNT ... FILTER` over `sites` and `installations` |
 | `statusBreakdown` | `GROUP BY status` |
-| `monthlyInstallations` | `generate_series` over the last six months with a `LEFT JOIN`, so months without installations return `0` |
+| `monthlyInstallations` | `generate_series` over the last six months with a `LEFT JOIN`, so months without installations return `0`. Each month is split by status with `COUNT ... FILTER` |
+| `installationsBySite` | `sites LEFT JOIN installations`, split by status, busiest first, at most 8 rows. Sites with no installations return `0` |
+| `installationsByTechnician` | Technicians `LEFT JOIN installations` plus one `Unassigned` row (only when there is unassigned work), combined with `UNION ALL`, busiest first, at most 8 rows |
 | `recentInstallations` | The five latest installations joined to `sites` and `users` |
 
 ### GET /api/sites
