@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Alert, Card, LinearProgress, Stack, TablePagination } from '@mui/material';
+import { Alert, Card, LinearProgress, TablePagination } from '@mui/material';
 import { deleteInstallation, getInstallations } from '../api/installationApi';
 import { getSites } from '../api/siteApi';
 import DeleteDialog from '../components/DeleteDialog';
 import ErrorAlert from '../components/ErrorAlert';
-import FilterSelect from '../components/FilterSelect';
 import InstallationTable from '../components/InstallationTable';
-import SearchField from '../components/SearchField';
+import ListToolbar from '../components/ListToolbar';
 import SuccessSnackbar from '../components/SuccessSnackbar';
-import { INSTALLATION_DEFAULT_SORT, INSTALLATION_STATUSES, MAX_SITE_OPTIONS } from '../constants';
+import { INSTALLATION_DEFAULT_SORT, INSTALLATION_STATUSES, MAX_SELECT_OPTIONS } from '../constants';
 import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
 import { useFlashMessage } from '../hooks/useFlashMessage';
 import { usePaginatedList } from '../hooks/usePaginatedList';
@@ -34,7 +33,7 @@ const InstallationsPage = () => {
   });
 
   useEffect(() => {
-    getSites({ limit: MAX_SITE_OPTIONS })
+    getSites({ limit: MAX_SELECT_OPTIONS })
       .then((result) =>
         setSiteOptions(result.data.map((site) => ({ value: String(site.id), label: site.name })))
       )
@@ -43,28 +42,25 @@ const InstallationsPage = () => {
 
   return (
     <>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-        <SearchField
-          value={installations.searchInput}
-          onChange={installations.setSearchInput}
-          placeholder="Search equipment or technician"
-          label="Search installations"
-        />
-        <FilterSelect
-          label="Site"
-          allLabel="All sites"
-          value={installations.filters.siteId}
-          options={siteOptions}
-          onChange={(value) => installations.updateFilter('siteId', value)}
-        />
-        <FilterSelect
-          label="Status"
-          allLabel="All statuses"
-          value={installations.filters.status}
-          options={INSTALLATION_STATUSES}
-          onChange={(value) => installations.updateFilter('status', value)}
-        />
-      </Stack>
+      <ListToolbar
+        search={{
+          value: installations.searchInput,
+          onChange: installations.setSearchInput,
+          placeholder: 'Search equipment or technician',
+          label: 'Search installations',
+        }}
+        filters={[
+          { name: 'siteId', label: 'Site', allLabel: 'All sites', options: siteOptions },
+          {
+            name: 'status',
+            label: 'Status',
+            allLabel: 'All statuses',
+            options: INSTALLATION_STATUSES,
+          },
+        ]}
+        values={installations.filters}
+        onFilterChange={installations.updateFilter}
+      />
 
       {siteOptionsError && <Alert severity="warning">{siteOptionsError}</Alert>}
       {installations.error && (
