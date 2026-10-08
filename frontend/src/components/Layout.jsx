@@ -21,6 +21,7 @@ import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
 import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
+import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ErrorBoundary from './ErrorBoundary';
 
 const SECTIONS = [
@@ -32,6 +33,7 @@ const SECTIONS = [
     icon: BuildOutlinedIcon,
     addLabel: 'Add installation',
   },
+  { path: '/users', label: 'Users', icon: PeopleOutlinedIcon, addLabel: 'Add user' },
 ];
 
 const getActiveSection = (pathname) =>
