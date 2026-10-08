@@ -6,8 +6,10 @@ import { SparkLineChart } from '@mui/x-charts/SparkLineChart';
 import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
 import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import ListAltOutlinedIcon from '@mui/icons-material/ListAltOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { getSummary } from '../api/summaryApi';
+import CardIcon from '../components/CardIcon';
 import ErrorAlert from '../components/ErrorAlert';
 import InstallationBreakdownCard from '../components/InstallationBreakdownCard';
 import InstallationTable from '../components/InstallationTable';
@@ -127,6 +129,7 @@ const OverviewPage = () => {
 
       <Card>
         <CardHeader
+          avatar={<CardIcon icon={ListAltOutlinedIcon} />}
           title="Recent installations"
           subheader="Latest five records"
           action={
