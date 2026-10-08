@@ -8,9 +8,11 @@ import InstallationTable from '../components/InstallationTable';
 import ListToolbar from '../components/ListToolbar';
 import SuccessSnackbar from '../components/SuccessSnackbar';
 import { INSTALLATION_DEFAULT_SORT, INSTALLATION_STATUSES, MAX_SELECT_OPTIONS } from '../constants';
+import { FIELD_ICONS } from '../fieldIcons';
 import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
 import { useFlashMessage } from '../hooks/useFlashMessage';
 import { usePaginatedList } from '../hooks/usePaginatedList';
+import { toOptions } from '../utils';
 
 const INITIAL_FILTERS = { siteId: '', status: '' };
 const SITE_OPTIONS_ERROR = "Couldn't load sites for filtering.";
@@ -34,9 +36,7 @@ const InstallationsPage = () => {
 
   useEffect(() => {
     getSites({ limit: MAX_SELECT_OPTIONS })
-      .then((result) =>
-        setSiteOptions(result.data.map((site) => ({ value: String(site.id), label: site.name })))
-      )
+      .then((result) => setSiteOptions(toOptions(result.data, 'name')))
       .catch(() => setSiteOptionsError(SITE_OPTIONS_ERROR));
   }, []);
 
@@ -50,12 +50,20 @@ const InstallationsPage = () => {
           label: 'Search installations',
         }}
         filters={[
-          { name: 'siteId', label: 'Site', allLabel: 'All sites', options: siteOptions },
+          {
+            name: 'siteId',
+            label: 'Site',
+            allLabel: 'All sites',
+            options: siteOptions,
+            icon: FIELD_ICONS.site,
+            searchable: true,
+          },
           {
             name: 'status',
             label: 'Status',
             allLabel: 'All statuses',
             options: INSTALLATION_STATUSES,
+            icon: FIELD_ICONS.status,
           },
         ]}
         values={installations.filters}
@@ -72,7 +80,12 @@ const InstallationsPage = () => {
         <InstallationTable
           installations={installations.rows}
           isLoading={installations.isLoading}
-          emptyMessage="No installations match these filters."
+          emptyMessage={
+            installations.clearFilters
+              ? 'No installations match these filters.'
+              : 'No installations yet.'
+          }
+          onClearFilters={installations.clearFilters}
           onDelete={deletion.open}
           {...installations.sortProps}
         />
