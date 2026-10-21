@@ -1,0 +1,135 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-nav {
+  width: 232px;
+  flex-shrink: 0;
+  transition: width 200ms ease;
+}
+
+.app-drawer-paper {
+  width: 232px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  white-space: nowrap;
+  transition: width 200ms ease;
+}
+
+.app-nav-footer {
+  margin-top: auto;
+  padding-bottom: 12px;
+}
+
+.app-nav-collapsed {
+  width: 64px;
+}
+
+.app-nav-collapsed .app-drawer-desktop .app-drawer-paper {
+  width: 64px;
+}
+
+.app-nav-collapsed .app-drawer-desktop .MuiToolbar-root {
+  padding-inline: 13px;
+}
+
+.app-nav-collapsed .app-drawer-desktop .MuiListItemButton-root {
+  margin-inline: 8px;
+  padding-inline: 14px;
+}
+
+.app-nav-collapsed .app-drawer-desktop .MuiListItemIcon-root {
+  min-width: 20px;
+}
+
+.app-brand-name,
+.app-drawer-desktop .MuiListSubheader-root,
+.app-drawer-desktop .MuiListItemText-root {
+  transition: opacity 150ms ease;
+}
+
+.app-nav-collapsed .app-drawer-desktop .app-brand-name,
+.app-nav-collapsed .app-drawer-desktop .MuiListSubheader-root,
+.app-nav-collapsed .app-drawer-desktop .MuiListItemText-root {
+  opacity: 0;
+}
+
+.app-brand {
+  align-items: center;
+  gap: 10px;
+  padding: 4px 4px 0;
+}
+
+.app-page-title {
+  flex-grow: 1;
+}
+
+.text-strong {
+  font-weight: 500;
+}
+
+.form-actions {
+  justify-content: flex-end;
+}
+
+.app-brand-name {
+  color: var(--color-white);
+}
+
+.app-brand-mark {
+  width: 30px;
+  height: 30px;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.app-main {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  padding: 24px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-nav,
+  .app-drawer-paper,
+  .app-brand-name,
+  .app-drawer-desktop .MuiListSubheader-root,
+  .app-drawer-desktop .MuiListItemText-root {
+    transition: none;
+  }
+}
+
+@media (max-width: 899px) {
+  .app-nav,
+  .app-nav-collapsed {
+    width: 0;
+  }
+
+  .app-drawer-desktop {
+    display: none;
+  }
+
+  .app-content {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 900px) {
+  .app-drawer-mobile,
+  .app-menu-button {
+    display: none;
+  }
+}
