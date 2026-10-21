@@ -14,8 +14,39 @@ export const REGIONS = ['North', 'South', 'East', 'West'].map((region) => ({
   label: region,
 }));
 
+export const EQUIPMENT_TYPES = [
+  { value: 'blade_yoke', label: 'Blade Yoke' },
+  { value: 'tower_gripper', label: 'Tower Gripper' },
+  { value: 'tagline_system', label: 'Tagline System' },
+  { value: 'mobile_robot', label: 'Mobile Robot' },
+];
+
+export const EQUIPMENT_STATUSES = [
+  { value: 'deployed', label: 'Deployed' },
+  { value: 'in_service', label: 'In service' },
+  { value: 'in_stock', label: 'In stock' },
+];
+
+export const PART_REQUEST_STATUSES = [
+  { value: 'requested', label: 'Requested' },
+  { value: 'ordered', label: 'Ordered' },
+  { value: 'delivered', label: 'Delivered' },
+];
+
+export const SERVICE_STATES = [
+  { value: 'late', label: 'Needs service now' },
+  { value: 'this_week', label: 'Coming up this week' },
+  { value: 'later', label: 'Later' },
+];
+
 export const STATUS_LABELS = Object.fromEntries(
-  [...SITE_STATUSES, ...INSTALLATION_STATUSES].map(({ value, label }) => [value, label])
+  [...SITE_STATUSES, ...INSTALLATION_STATUSES, ...EQUIPMENT_STATUSES, ...PART_REQUEST_STATUSES].map(
+    ({ value, label }) => [value, label]
+  )
+);
+
+export const EQUIPMENT_TYPE_LABELS = Object.fromEntries(
+  EQUIPMENT_TYPES.map(({ value, label }) => [value, label])
 );
 
 export const STATUS_COLORS = {
@@ -24,6 +55,12 @@ export const STATUS_COLORS = {
   completed: 'success',
   in_progress: 'warning',
   pending: 'default',
+  deployed: 'success',
+  in_service: 'warning',
+  in_stock: 'default',
+  requested: 'default',
+  ordered: 'warning',
+  delivered: 'success',
 };
 
 export const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -64,3 +101,26 @@ export const INSTALLATION_COUNT_QUERIES = Object.fromEntries(
     value === ALL_STATUSES_TAB ? {} : { status: value },
   ])
 );
+
+export const SERVICE_INTERVAL_DAYS = 90;
+
+export const SERVICE_SOON_DAYS = 7;
+
+export const EQUIPMENT_DEFAULT_SORT = { sortBy: 'nextServiceOn', order: 'asc' };
+
+export const ACTIVITY_DEFAULT_SORT = { sortBy: 'occurredAt', order: 'desc' };
+
+export const ACTIVITY_KINDS = [
+  { value: 'installation', label: 'Installations' },
+  { value: 'service', label: 'Service' },
+  { value: 'part', label: 'Spare parts' },
+  { value: 'site', label: 'Sites' },
+  { value: 'user', label: 'Users' },
+];
+
+export const ACTIVITY_PERIODS = [
+  { value: '7', label: 'Last 7 days' },
+  { value: '30', label: 'Last 30 days' },
+];
+
+export const SAMPLE_DELAY_MS = 250;
