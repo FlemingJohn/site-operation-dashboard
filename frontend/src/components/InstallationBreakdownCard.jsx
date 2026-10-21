@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, ToggleButton, ToggleButtonGroup } from '
 import { BarChart } from '@mui/x-charts/BarChart';
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
 import { FIELD_ICONS } from '../fieldIcons';
-import { STATUS_CHART_COLORS } from '../styles/theme';
+import { STATUS_CHART_COLORS } from '../styles/colors';
 import CardIcon from './CardIcon';
 
 const CHART_HEIGHT = 260;
