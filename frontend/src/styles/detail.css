@@ -1,0 +1,21 @@
+.detail-header {
+  display: grid;
+  gap: 8px;
+}
+
+.detail-back {
+  justify-self: start;
+}
+
+.detail-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
