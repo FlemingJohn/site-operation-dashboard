@@ -5,6 +5,7 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { getEquipmentUnit } from '../api/equipmentApi';
 import EquipmentDetailHeader from '../components/EquipmentDetailHeader';
 import ErrorAlert from '../components/ErrorAlert';
+import HistoryCard from '../components/HistoryCard';
 import MarkDoneDialog from '../components/MarkDoneDialog';
 import PartRequestListCard from '../components/PartRequestListCard';
 import ServiceHistoryCard from '../components/ServiceHistoryCard';
@@ -46,6 +47,7 @@ const EquipmentDetailPage = () => {
         <ServiceHistoryCard records={unit.record.serviceRecords} />
         <PartRequestListCard requests={unit.record.partRequests} />
       </div>
+      <HistoryCard path={`/equipment/${id}`} />
 
       {isMarkingDone && (
         <MarkDoneDialog
