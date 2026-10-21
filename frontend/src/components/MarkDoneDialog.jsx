@@ -7,18 +7,16 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  MenuItem,
   Stack,
   TextField,
 } from '@mui/material';
 import { markServiceDone } from '../api/serviceApi';
 import { EQUIPMENT_TYPE_LABELS, SERVICE_INTERVAL_DAYS } from '../constants';
-import { useTechnicians } from '../hooks/useTechnicians';
 import { addDays } from '../lib/addDays';
 import { formatDate, getToday } from '../utils';
+import TechnicianSelect from './TechnicianSelect';
 
 const MarkDoneDialog = ({ unit, onClose, onSaved }) => {
-  const { technicians, error: techniciansError } = useTechnicians();
   const [doneOn, setDoneOn] = useState(getToday);
   const [doneBy, setDoneBy] = useState('');
   const [notes, setNotes] = useState('');
@@ -55,21 +53,12 @@ const MarkDoneDialog = ({ unit, onClose, onSaved }) => {
             onChange={(event) => setDoneOn(event.target.value)}
             slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: getToday() } }}
           />
-          <TextField
+          <TechnicianSelect
             id="service-done-by"
-            select
             label="Done by"
             value={doneBy}
-            onChange={(event) => setDoneBy(event.target.value)}
-            helperText={techniciansError}
-            error={Boolean(techniciansError)}
-          >
-            {technicians.map((technician) => (
-              <MenuItem key={technician.id} value={technician.fullName}>
-                {technician.fullName}
-              </MenuItem>
-            ))}
-          </TextField>
+            onChange={setDoneBy}
+          />
           <TextField
             id="service-notes"
             label="What was done (optional)"
