@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PAGE_SIZE_OPTIONS, SEARCH_DELAY_MS } from '../constants';
 
-export const usePaginatedList = (fetchList, initialFilters, initialSort) => {
+export const usePaginatedList = (
+  fetchList,
+  initialFilters,
+  initialSort,
+  pageSizeOptions = PAGE_SIZE_OPTIONS
+) => {
   const [searchInput, setSearchInput] = useState('');
   const [filters, setFilters] = useState({ search: '', ...initialFilters });
   const [sort, setSort] = useState(initialSort);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZE_OPTIONS[0]);
+  const [rowsPerPage, setRowsPerPage] = useState(pageSizeOptions[0]);
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,18 +70,15 @@ export const usePaginatedList = (fetchList, initialFilters, initialSort) => {
   const reload = () => setReloadKey((key) => key + 1);
 
   const refreshAfterDelete = () => {
-    if (rows.length === 1 && page > 0) {
-      setPage(page - 1);
-    } else {
-      reload();
-    }
+    if (rows.length === 1 && page > 0) setPage(page - 1);
+    reload();
   };
 
   const paginationProps = {
     count: total,
     page,
     rowsPerPage,
-    rowsPerPageOptions: PAGE_SIZE_OPTIONS,
+    rowsPerPageOptions: pageSizeOptions,
     onPageChange: (event, newPage) => setPage(newPage),
     onRowsPerPageChange: (event) => {
       setRowsPerPage(Number(event.target.value));
@@ -88,6 +90,8 @@ export const usePaginatedList = (fetchList, initialFilters, initialSort) => {
 
   return {
     rows,
+    total,
+    version: reloadKey,
     isLoading,
     error,
     filters,
