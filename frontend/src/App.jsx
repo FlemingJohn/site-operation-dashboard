@@ -14,6 +14,7 @@ const EquipmentPage = lazy(() => import('./pages/EquipmentPage'));
 const EquipmentDetailPage = lazy(() => import('./pages/EquipmentDetailPage'));
 const ServicePage = lazy(() => import('./pages/ServicePage'));
 const SparePartsPage = lazy(() => import('./pages/SparePartsPage'));
+const ActivityPage = lazy(() => import('./pages/ActivityPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 const App = () => (
@@ -33,6 +34,7 @@ const App = () => (
       <Route path="equipment" element={<EquipmentPage />} />
       <Route path="equipment/:id" element={<EquipmentDetailPage />} />
       <Route path="spare-parts" element={<SparePartsPage />} />
+      <Route path="activity" element={<ActivityPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Route>
   </Routes>
