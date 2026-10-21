@@ -1,0 +1,173 @@
+.stat-card {
+  height: 100%;
+}
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.stat-value-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  min-height: 46px;
+}
+
+.stat-visual {
+  flex-shrink: 0;
+}
+
+.stat-gauge .MuiGauge-valueArc {
+  fill: var(--color-success);
+}
+
+.stat-gauge .MuiGauge-referenceArc {
+  fill: var(--color-neutral-soft);
+}
+
+.stat-sparkline .MuiLineChart-area {
+  fill-opacity: 0.16;
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.stat-icon-primary {
+  background-color: var(--color-sidebar-soft);
+  color: var(--color-sidebar);
+}
+
+.stat-icon-success {
+  background-color: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.stat-icon-neutral {
+  background-color: var(--color-neutral-soft);
+  color: var(--color-ink);
+}
+
+.chart-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card .MuiCardHeader-root {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.chart-toggle {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.chart-toggle .MuiToggleButton-root {
+  gap: 6px;
+  padding-inline: 12px;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.chart-card-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.donut-layout {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+
+.donut-chart {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
+.donut-total {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-legend {
+  flex: 1;
+  min-width: 180px;
+  max-width: 280px;
+  display: grid;
+  gap: 14px;
+}
+
+.donut-legend-item {
+  display: grid;
+  gap: 6px;
+}
+
+.donut-legend-bar {
+  height: 6px;
+  border-radius: 3px;
+  background-color: var(--color-neutral-soft);
+}
+
+.donut-legend-bar .MuiLinearProgress-bar {
+  border-radius: 3px;
+}
+
+.donut-legend-bar-completed .MuiLinearProgress-bar {
+  background-color: var(--color-success);
+}
+
+.donut-legend-bar-in_progress .MuiLinearProgress-bar {
+  background-color: var(--color-warning);
+}
+
+.donut-legend-bar-pending .MuiLinearProgress-bar {
+  background-color: var(--color-pending);
+}
+
+.donut-legend-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.donut-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.donut-legend-dot-completed {
+  background-color: var(--color-success);
+}
+
+.donut-legend-dot-in_progress {
+  background-color: var(--color-warning);
+}
+
+.donut-legend-dot-pending {
+  background-color: var(--color-pending);
+}
+
+@media (max-width: 599px) {
+  .chart-toggle-label {
+    display: none;
+  }
+}
