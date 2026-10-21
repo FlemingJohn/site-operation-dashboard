@@ -1,29 +1,41 @@
-import { useEffect, useState } from 'react';
-import { Alert, Card, LinearProgress, TablePagination } from '@mui/material';
+import { Alert, Card, LinearProgress } from '@mui/material';
 import { deleteInstallation, getInstallations } from '../api/installationApi';
-import { getSites } from '../api/siteApi';
 import DeleteDialog from '../components/DeleteDialog';
 import ErrorAlert from '../components/ErrorAlert';
 import InstallationTable from '../components/InstallationTable';
+import ListPagination from '../components/ListPagination';
 import ListToolbar from '../components/ListToolbar';
+import PageIntro from '../components/PageIntro';
+import StatusTabs from '../components/StatusTabs';
 import SuccessSnackbar from '../components/SuccessSnackbar';
-import { INSTALLATION_DEFAULT_SORT, INSTALLATION_STATUSES, MAX_SELECT_OPTIONS } from '../constants';
+import {
+  ALL_STATUSES_TAB,
+  INSTALLATION_COUNT_QUERIES,
+  INSTALLATION_DEFAULT_SORT,
+  INSTALLATION_STATUS_TABS,
+} from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
 import { useFlashMessage } from '../hooks/useFlashMessage';
+import { useListCounts } from '../hooks/useListCounts';
 import { usePaginatedList } from '../hooks/usePaginatedList';
-import { toOptions } from '../utils';
+import { useSiteOptions } from '../hooks/useSiteOptions';
 
 const INITIAL_FILTERS = { siteId: '', status: '' };
-const SITE_OPTIONS_ERROR = "Couldn't load sites for filtering.";
 
 const InstallationsPage = () => {
-  const [siteOptions, setSiteOptions] = useState([]);
-  const [siteOptionsError, setSiteOptionsError] = useState('');
+  const siteOptions = useSiteOptions();
   const installations = usePaginatedList(
     getInstallations,
     INITIAL_FILTERS,
     INSTALLATION_DEFAULT_SORT
+  );
+  const { search, siteId, status } = installations.filters;
+  const counts = useListCounts(
+    getInstallations,
+    INSTALLATION_COUNT_QUERIES,
+    { search, siteId },
+    installations.version
   );
   const flash = useFlashMessage();
   const deletion = useDeleteConfirmation({
@@ -34,14 +46,21 @@ const InstallationsPage = () => {
     },
   });
 
-  useEffect(() => {
-    getSites({ limit: MAX_SELECT_OPTIONS })
-      .then((result) => setSiteOptions(toOptions(result.data, 'name')))
-      .catch(() => setSiteOptionsError(SITE_OPTIONS_ERROR));
-  }, []);
-
   return (
     <>
+      <PageIntro>
+        Equipment installed at your sites. Use the tabs to see what is pending, in progress or done.
+      </PageIntro>
+
+      <StatusTabs
+        label="Show installations by status"
+        tabs={INSTALLATION_STATUS_TABS.map((tab) => ({ ...tab, count: counts[tab.value] }))}
+        value={status || ALL_STATUSES_TAB}
+        onChange={(tab) =>
+          installations.updateFilter('status', tab === ALL_STATUSES_TAB ? '' : tab)
+        }
+      />
+
       <ListToolbar
         search={{
           value: installations.searchInput,
@@ -54,23 +73,16 @@ const InstallationsPage = () => {
             name: 'siteId',
             label: 'Site',
             allLabel: 'All sites',
-            options: siteOptions,
+            options: siteOptions.options,
             icon: FIELD_ICONS.site,
             searchable: true,
-          },
-          {
-            name: 'status',
-            label: 'Status',
-            allLabel: 'All statuses',
-            options: INSTALLATION_STATUSES,
-            icon: FIELD_ICONS.status,
           },
         ]}
         values={installations.filters}
         onFilterChange={installations.updateFilter}
       />
 
-      {siteOptionsError && <Alert severity="warning">{siteOptionsError}</Alert>}
+      {siteOptions.error && <Alert severity="warning">{siteOptions.error}</Alert>}
       {installations.error && (
         <ErrorAlert message={installations.error} onRetry={installations.reload} />
       )}
@@ -89,7 +101,7 @@ const InstallationsPage = () => {
           onDelete={deletion.open}
           {...installations.sortProps}
         />
-        <TablePagination component="div" {...installations.paginationProps} />
+        <ListPagination {...installations.paginationProps} />
       </Card>
 
       <DeleteDialog
