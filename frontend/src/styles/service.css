@@ -1,0 +1,133 @@
+.service-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.service-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.service-item-text {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.service-more {
+  padding: 8px 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.calendar-title {
+  min-width: 150px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-weekday {
+  padding: 8px;
+  color: var(--color-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 96px;
+  padding: 6px;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.calendar-day:nth-child(7n) {
+  border-right: 0;
+}
+
+.calendar-day-outside {
+  background-color: var(--color-surface-muted);
+}
+
+.calendar-day-outside .calendar-day-number {
+  color: var(--color-pending);
+}
+
+.calendar-day-today .calendar-day-number {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.calendar-chip {
+  max-width: 100%;
+}
+
+.calendar-chip-late {
+  background-color: var(--color-highlight-soft);
+  color: var(--color-highlight-text);
+}
+
+.calendar-chip-this_week {
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning-text);
+}
+
+.calendar-chip-later {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-text);
+}
+
+@media (max-width: 600px) {
+  .service-item {
+    flex-wrap: wrap;
+  }
+
+  .service-item .equipment-drawing-small {
+    display: none;
+  }
+
+  .calendar-day {
+    min-height: 64px;
+    padding: 4px 2px;
+  }
+
+  .calendar-title {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .calendar-chip::before {
+    display: none;
+  }
+
+  .calendar-chip .MuiChip-label {
+    padding-inline: 4px;
+    font-size: 10px;
+  }
+}
