@@ -8,7 +8,7 @@ const VIEW_OPTIONS = [
   { value: LIST_VIEWS.table, label: 'Table', icon: ViewListOutlinedIcon },
 ];
 
-const ViewToggle = ({ value, onChange }) => (
+const ViewToggle = ({ value, onChange, options = VIEW_OPTIONS }) => (
   <ToggleButtonGroup
     exclusive
     size="small"
@@ -17,7 +17,7 @@ const ViewToggle = ({ value, onChange }) => (
     aria-label="Choose how to show the list"
     className="view-toggle"
   >
-    {VIEW_OPTIONS.map(({ value: option, label, icon: Icon }) => (
+    {options.map(({ value: option, label, icon: Icon }) => (
       <ToggleButton key={option} value={option} aria-label={label}>
         <Icon fontSize="small" />
         <span className="view-toggle-label">{label}</span>
