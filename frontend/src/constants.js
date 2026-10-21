@@ -28,6 +28,12 @@ export const STATUS_COLORS = {
 
 export const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
+export const LIST_PAGE_SIZE_OPTIONS = [12, 24, 48];
+
+export const LIST_VIEWS = { cards: 'cards', table: 'table' };
+
+export const CARD_VIEW_LIMIT = 50;
+
 export const SEARCH_DELAY_MS = 300;
 
 export const MAX_SELECT_OPTIONS = 100;
@@ -44,3 +50,17 @@ export const USER_ROLES = [
 export const ROLE_LABELS = Object.fromEntries(USER_ROLES.map(({ value, label }) => [value, label]));
 
 export const USER_DEFAULT_SORT = { sortBy: 'fullName', order: 'asc' };
+
+export const ALL_STATUSES_TAB = 'all';
+
+export const INSTALLATION_STATUS_TABS = [
+  { value: ALL_STATUSES_TAB, label: 'All' },
+  ...INSTALLATION_STATUSES,
+];
+
+export const INSTALLATION_COUNT_QUERIES = Object.fromEntries(
+  INSTALLATION_STATUS_TABS.map(({ value }) => [
+    value,
+    value === ALL_STATUSES_TAB ? {} : { status: value },
+  ])
+);
