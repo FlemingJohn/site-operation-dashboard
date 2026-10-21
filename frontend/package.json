@@ -14,8 +14,10 @@
     "@mui/icons-material": "^9.4.0",
     "@mui/material": "^9.4.0",
     "@mui/x-charts": "^9.15.0",
+    "leaflet": "^1.9.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.18.4",
     "zod": "^4.6.5"
   },
