@@ -39,8 +39,10 @@ frontend/
     ├── components/               Reusable UI pieces
     ├── pages/                    One component per screen
     └── styles/
-        ├── theme.js              Palette, typography and component overrides
-        └── global.css            Layout classes
+        ├── theme.css             Colour and font tokens, the only place colours are written
+        ├── colors.js             Reads the tokens for Material UI and the charts
+        ├── theme.js              Material UI palette, typography and component overrides
+        └── global.css            Layout classes, all colours from the tokens
 ```
 
 ## Architecture
@@ -71,7 +73,8 @@ Components never call the API, and the API layer never touches the UI. Each laye
 | URL | Page | Purpose |
 |---|---|---|
 | `/` | `OverviewPage` | Summary cards, status donut chart, installations chart by month, site or technician, recent installations |
-| `/sites` | `SitesPage` | Site list with search, status and region filters, pagination, delete |
+| `/sites` | `SitesPage` | Sites as cards or a table, with a clickable summary strip, search, filters, pagination and delete |
+| `/sites/:id` | `SiteDetailPage` | One site: status, region and city, installation counts by status, its installations, Edit, Delete and Add installation here |
 | `/sites/new` | `SiteFormPage` | Create a site |
 | `/sites/:id/edit` | `SiteFormPage` | Edit a site |
 | `/installations` | `InstallationsPage` | Installation list with search, site and status filters, pagination, delete |
@@ -105,7 +108,18 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `SiteTable` | Sites table with sortable headers, status chips, installation counts, edit and delete buttons | Sites page |
 | `UserTable` | Users table with sortable headers, phone and role chips | Users page |
 | `TableHeaderCell` | Header cell with the column's icon and, when `onSort` and `column` are passed, a `TableSortLabel` arrow | All tables |
-| `EmptyTableRow` | Icon and message when a table has no rows, with a Clear filters button when filters are active | All tables |
+| `EmptyTableRow` | `EmptyState` inside a table row | All tables |
+| `EmptyState` | `EmptyIllustration`, a message and an optional action such as Clear filters | Tables, card grids |
+| `EmptyIllustration` | Small crate drawing coloured from the tokens | `EmptyState` |
+| `PageIntro` | One sentence under the page title saying what the page is for | List pages |
+| `SummaryStrip` / `SummaryTile` | Row of counts; a tile can apply its filter when clicked | Sites, Users, Site detail |
+| `ViewToggle` | Cards or Table switch | Sites, Users |
+| `CardGrid` | Responsive grid of cards, or `EmptyState` when there are none | Sites, Users |
+| `SiteCard` / `UserCard` | One site or one person as a card; a site card opens its detail page | Sites, Users |
+| `PersonAvatar` | Initials in a coloured circle; the colour is picked from the name | `UserCard` |
+| `StatusTabs` | Tabs with a count each | Installations |
+| `SiteDetailHeader` | Back link, name, status, region and city, Edit and Delete | Site detail |
+| `ListPagination` | `TablePagination` with the shared settings | All lists |
 | `FieldIcon` | Icon at the start of a form field (`InputAdornment`); turns blue while the field is focused | All forms and the filter menu |
 | `OptionAutocomplete` | MUI `Autocomplete` for `{ value, label }` options. Shows the label, returns the value, and returns `''` when cleared | Installation form, Site filter |
 | `StatCard` | Summary card with label, icon, value, an optional small chart and a note | Overview |
@@ -132,6 +146,11 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `useDeleteConfirmation({ deleteRequest, onDeleted })` | The item being deleted, deleting state, error | `item`, `open`, `dialogProps` |
 | `useFlashMessage()` | A success message passed from another page | `message`, `showMessage`, `clearMessage` |
 | `useStoredFlag(key)` | A true/false value kept in `localStorage`; falls back to `false` when storage is unavailable | `[value, toggle]` |
+| `useStoredChoice(key)` | A text value kept in `localStorage` | `[choice, setChoice]` |
+| `useListView(key, total)` | Cards or Table; defaults to Table when there are more than 50 records | `[view, setView]` |
+| `useListCounts(fetchList, queries, params, version)` | Totals for several filters at once, each read from the API's `pagination.total` with `limit=1` | `{ name: count }` |
+| `useRecord(load, id)` | One record by id | `record`, `error`, `isLoading` |
+| `useSiteOptions()` | Sites for the Site filter | `options`, `error` |
 
 The hooks return ready-made props for Material UI components, so connecting them takes one line:
 
@@ -246,7 +265,9 @@ Styling lives in two files, and components use no inline styles or `sx` props.
 
 | File | Contains |
 |---|---|
-| `styles/theme.js` | `COLORS`, the palette, IBM Plex Sans typography and `styleOverrides` for Material UI components: the dark sidebar, outlined cards, uppercase table headers, tinted status chips, rounded inputs and buttons |
+| `styles/theme.css` | Every colour and the font as CSS variables, based on the ENABL palette (Stormfront Blue sidebar, Evergreen Tide actions, Solar Glow for in progress). Font: Aptos where installed, otherwise Albert Sans |
+| `styles/colors.js` | Reads the tokens at start-up so Material UI and the charts use the same values |
+| `styles/theme.js` | Palette, typography and `styleOverrides` for Material UI components: the sidebar, outlined cards, uppercase table headers, tinted status chips, rounded inputs and buttons |
 | `styles/global.css` | Layout classes such as `app-layout`, `app-page-title`, `chart-card`, `donut-legend`, `toolbar-search`, `form-actions` and `text-strong` |
 
 `main.jsx` wraps the app in `StyledEngineProvider injectFirst`, so Material UI's styles load first and the classes in `global.css` can adjust them without `!important`.
