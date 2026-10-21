@@ -33,6 +33,12 @@ export const PART_REQUEST_STATUSES = [
   { value: 'delivered', label: 'Delivered' },
 ];
 
+export const STOCK_LEVELS = [
+  { value: 'out', label: 'Out of stock' },
+  { value: 'low', label: 'Running low' },
+  { value: 'stocked', label: 'Enough in stock' },
+];
+
 export const SERVICE_STATES = [
   { value: 'late', label: 'Needs service now' },
   { value: 'this_week', label: 'Coming up this week' },
@@ -40,9 +46,13 @@ export const SERVICE_STATES = [
 ];
 
 export const STATUS_LABELS = Object.fromEntries(
-  [...SITE_STATUSES, ...INSTALLATION_STATUSES, ...EQUIPMENT_STATUSES, ...PART_REQUEST_STATUSES].map(
-    ({ value, label }) => [value, label]
-  )
+  [
+    ...SITE_STATUSES,
+    ...INSTALLATION_STATUSES,
+    ...EQUIPMENT_STATUSES,
+    ...PART_REQUEST_STATUSES,
+    ...STOCK_LEVELS,
+  ].map(({ value, label }) => [value, label])
 );
 
 export const EQUIPMENT_TYPE_LABELS = Object.fromEntries(
@@ -61,6 +71,9 @@ export const STATUS_COLORS = {
   requested: 'default',
   ordered: 'warning',
   delivered: 'success',
+  out: 'error',
+  low: 'warning',
+  stocked: 'success',
 };
 
 export const PAGE_SIZE_OPTIONS = [10, 20, 50];
