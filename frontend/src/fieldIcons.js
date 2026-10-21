@@ -1,6 +1,8 @@
 import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
 import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
+import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
 import LocationCityOutlinedIcon from '@mui/icons-material/LocationCityOutlined';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
@@ -20,4 +22,6 @@ export const FIELD_ICONS = {
   email: MailOutlinedIcon,
   phone: PhoneOutlinedIcon,
   role: VerifiedUserOutlinedIcon,
+  type: CategoryOutlinedIcon,
+  service: EventAvailableOutlinedIcon,
 };
