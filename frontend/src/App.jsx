@@ -12,6 +12,7 @@ const UsersPage = lazy(() => import('./pages/UsersPage'));
 const UserFormPage = lazy(() => import('./pages/UserFormPage'));
 const EquipmentPage = lazy(() => import('./pages/EquipmentPage'));
 const EquipmentDetailPage = lazy(() => import('./pages/EquipmentDetailPage'));
+const ServicePage = lazy(() => import('./pages/ServicePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 const App = () => (
@@ -27,6 +28,7 @@ const App = () => (
       <Route path="installations/:id/edit" element={<InstallationFormPage />} />
       <Route path="users" element={<UsersPage />} />
       <Route path="users/new" element={<UserFormPage />} />
+      <Route path="service" element={<ServicePage />} />
       <Route path="equipment" element={<EquipmentPage />} />
       <Route path="equipment/:id" element={<EquipmentDetailPage />} />
       <Route path="*" element={<NotFoundPage />} />
