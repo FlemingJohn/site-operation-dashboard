@@ -13,23 +13,45 @@ import AddIcon from '@mui/icons-material/Add';
 import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
 import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined';
+import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import MapOutlinedIcon from '@mui/icons-material/MapOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
+import PrecisionManufacturingOutlinedIcon from '@mui/icons-material/PrecisionManufacturingOutlined';
 import { useStoredFlag } from '../hooks/useStoredFlag';
 import ErrorBoundary from './ErrorBoundary';
 import SidebarNav from './SidebarNav';
 
-const SECTIONS = [
-  { path: '/', label: 'Overview', icon: DashboardOutlinedIcon },
-  { path: '/sites', label: 'Sites', icon: BusinessOutlinedIcon, addLabel: 'Add site' },
+const NAV_GROUPS = [
   {
-    path: '/installations',
-    label: 'Installations',
-    icon: BuildOutlinedIcon,
-    addLabel: 'Add installation',
+    label: 'Operations',
+    sections: [
+      { path: '/', label: 'Overview', icon: DashboardOutlinedIcon },
+      { path: '/sites', label: 'Sites', icon: BusinessOutlinedIcon, addLabel: 'Add site' },
+      {
+        path: '/installations',
+        label: 'Installations',
+        icon: BuildOutlinedIcon,
+        addLabel: 'Add installation',
+      },
+      { path: '/users', label: 'Users', icon: PeopleOutlinedIcon, addLabel: 'Add user' },
+    ],
   },
-  { path: '/users', label: 'Users', icon: PeopleOutlinedIcon, addLabel: 'Add user' },
+  {
+    label: 'Assets',
+    sections: [
+      { path: '/service', label: 'Service', icon: HandymanOutlinedIcon },
+      { path: '/equipment', label: 'Equipment', icon: PrecisionManufacturingOutlinedIcon },
+      { path: '/spare-parts', label: 'Spare parts', icon: Inventory2OutlinedIcon },
+      { path: '/map', label: 'Map', icon: MapOutlinedIcon },
+      { path: '/activity', label: 'Activity', icon: HistoryOutlinedIcon },
+    ],
+  },
 ];
+
+const SECTIONS = NAV_GROUPS.flatMap((group) => group.sections);
 
 const SIDEBAR_COLLAPSED_KEY = 'siteops.sidebarCollapsed';
 
@@ -58,7 +80,7 @@ const Layout = () => {
           classes={{ paper: 'app-drawer-paper' }}
         >
           <SidebarNav
-            sections={SECTIONS}
+            groups={NAV_GROUPS}
             activePath={activeSection.path}
             onNavigate={() => setIsMenuOpen(false)}
           />
@@ -70,7 +92,7 @@ const Layout = () => {
           classes={{ paper: 'app-drawer-paper' }}
         >
           <SidebarNav
-            sections={SECTIONS}
+            groups={NAV_GROUPS}
             activePath={activeSection.path}
             isCollapsed={isCollapsed}
             onToggle={toggleCollapsed}
