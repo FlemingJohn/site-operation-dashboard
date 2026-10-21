@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   IconButton,
+  Link,
   Table,
   TableBody,
   TableCell,
@@ -24,10 +25,11 @@ const InstallationTable = ({
   emptyMessage,
   onClearFilters,
   onDelete,
+  showSite = true,
   ...sortProps
 }) => {
   const showActions = Boolean(onDelete);
-  const columnCount = showActions ? 6 : 5;
+  const columnCount = 4 + Number(showSite) + Number(showActions);
 
   return (
     <TableContainer>
@@ -40,12 +42,14 @@ const InstallationTable = ({
               icon={FIELD_ICONS.equipment}
               {...sortProps}
             />
-            <TableHeaderCell
-              column="siteName"
-              label="Site"
-              icon={FIELD_ICONS.site}
-              {...sortProps}
-            />
+            {showSite && (
+              <TableHeaderCell
+                column="siteName"
+                label="Site"
+                icon={FIELD_ICONS.site}
+                {...sortProps}
+              />
+            )}
             <TableHeaderCell
               column="technicianName"
               label="Technician"
@@ -75,7 +79,13 @@ const InstallationTable = ({
                   {installation.equipment}
                 </Typography>
               </TableCell>
-              <TableCell>{installation.siteName}</TableCell>
+              {showSite && (
+                <TableCell>
+                  <Link component={RouterLink} to={`/sites/${installation.siteId}`}>
+                    {installation.siteName}
+                  </Link>
+                </TableCell>
+              )}
               <TableCell>{installation.technicianName ?? 'Unassigned'}</TableCell>
               <TableCell className="nowrap">{formatDate(installation.installedOn)}</TableCell>
               <TableCell>
@@ -86,7 +96,7 @@ const InstallationTable = ({
                   <Tooltip title="Edit">
                     <IconButton
                       size="small"
-                      component={Link}
+                      component={RouterLink}
                       to={`/installations/${installation.id}/edit`}
                       aria-label={`Edit ${installation.equipment}`}
                     >
