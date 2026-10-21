@@ -1,0 +1,29 @@
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 24px 0;
+}
+
+.empty-illustration {
+  width: 120px;
+  height: 80px;
+}
+
+.empty-illustration-top {
+  fill: var(--color-border);
+}
+
+.empty-illustration-left {
+  fill: var(--color-sidebar-soft);
+}
+
+.empty-illustration-right {
+  fill: var(--color-border-strong);
+}
+
+.empty-illustration-tape {
+  fill: none;
+  stroke: var(--color-pending);
+  stroke-width: 3;
+}
