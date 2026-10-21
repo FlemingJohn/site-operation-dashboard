@@ -14,8 +14,9 @@ import SuccessSnackbar from '../components/SuccessSnackbar';
 import SummaryStrip from '../components/SummaryStrip';
 import ViewToggle from '../components/ViewToggle';
 import { EQUIPMENT_TYPE_LABELS, SERVICE_STATES } from '../constants';
+import { getServiceDue } from '../api/serviceApi';
 import { useFlashMessage } from '../hooks/useFlashMessage';
-import { useServiceDue } from '../hooks/useServiceDue';
+import { useLoader } from '../hooks/useLoader';
 import { useStoredChoice } from '../hooks/useStoredChoice';
 import { includesText } from '../lib/includesText';
 
@@ -24,6 +25,8 @@ const SERVICE_VIEWS = [
   { value: 'calendar', label: 'Calendar', icon: CalendarMonthOutlinedIcon },
 ];
 
+const NO_UNITS = [];
+
 const GROUP_EMPTY_MESSAGES = {
   late: 'Nothing is overdue.',
   this_week: 'Nothing due in the next 7 days.',
@@ -31,12 +34,12 @@ const GROUP_EMPTY_MESSAGES = {
 };
 
 const ServicePage = () => {
-  const service = useServiceDue();
+  const service = useLoader(getServiceDue, NO_UNITS);
   const flash = useFlashMessage();
   const [view, setView] = useStoredChoice('siteops.serviceView');
   const [search, setSearch] = useState('');
   const [selectedUnit, setSelectedUnit] = useState(null);
-  const units = service.units.filter((unit) =>
+  const units = service.data.filter((unit) =>
     includesText([unit.serial, unit.siteName, EQUIPMENT_TYPE_LABELS[unit.type]], search.trim())
   );
   const unitsInState = (state) => units.filter((unit) => unit.serviceState === state);
