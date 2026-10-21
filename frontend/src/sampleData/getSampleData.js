@@ -18,15 +18,16 @@ const loadSampleData = async () => {
   const equipment = buildEquipment(sites, technicians);
   const spareParts = buildSpareParts();
   const partRequests = buildPartRequests(equipment, spareParts, technicians);
+  const serviceRecords = buildServiceRecords(equipment);
 
   return {
     sites,
     technicians,
     equipment,
-    serviceRecords: buildServiceRecords(equipment),
+    serviceRecords,
     spareParts,
     partRequests,
-    activity: buildActivity({ sites, equipment, technicians, partRequests }),
+    activity: buildActivity({ sites, equipment, serviceRecords, technicians, partRequests }),
   };
 };
 
