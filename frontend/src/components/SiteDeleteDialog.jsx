@@ -1,8 +1,7 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { DialogContentText, Link } from '@mui/material';
+import { pluralize } from '../lib/pluralize';
 import DeleteDialog from './DeleteDialog';
-
-const pluralize = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
 const getMessage = (site, hasInstallations) => {
   if (!site) return '';
