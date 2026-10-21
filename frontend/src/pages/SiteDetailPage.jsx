@@ -4,6 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { getInstallations } from '../api/installationApi';
 import { deleteSite, getSite } from '../api/siteApi';
 import ErrorAlert from '../components/ErrorAlert';
+import HistoryCard from '../components/HistoryCard';
 import InstallationTable from '../components/InstallationTable';
 import ListPagination from '../components/ListPagination';
 import SiteDeleteDialog from '../components/SiteDeleteDialog';
@@ -79,6 +80,8 @@ const SiteDetailPage = () => {
         />
         <ListPagination {...installations.paginationProps} />
       </Card>
+
+      <HistoryCard path={`/sites/${id}`} />
 
       <SiteDeleteDialog site={deletion.item} {...deletion.dialogProps} />
     </>
