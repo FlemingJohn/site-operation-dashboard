@@ -13,6 +13,7 @@ const UserFormPage = lazy(() => import('./pages/UserFormPage'));
 const EquipmentPage = lazy(() => import('./pages/EquipmentPage'));
 const EquipmentDetailPage = lazy(() => import('./pages/EquipmentDetailPage'));
 const ServicePage = lazy(() => import('./pages/ServicePage'));
+const SparePartsPage = lazy(() => import('./pages/SparePartsPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 const App = () => (
@@ -31,6 +32,7 @@ const App = () => (
       <Route path="service" element={<ServicePage />} />
       <Route path="equipment" element={<EquipmentPage />} />
       <Route path="equipment/:id" element={<EquipmentDetailPage />} />
+      <Route path="spare-parts" element={<SparePartsPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Route>
   </Routes>
