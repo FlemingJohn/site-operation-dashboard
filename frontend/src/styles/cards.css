@@ -1,0 +1,89 @@
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.card-grid-empty {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.entity-card {
+  height: 100%;
+}
+
+.entity-card-action {
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+}
+
+.entity-card-content {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.entity-card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.entity-card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.entity-card-footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
+}
+
+.entity-card-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.person-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-white);
+}
+
+.person-avatar-tone-1 {
+  background-color: var(--color-avatar-1);
+}
+
+.person-avatar-tone-2 {
+  background-color: var(--color-avatar-2);
+}
+
+.person-avatar-tone-3 {
+  background-color: var(--color-avatar-3);
+}
+
+.person-avatar-tone-4 {
+  background-color: var(--color-avatar-4);
+}
+
+.person-avatar-tone-5 {
+  background-color: var(--color-avatar-5);
+}
+
+.person-avatar-tone-6 {
+  background-color: var(--color-avatar-6);
+}
