@@ -26,7 +26,7 @@ const NavItem = ({ label, icon: Icon, isCollapsed, ...buttonProps }) => (
   </Tooltip>
 );
 
-const SidebarNav = ({ sections, activePath, isCollapsed = false, onToggle, onNavigate }) => (
+const SidebarNav = ({ groups, activePath, isCollapsed = false, onToggle, onNavigate }) => (
   <>
     <Toolbar>
       <Stack direction="row" className="app-brand">
@@ -38,20 +38,22 @@ const SidebarNav = ({ sections, activePath, isCollapsed = false, onToggle, onNav
         </Typography>
       </Stack>
     </Toolbar>
-    <List subheader={<ListSubheader>Operations</ListSubheader>}>
-      {sections.map(({ path, label, icon }) => (
-        <NavItem
-          key={path}
-          label={label}
-          icon={icon}
-          isCollapsed={isCollapsed}
-          component={Link}
-          to={path}
-          selected={activePath === path}
-          onClick={onNavigate}
-        />
-      ))}
-    </List>
+    {groups.map((group) => (
+      <List key={group.label} subheader={<ListSubheader>{group.label}</ListSubheader>}>
+        {group.sections.map(({ path, label, icon }) => (
+          <NavItem
+            key={path}
+            label={label}
+            icon={icon}
+            isCollapsed={isCollapsed}
+            component={Link}
+            to={path}
+            selected={activePath === path}
+            onClick={onNavigate}
+          />
+        ))}
+      </List>
+    ))}
     {onToggle && (
       <List className="app-nav-footer">
         <NavItem
