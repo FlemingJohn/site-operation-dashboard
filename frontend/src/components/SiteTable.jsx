@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   IconButton,
+  Link,
   Table,
   TableBody,
   TableCell,
@@ -58,9 +59,10 @@ const SiteTable = ({
         {sites.map((site) => (
           <TableRow hover key={site.id}>
             <TableCell>
-              <Typography variant="body2" className="text-strong">
+              <Link component={RouterLink} to={`/sites/${site.id}`} className="text-strong">
                 {site.name}
-              </Typography>
+              </Link>
+              <br />
               <Typography variant="caption" color="text.secondary">
                 {site.city}
               </Typography>
@@ -74,7 +76,7 @@ const SiteTable = ({
               <Tooltip title="Edit">
                 <IconButton
                   size="small"
-                  component={Link}
+                  component={RouterLink}
                   to={`/sites/${site.id}/edit`}
                   aria-label={`Edit ${site.name}`}
                 >
