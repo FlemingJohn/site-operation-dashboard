@@ -15,7 +15,7 @@ import InstallationBreakdownCard from '../components/InstallationBreakdownCard';
 import InstallationTable from '../components/InstallationTable';
 import StatCard from '../components/StatCard';
 import StatusDonutCard from '../components/StatusDonutCard';
-import { COLORS } from '../styles/theme';
+import { COLORS } from '../styles/colors';
 import { getPercentage } from '../utils';
 
 const getStatCards = ({ totals, monthlyInstallations }) => {
