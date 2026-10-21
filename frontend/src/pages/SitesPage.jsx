@@ -1,17 +1,37 @@
-import { Card, LinearProgress, TablePagination } from '@mui/material';
+import { Card, LinearProgress } from '@mui/material';
 import { deleteSite, getSites } from '../api/siteApi';
+import CardGrid from '../components/CardGrid';
 import ErrorAlert from '../components/ErrorAlert';
+import ListPagination from '../components/ListPagination';
 import ListToolbar from '../components/ListToolbar';
+import PageIntro from '../components/PageIntro';
+import SiteCard from '../components/SiteCard';
 import SiteDeleteDialog from '../components/SiteDeleteDialog';
 import SiteTable from '../components/SiteTable';
 import SuccessSnackbar from '../components/SuccessSnackbar';
-import { REGIONS, SITE_DEFAULT_SORT, SITE_STATUSES } from '../constants';
+import SummaryStrip from '../components/SummaryStrip';
+import ViewToggle from '../components/ViewToggle';
+import {
+  LIST_PAGE_SIZE_OPTIONS,
+  LIST_VIEWS,
+  REGIONS,
+  SITE_DEFAULT_SORT,
+  SITE_STATUSES,
+} from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
 import { useFlashMessage } from '../hooks/useFlashMessage';
+import { useListCounts } from '../hooks/useListCounts';
+import { useListView } from '../hooks/useListView';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 
 const INITIAL_FILTERS = { status: '', region: '' };
+const NO_FILTERS = {};
+const SITE_COUNT_QUERIES = {
+  all: {},
+  active: { status: 'active' },
+  inactive: { status: 'inactive' },
+};
 
 const SITE_FILTERS = [
   {
@@ -31,7 +51,14 @@ const SITE_FILTERS = [
 ];
 
 const SitesPage = () => {
-  const sites = usePaginatedList(getSites, INITIAL_FILTERS, SITE_DEFAULT_SORT);
+  const sites = usePaginatedList(
+    getSites,
+    INITIAL_FILTERS,
+    SITE_DEFAULT_SORT,
+    LIST_PAGE_SIZE_OPTIONS
+  );
+  const counts = useListCounts(getSites, SITE_COUNT_QUERIES, NO_FILTERS, sites.version);
+  const [view, setView] = useListView('siteops.sitesView', counts.all);
   const flash = useFlashMessage();
   const deletion = useDeleteConfirmation({
     deleteRequest: deleteSite,
@@ -40,9 +67,27 @@ const SitesPage = () => {
       sites.refreshAfterDelete();
     },
   });
+  const emptyMessage = sites.clearFilters ? 'No sites match these filters.' : 'No sites yet.';
 
   return (
     <>
+      <div className="page-header">
+        <PageIntro>
+          Every place where equipment is installed. Open a site to see its installations.
+        </PageIntro>
+        <ViewToggle value={view} onChange={setView} />
+      </div>
+
+      <SummaryStrip
+        items={[
+          { key: '', label: 'All sites', count: counts.all },
+          { key: 'active', label: 'Active', count: counts.active },
+          { key: 'inactive', label: 'Inactive', count: counts.inactive },
+        ]}
+        selectedKey={sites.filters.status}
+        onSelect={(status) => sites.updateFilter('status', status)}
+      />
+
       <ListToolbar
         search={{
           value: sites.searchInput,
@@ -57,17 +102,27 @@ const SitesPage = () => {
 
       {sites.error && <ErrorAlert message={sites.error} onRetry={sites.reload} />}
 
-      <Card>
+      <Card className={view === LIST_VIEWS.cards ? 'card-list' : undefined}>
         {sites.isLoading && <LinearProgress />}
-        <SiteTable
-          sites={sites.rows}
-          isLoading={sites.isLoading}
-          emptyMessage={sites.clearFilters ? 'No sites match these filters.' : 'No sites yet.'}
-          onClearFilters={sites.clearFilters}
-          onDelete={deletion.open}
-          {...sites.sortProps}
-        />
-        <TablePagination component="div" {...sites.paginationProps} />
+        {view === LIST_VIEWS.cards ? (
+          <CardGrid
+            items={sites.rows}
+            renderItem={(site) => <SiteCard key={site.id} site={site} />}
+            isLoading={sites.isLoading}
+            emptyMessage={emptyMessage}
+            onClearFilters={sites.clearFilters}
+          />
+        ) : (
+          <SiteTable
+            sites={sites.rows}
+            isLoading={sites.isLoading}
+            emptyMessage={emptyMessage}
+            onClearFilters={sites.clearFilters}
+            onDelete={deletion.open}
+            {...sites.sortProps}
+          />
+        )}
+        <ListPagination label="Per page:" {...sites.paginationProps} />
       </Card>
 
       <SiteDeleteDialog site={deletion.item} {...deletion.dialogProps} />
