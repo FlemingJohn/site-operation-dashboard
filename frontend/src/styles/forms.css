@@ -1,0 +1,11 @@
+.form-card {
+  max-width: 760px;
+}
+
+.field-icon {
+  color: var(--color-muted);
+}
+
+.Mui-focused .field-icon {
+  color: var(--color-primary);
+}
