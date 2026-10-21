@@ -1,41 +1,11 @@
 import { createTheme } from '@mui/material/styles';
-
-export const COLORS = {
-  ink: '#18212f',
-  muted: '#5f6b7a',
-  border: '#e1e5eb',
-  borderStrong: '#c5ccd6',
-  page: '#f3f5f8',
-  surfaceMuted: '#f8f9fb',
-  sidebar: '#16202e',
-  sidebarHover: '#222e3f',
-  sidebarText: '#c3cad5',
-  sidebarMuted: '#7c8796',
-  sidebarAccent: '#7aa7ff',
-  primary: '#2457d6',
-  primaryDark: '#1b45ad',
-  success: '#1e8a4c',
-  successSoft: '#e2f3e8',
-  warning: '#b86e00',
-  warningSoft: '#fbefd9',
-  danger: '#c4372b',
-  dangerSoft: '#fae3e0',
-  neutral: '#5f6b7a',
-  neutralSoft: '#eef0f3',
-  pending: '#a3acb9',
-};
-
-export const STATUS_CHART_COLORS = {
-  completed: COLORS.success,
-  in_progress: COLORS.warning,
-  pending: COLORS.pending,
-};
+import { COLORS, FONT_BODY } from './colors';
 
 const CHIP_TONES = {
-  success: { color: COLORS.success, backgroundColor: COLORS.successSoft },
-  warning: { color: COLORS.warning, backgroundColor: COLORS.warningSoft },
+  success: { color: COLORS.successText, backgroundColor: COLORS.successSoft },
+  warning: { color: COLORS.warningText, backgroundColor: COLORS.warningSoft },
   error: { color: COLORS.danger, backgroundColor: COLORS.dangerSoft },
-  default: { color: COLORS.neutral, backgroundColor: COLORS.neutralSoft },
+  default: { color: COLORS.neutralText, backgroundColor: COLORS.neutralSoft },
 };
 
 const theme = createTheme({
@@ -46,10 +16,10 @@ const theme = createTheme({
     error: { main: COLORS.danger },
     text: { primary: COLORS.ink, secondary: COLORS.muted },
     divider: COLORS.border,
-    background: { default: COLORS.page, paper: '#ffffff' },
+    background: { default: COLORS.page, paper: COLORS.surface },
   },
   typography: {
-    fontFamily: "'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif",
+    fontFamily: FONT_BODY,
     h4: { fontWeight: 600, fontSize: 28, fontVariantNumeric: 'tabular-nums' },
     h6: { fontWeight: 600, fontSize: 18 },
     button: { textTransform: 'none', fontWeight: 500 },
@@ -59,7 +29,7 @@ const theme = createTheme({
     MuiAppBar: {
       defaultProps: { elevation: 0, color: 'inherit' },
       styleOverrides: {
-        root: { backgroundColor: '#ffffff', borderBottom: `1px solid ${COLORS.border}` },
+        root: { backgroundColor: COLORS.surface, borderBottom: `1px solid ${COLORS.border}` },
       },
     },
     MuiDrawer: {
@@ -88,10 +58,10 @@ const theme = createTheme({
           padding: '8px 12px',
           borderRadius: 6,
           color: COLORS.sidebarText,
-          '&:hover': { backgroundColor: COLORS.sidebarHover, color: '#ffffff' },
+          '&:hover': { backgroundColor: COLORS.sidebarHover, color: COLORS.white },
           '&.Mui-selected, &.Mui-selected:hover': {
             backgroundColor: COLORS.sidebarHover,
-            color: '#ffffff',
+            color: COLORS.white,
           },
           '&.Mui-selected .MuiListItemIcon-root': { color: COLORS.sidebarAccent },
         },
@@ -117,7 +87,7 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          backgroundColor: '#ffffff',
+          backgroundColor: COLORS.surface,
           borderRadius: 6,
           '& .MuiOutlinedInput-notchedOutline': { borderColor: COLORS.border },
           '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: COLORS.borderStrong },
