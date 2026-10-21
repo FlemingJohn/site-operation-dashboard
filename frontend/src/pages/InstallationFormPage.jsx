@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   Alert,
   Button,
@@ -45,6 +45,7 @@ const saveInstallation = (installation, id, idempotencyKey) =>
 
 const InstallationFormPage = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const [sites, setSites] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [optionsError, setOptionsError] = useState('');
@@ -53,7 +54,7 @@ const InstallationFormPage = () => {
     id,
     emptyValues: {
       equipment: '',
-      siteId: '',
+      siteId: searchParams.get('siteId') ?? '',
       technicianId: '',
       installedOn: getToday(),
       status: 'pending',
