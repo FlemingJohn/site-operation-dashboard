@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, LinearProgress, Typography } from '@mui/
 import { PieChart } from '@mui/x-charts/PieChart';
 import DonutLargeOutlinedIcon from '@mui/icons-material/DonutLargeOutlined';
 import { INSTALLATION_STATUSES } from '../constants';
-import { STATUS_CHART_COLORS } from '../styles/theme';
+import { STATUS_CHART_COLORS } from '../styles/colors';
 import { getPercentage } from '../utils';
 import CardIcon from './CardIcon';
 
