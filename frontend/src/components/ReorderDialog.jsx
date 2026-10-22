@@ -11,6 +11,7 @@ import {
   TextField,
 } from '@mui/material';
 import { requestPart } from '../api/sparePartsApi';
+import { getErrorText } from '../lib/getErrorText';
 import TechnicianSelect from './TechnicianSelect';
 
 const ReorderDialog = ({ part, onClose, onSaved }) => {
@@ -18,17 +19,19 @@ const ReorderDialog = ({ part, onClose, onSaved }) => {
   const [requestedBy, setRequestedBy] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const amount = Number(quantity);
-  const canSave = amount > 0 && Boolean(requestedBy) && !isSaving;
+  const canSave = Number.isInteger(amount) && amount > 0 && Boolean(requestedBy) && !isSaving;
 
   const save = async () => {
     setIsSaving(true);
     setError('');
     try {
-      await requestPart(part.id, { quantity: amount, requestedBy });
+      const partRequest = { partId: part.id, requestedBy, quantity: amount };
+      await requestPart(partRequest, idempotencyKey);
       onSaved(part);
     } catch (err) {
-      setError(err.message);
+      setError(getErrorText(err));
       setIsSaving(false);
     }
   };
