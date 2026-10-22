@@ -4,6 +4,9 @@ from siteops_ai.tools.get_technician_workload import get_technician_workload
 from siteops_ai.tools.list_installations import list_installations
 from siteops_ai.tools.list_low_stock_parts import list_low_stock_parts
 from siteops_ai.tools.list_service_due import list_service_due
+from siteops_ai.tools.prepare_reorder import prepare_reorder
+from siteops_ai.tools.prepare_request_move import prepare_request_move
+from siteops_ai.tools.prepare_service_done import prepare_service_done
 from siteops_ai.tools.search_activity import search_activity
 from siteops_ai.tools.search_sites import search_sites
 
@@ -16,4 +19,7 @@ ALL_TOOLS = [
     get_equipment,
     list_low_stock_parts,
     search_activity,
+    prepare_service_done,
+    prepare_reorder,
+    prepare_request_move,
 ]
