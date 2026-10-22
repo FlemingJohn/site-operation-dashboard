@@ -6,7 +6,6 @@ import ErrorAlert from '../components/ErrorAlert';
 import ListPagination from '../components/ListPagination';
 import ListToolbar from '../components/ListToolbar';
 import PageIntro from '../components/PageIntro';
-import SampleDataTag from '../components/SampleDataTag';
 import { ACTIVITY_DEFAULT_SORT, ACTIVITY_KINDS, ACTIVITY_PERIODS } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import { useLoader } from '../hooks/useLoader';
@@ -57,9 +56,6 @@ const ActivityPage = () => {
           Everything that changed, newest first. Use the filters to see one person, one kind of work
           or just the last few days.
         </PageIntro>
-        <div className="page-header-actions">
-          <SampleDataTag />
-        </div>
       </div>
 
       <ListToolbar
