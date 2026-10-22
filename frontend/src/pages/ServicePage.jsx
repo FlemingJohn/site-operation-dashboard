@@ -3,7 +3,6 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import ViewListOutlinedIcon from '@mui/icons-material/ViewListOutlined';
 import { getEquipmentCounts } from '../api/equipmentApi';
 import MarkDoneDialog from '../components/MarkDoneDialog';
-import PageIntro from '../components/PageIntro';
 import SearchField from '../components/SearchField';
 import ServiceCalendar from '../components/ServiceCalendar';
 import ServiceGroup from '../components/ServiceGroup';
@@ -45,14 +44,11 @@ const ServicePage = () => {
   return (
     <>
       <div className="page-header">
-        <PageIntro>
-          Machines that need a check-up, most urgent first. When a check-up is finished, mark it as
-          done and the next date is set for you.
-        </PageIntro>
         <ViewToggle value={view ?? 'list'} onChange={setView} options={SERVICE_VIEWS} />
       </div>
 
       <SummaryStrip
+        area="service"
         items={SERVICE_STATES.map(({ value, label }) => ({
           key: value,
           label,
