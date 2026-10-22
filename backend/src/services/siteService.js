@@ -3,6 +3,8 @@ import { MESSAGES, SITE_SORT_COLUMNS } from '../constants.js';
 import { HttpError } from '../utils/HttpError.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
 import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
+import { withTransaction } from '../utils/withTransaction.js';
+import * as siteActivity from './siteActivity.js';
 
 const SITE_SELECT = `
   SELECT
@@ -48,34 +50,42 @@ export const findAll = async (query) => {
   };
 };
 
-export const findById = async (id) => {
-  const { rows } = await pool.query(`${SITE_SELECT} WHERE s.id = $1 GROUP BY s.id`, [id]);
+export const findById = async (id, executor = pool) => {
+  const { rows } = await executor.query(`${SITE_SELECT} WHERE s.id = $1 GROUP BY s.id`, [id]);
   if (!rows[0]) throw new HttpError(404, MESSAGES.siteNotFound);
   return rows[0];
 };
 
-export const create = async ({ name, city, region, status }) => {
-  const { rows } = await pool.query(
-    `INSERT INTO sites (name, city, region, status)
-     VALUES ($1, $2, $3, $4)
-     RETURNING id`,
-    [name, city, region, status]
-  );
-  return findById(rows[0].id);
-};
+export const create = ({ name, city, region, status }) =>
+  withTransaction(async (client) => {
+    const { rows } = await client.query(
+      `INSERT INTO sites (name, city, region, status)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id`,
+      [name, city, region, status]
+    );
+    const site = await findById(rows[0].id, client);
+    await siteActivity.recordAdded(client, site);
+    return site;
+  });
 
-export const update = async (id, { name, city, region, status }) => {
-  const { rowCount } = await pool.query(
-    `UPDATE sites
-     SET name = $1, city = $2, region = $3, status = $4
-     WHERE id = $5`,
-    [name, city, region, status, id]
-  );
-  if (rowCount === 0) throw new HttpError(404, MESSAGES.siteNotFound);
-  return findById(id);
-};
+export const update = (id, { name, city, region, status }) =>
+  withTransaction(async (client) => {
+    const before = await findById(id, client);
+    await client.query(
+      `UPDATE sites
+       SET name = $1, city = $2, region = $3, status = $4
+       WHERE id = $5`,
+      [name, city, region, status, id]
+    );
+    const after = await findById(id, client);
+    await siteActivity.recordChanged(client, before, after);
+    return after;
+  });
 
-export const remove = async (id) => {
-  const { rowCount } = await pool.query('DELETE FROM sites WHERE id = $1', [id]);
-  if (rowCount === 0) throw new HttpError(404, MESSAGES.siteNotFound);
-};
+export const remove = (id) =>
+  withTransaction(async (client) => {
+    const site = await findById(id, client);
+    await client.query('DELETE FROM sites WHERE id = $1', [id]);
+    await siteActivity.recordDeleted(client, site);
+  });
