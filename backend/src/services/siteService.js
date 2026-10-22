@@ -1,6 +1,7 @@
 import { pool } from '../config/database.js';
-import { MESSAGES, SITE_SORT_COLUMNS } from '../constants.js';
+import { MESSAGES, SITE_SORT_COLUMNS, SITE_STATUSES } from '../constants.js';
 import { HttpError } from '../utils/HttpError.js';
+import { countEach } from '../utils/countEach.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
 import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
 import { withTransaction } from '../utils/withTransaction.js';
@@ -89,3 +90,12 @@ export const remove = (id) =>
     await client.query('DELETE FROM sites WHERE id = $1', [id]);
     await siteActivity.recordDeleted(client, site);
   });
+
+export const countAll = async (query) => {
+  const { where, values } = buildFilters({ ...query, status: undefined });
+  const { rows } = await pool.query(
+    `SELECT COUNT(*)::int AS "all", ${countEach('s.status', SITE_STATUSES)} FROM sites s ${where}`,
+    values
+  );
+  return rows[0];
+};
