@@ -2,6 +2,8 @@ import { request } from './client';
 
 export const getSites = (params) => request('/sites', { params });
 
+export const getSiteCounts = (params) => request('/sites/counts', { params });
+
 export const getSite = (id) => request(`/sites/${id}`);
 
 export const createSite = (site, idempotencyKey) =>
