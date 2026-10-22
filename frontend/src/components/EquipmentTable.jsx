@@ -1,16 +1,8 @@
-import { Link as RouterLink } from 'react-router-dom';
-import {
-  Link,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import { EQUIPMENT_TYPE_LABELS } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import EmptyTableRow from './EmptyTableRow';
+import RowTitle from './RowTitle';
 import ServiceDueLine from './ServiceDueLine';
 import StatusChip from './StatusChip';
 import TableHeaderCell from './TableHeaderCell';
@@ -54,9 +46,7 @@ const EquipmentTable = ({
         {equipment.map((unit) => (
           <TableRow hover key={unit.id}>
             <TableCell>
-              <Link component={RouterLink} to={`/equipment/${unit.id}`} className="text-strong">
-                {unit.serial}
-              </Link>
+              <RowTitle title={unit.serial} path={`/equipment/${unit.id}`} />
             </TableCell>
             <TableCell>{EQUIPMENT_TYPE_LABELS[unit.type]}</TableCell>
             <TableCell>{unit.siteName ?? 'In the warehouse'}</TableCell>
