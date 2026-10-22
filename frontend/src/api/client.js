@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
 const REQUEST_TIMEOUT_MS = 15000;
 const REFERENCE_LENGTH = 8;
 
@@ -35,7 +35,7 @@ const buildQueryString = (params = {}) => {
 const withReference = (message, requestId) =>
   requestId ? `${message} (Reference: ${requestId.slice(0, REFERENCE_LENGTH)})` : message;
 
-const getErrorMessage = (response, data) => {
+export const getErrorMessage = (response, data) => {
   if (data?.errors && Object.keys(data.errors).length > 0) return MESSAGES.fieldErrors;
 
   if (response.status >= 500) {
@@ -46,9 +46,9 @@ const getErrorMessage = (response, data) => {
   return data?.message ?? MESSAGES.unexpected;
 };
 
-const sendRequest = async (url, options) => {
+export const sendRequest = async (url, options, timeoutMs = REQUEST_TIMEOUT_MS) => {
   try {
-    return await fetch(url, { ...options, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+    return await fetch(url, { ...options, signal: AbortSignal.timeout(timeoutMs) });
   } catch (error) {
     const message = error.name === 'TimeoutError' ? MESSAGES.timeout : MESSAGES.network;
     throw new ApiError(message, 0);
