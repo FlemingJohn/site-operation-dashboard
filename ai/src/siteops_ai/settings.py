@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     timezone: str = "Asia/Kolkata"
     max_answer_tokens: int = 800
     tool_result_limit: int = 20
+    max_cards: int = 5
 
 
 @lru_cache
