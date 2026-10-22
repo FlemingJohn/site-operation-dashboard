@@ -6,6 +6,46 @@ export const INSTALLATION_STATUSES = ['pending', 'in_progress', 'completed'];
 
 export const USER_ROLES = ['admin', 'technician'];
 
+export const EQUIPMENT_TYPES = ['blade_yoke', 'tower_gripper', 'tagline_system', 'mobile_robot'];
+
+export const EQUIPMENT_STATUSES = ['deployed', 'in_service', 'in_stock'];
+
+export const SERVICE_STATES = ['late', 'this_week', 'later'];
+
+export const STOCK_LEVELS = ['out', 'low', 'stocked'];
+
+export const PART_REQUEST_STATUSES = ['requested', 'ordered', 'delivered'];
+
+export const NEXT_REQUEST_STATUSES = ['ordered', 'delivered'];
+
+export const PREVIOUS_REQUEST_STATUS = { ordered: 'requested', delivered: 'ordered' };
+
+export const ACTIVITY_KINDS = ['installation', 'service', 'part', 'site', 'user'];
+
+export const ACTIVITY_PERIODS = ['7', '30'];
+
+export const SERVICE_INTERVAL_DAYS = 90;
+
+export const SERVICE_SOON_DAYS = 7;
+
+export const EQUIPMENT_TYPE_LABELS = {
+  blade_yoke: 'Blade Yoke',
+  tower_gripper: 'Tower Gripper',
+  tagline_system: 'Tagline System',
+  mobile_robot: 'Mobile Robot',
+};
+
+export const STATUS_LABELS = {
+  active: 'Active',
+  inactive: 'Inactive',
+  pending: 'Pending',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  requested: 'Requested',
+  ordered: 'Ordered',
+  delivered: 'Delivered',
+};
+
 export const DEFAULT_PAGE_SIZE = 10;
 
 export const MAX_PAGE_SIZE = 100;
@@ -37,12 +77,31 @@ export const USER_SORT_COLUMNS = {
   role: 'u.role',
 };
 
+export const EQUIPMENT_SORT_COLUMNS = {
+  serial: 'e.serial',
+  type: 'e.type',
+  siteName: 's.name',
+  status: 'e.status',
+  nextServiceOn: 'e.next_service_on',
+};
+
 export const MESSAGES = {
   fieldErrors: 'Please fix the highlighted fields.',
   invalidId: 'Invalid id.',
   invalidJson: 'The request body is not valid JSON.',
   siteNotFound: 'This site no longer exists.',
   installationNotFound: 'This installation no longer exists.',
+  equipmentNotFound: 'This machine no longer exists.',
+  partNotFound: 'This part no longer exists.',
+  partRequestNotFound: 'This request no longer exists.',
+  requestAlreadyMoved: 'Someone else already moved this request. The board has been refreshed.',
+  duplicateSerial: 'A machine with this serial number already exists.',
+  duplicatePart: 'A part with this name already exists.',
+  missingPerson: 'The selected person no longer exists.',
+  machineHasHistory: "This machine has check-up history, so it can't be deleted.",
+  partHasRequests: "This part has requests, so it can't be deleted.",
+  stockBelowZero: "Stock can't go below zero.",
+  valueOutOfRange: 'One of the numbers is out of range.',
   routeNotFound: 'Route not found.',
   duplicateSite: 'A site with this name already exists.',
   duplicateEmail: 'A user with this email already exists.',
