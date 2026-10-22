@@ -7,8 +7,6 @@ import { getErrorText } from '../lib/getErrorText';
 import { formatDate, getToday } from '../utils';
 import TechnicianSelect from './TechnicianSelect';
 
-const FROM_MESSAGE = 'Filled in from your message';
-
 const MarkDoneForm = ({ unit, defaults = {}, onSaved, onCancel }) => {
   const id = useId();
   const [doneOn, setDoneOn] = useState(defaults.doneOn ?? getToday());
@@ -42,7 +40,6 @@ const MarkDoneForm = ({ unit, defaults = {}, onSaved, onCancel }) => {
           label="Done on"
           value={doneOn}
           onChange={(event) => setDoneOn(event.target.value)}
-          helperText={defaults.doneOn ? FROM_MESSAGE : undefined}
           slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: getToday() } }}
         />
         <TechnicianSelect
@@ -50,7 +47,6 @@ const MarkDoneForm = ({ unit, defaults = {}, onSaved, onCancel }) => {
           label="Done by"
           value={doneBy}
           onChange={setDoneBy}
-          helperText={defaults.technicianId ? FROM_MESSAGE : undefined}
         />
       </div>
       <TextField
@@ -60,7 +56,6 @@ const MarkDoneForm = ({ unit, defaults = {}, onSaved, onCancel }) => {
         minRows={2}
         value={notes}
         onChange={(event) => setNotes(event.target.value)}
-        helperText={defaults.notes ? FROM_MESSAGE : undefined}
       />
       {doneOn && (
         <Alert severity="info">
