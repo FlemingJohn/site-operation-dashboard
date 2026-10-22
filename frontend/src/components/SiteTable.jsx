@@ -1,7 +1,6 @@
 import { Link as RouterLink } from 'react-router-dom';
 import {
   IconButton,
-  Link,
   Table,
   TableBody,
   TableCell,
@@ -9,12 +8,12 @@ import {
   TableHead,
   TableRow,
   Tooltip,
-  Typography,
 } from '@mui/material';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { FIELD_ICONS } from '../fieldIcons';
 import EmptyTableRow from './EmptyTableRow';
+import RowTitle from './RowTitle';
 import TableHeaderCell from './TableHeaderCell';
 import StatusChip from './StatusChip';
 
@@ -59,13 +58,7 @@ const SiteTable = ({
         {sites.map((site) => (
           <TableRow hover key={site.id}>
             <TableCell>
-              <Link component={RouterLink} to={`/sites/${site.id}`} className="text-strong">
-                {site.name}
-              </Link>
-              <br />
-              <Typography variant="caption" color="text.secondary">
-                {site.city}
-              </Typography>
+              <RowTitle title={site.name} subtitle={site.city} path={`/sites/${site.id}`} />
             </TableCell>
             <TableCell>{site.region}</TableCell>
             <TableCell>
