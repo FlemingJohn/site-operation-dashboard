@@ -1,8 +1,8 @@
-import { Link as RouterLink } from 'react-router-dom';
-import { Chip, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 import AssistantCard from './AssistantCard';
 import AssistantSources from './AssistantSources';
 import AssistantSteps from './AssistantSteps';
+import RecordChip from './RecordChip';
 
 const AssistantMessage = ({ message, onOpenRecord }) => {
   if (message.role === 'user') {
@@ -35,14 +35,11 @@ const AssistantMessage = ({ message, onOpenRecord }) => {
       {message.records.length > 0 && (
         <div className="assistant-records">
           {message.records.map((record) => (
-            <Chip
+            <RecordChip
               key={`${record.path}-${record.label}`}
               label={record.label}
-              clickable
-              component={RouterLink}
-              to={record.path}
-              onClick={onOpenRecord}
-              className="assistant-record"
+              path={record.path}
+              onOpen={onOpenRecord}
             />
           ))}
         </div>
