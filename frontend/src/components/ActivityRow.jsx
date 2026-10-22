@@ -1,41 +1,52 @@
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Avatar, Badge, Button, Collapse, Link, Typography } from '@mui/material';
+import { Button, Collapse, Link, Typography } from '@mui/material';
+import TimelineConnector from '@mui/lab/TimelineConnector';
+import TimelineContent from '@mui/lab/TimelineContent';
+import TimelineDot from '@mui/lab/TimelineDot';
+import TimelineItem from '@mui/lab/TimelineItem';
+import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent';
+import TimelineSeparator from '@mui/lab/TimelineSeparator';
 import { ACTIVITY_KIND_ICONS } from '../activityKindIcons';
 import { formatTime } from '../lib/formatTime';
 import ActivityChange from './ActivityChange';
 import PersonAvatar from './PersonAvatar';
 
-const ActivityRow = ({ event }) => {
+const ActivityRow = ({ event, dayLabel, isLast }) => {
   const [isOpen, setIsOpen] = useState(false);
   const KindIcon = ACTIVITY_KIND_ICONS[event.kind];
   const hasDetails = Boolean(event.change?.length || event.note);
   const actorName = event.actorName ?? 'Someone';
 
   return (
-    <li className="activity-row">
-      <Typography variant="caption" color="text.secondary" className="activity-time">
-        {formatTime(event.occurredAt)}
-      </Typography>
-      <Badge
-        overlap="circular"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        badgeContent={
-          <Avatar className="activity-kind">
-            <KindIcon fontSize="inherit" />
-          </Avatar>
-        }
-      >
-        <PersonAvatar name={actorName} />
-      </Badge>
-      <div className="activity-text">
-        <Typography variant="body2">
-          <span className="text-strong">{actorName}</span> {event.verb}{' '}
-          <Link component={RouterLink} to={event.target.path}>
-            {event.target.label}
-          </Link>{' '}
-          {event.after}
+    <TimelineItem className="activity-row">
+      <TimelineOppositeContent className="activity-time">
+        {dayLabel && (
+          <Typography variant="overline" component="h3" className="activity-day">
+            {dayLabel}
+          </Typography>
+        )}
+        <Typography variant="caption" color="text.secondary">
+          {formatTime(event.occurredAt)}
         </Typography>
+      </TimelineOppositeContent>
+      <TimelineSeparator>
+        <TimelineDot className={`activity-dot activity-dot-${event.kind}`}>
+          <KindIcon fontSize="small" />
+        </TimelineDot>
+        {!isLast && <TimelineConnector className="activity-connector" />}
+      </TimelineSeparator>
+      <TimelineContent className="activity-content">
+        <div className="activity-line">
+          <PersonAvatar name={actorName} />
+          <Typography variant="body2" className="activity-text">
+            <span className="text-strong">{actorName}</span> {event.verb}{' '}
+            <Link component={RouterLink} to={event.target.path} underline="hover">
+              {event.target.label}
+            </Link>{' '}
+            {event.after}
+          </Typography>
+        </div>
         {hasDetails && (
           <Button
             size="small"
@@ -56,8 +67,8 @@ const ActivityRow = ({ event }) => {
             )}
           </div>
         </Collapse>
-      </div>
-    </li>
+      </TimelineContent>
+    </TimelineItem>
   );
 };
 
