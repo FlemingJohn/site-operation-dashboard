@@ -15,7 +15,7 @@ const TechnicianSelect = ({ id, label, value, onChange }) => {
       error={Boolean(error)}
     >
       {technicians.map((technician) => (
-        <MenuItem key={technician.id} value={technician.fullName}>
+        <MenuItem key={technician.id} value={technician.id}>
           {technician.fullName}
         </MenuItem>
       ))}
