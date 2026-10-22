@@ -16,6 +16,7 @@ const DeleteDialog = ({
   title,
   message,
   confirmText,
+  confirmLabel = 'Delete',
   children,
   error,
   isDeleting,
@@ -55,7 +56,13 @@ const DeleteDialog = ({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button variant="outlined" color="inherit" onClick={onCancel} disabled={isDeleting}>
+        <Button
+          variant="outlined"
+          color="inherit"
+          onClick={onCancel}
+          disabled={isDeleting}
+          autoFocus
+        >
           Cancel
         </Button>
         <Button
@@ -64,7 +71,7 @@ const DeleteDialog = ({
           onClick={onConfirm}
           disabled={isDeleting || !isConfirmed}
         >
-          {isDeleting ? 'Deleting…' : 'Delete'}
+          {isDeleting ? 'Deleting…' : confirmLabel}
         </Button>
       </DialogActions>
     </Dialog>
