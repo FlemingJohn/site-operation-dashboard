@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     model_timeout_seconds: float = 30
     model_max_retries: int = 2
     backend_timeout_seconds: float = 10
+    timezone: str = "Asia/Kolkata"
+    max_answer_tokens: int = 800
+    tool_result_limit: int = 20
 
 
 @lru_cache
