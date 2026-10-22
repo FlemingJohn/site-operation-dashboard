@@ -20,3 +20,7 @@ export const remove = async (req, res) => {
   await installationService.remove(req.validated.params.id);
   res.status(204).end();
 };
+
+export const counts = async (req, res) => {
+  res.json(await installationService.countAll(req.validated.query));
+};
