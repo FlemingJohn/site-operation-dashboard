@@ -7,7 +7,6 @@ import ErrorAlert from '../components/ErrorAlert';
 import ListPagination from '../components/ListPagination';
 import ListToolbar from '../components/ListToolbar';
 import PageIntro from '../components/PageIntro';
-import SampleDataTag from '../components/SampleDataTag';
 import SummaryStrip from '../components/SummaryStrip';
 import ViewToggle from '../components/ViewToggle';
 import {
@@ -67,7 +66,6 @@ const EquipmentPage = () => {
           attention soonest come first.
         </PageIntro>
         <div className="page-header-actions">
-          <SampleDataTag />
           <ViewToggle value={view} onChange={setView} />
         </div>
       </div>
