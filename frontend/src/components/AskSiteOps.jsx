@@ -1,52 +1,66 @@
-import { useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useRef, useState } from 'react';
 import { Badge, Fab, Tooltip, useMediaQuery, useTheme } from '@mui/material';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
-import { useAssistantChat } from '../hooks/useAssistantChat';
-import AssistantWindow from './AssistantWindow';
+import { useChatSessions } from '../hooks/useChatSessions';
+
+const AssistantWindow = lazy(() => import('./AssistantWindow'));
 
 const AskSiteOps = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [hasOpened, setHasOpened] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
   const isOpenRef = useRef(isOpen);
-  const chat = useAssistantChat({ isOpen: isOpenRef });
+  const chat = useChatSessions();
   const theme = useTheme();
   const isPhone = useMediaQuery(theme.breakpoints.down('sm'));
 
   const changeOpen = (nextIsOpen) => {
     isOpenRef.current = nextIsOpen;
     setIsOpen(nextIsOpen);
-    if (nextIsOpen) chat.markRead();
+    if (nextIsOpen) {
+      setHasOpened(true);
+      setHasUnread(false);
+    }
   };
 
-  const close = () => {
-    chat.clear();
-    changeOpen(false);
-  };
+  const handleAnswerFinished = useCallback(() => {
+    if (!isOpenRef.current) setHasUnread(true);
+  }, []);
 
-  if (isOpen) {
-    return (
-      <AssistantWindow
-        chat={chat}
-        isPhone={isPhone}
-        onMinimise={() => changeOpen(false)}
-        onClose={close}
-        onOpenRecord={() => isPhone && changeOpen(false)}
-      />
-    );
-  }
+  const handleOpenRecord = useCallback(() => {
+    if (isPhone) changeOpen(false);
+  }, [isPhone]);
 
   return (
-    <Tooltip title="Ask SiteOps" placement="left">
-      <Fab
-        color="primary"
-        className="assistant-fab"
-        aria-label={chat.hasUnread ? 'Ask SiteOps, new answer' : 'Ask SiteOps'}
-        onClick={() => changeOpen(true)}
-      >
-        <Badge variant="dot" color="warning" invisible={!chat.hasUnread}>
-          <AutoAwesomeOutlinedIcon />
-        </Badge>
-      </Fab>
-    </Tooltip>
+    <>
+      {hasOpened && (
+        <div hidden={!isOpen}>
+          <Suspense fallback={null}>
+            <AssistantWindow
+              chat={chat}
+              isPhone={isPhone}
+              onClose={() => changeOpen(false)}
+              onOpenRecord={handleOpenRecord}
+              onAnswerFinished={handleAnswerFinished}
+            />
+          </Suspense>
+        </div>
+      )}
+      {!isOpen && (
+        <Tooltip title="Ask SiteOps" placement="left">
+          <Fab
+            color="primary"
+            className="assistant-fab"
+            aria-label={hasUnread ? 'Ask SiteOps, new answer' : 'Ask SiteOps'}
+            onClick={() => changeOpen(true)}
+          >
+            <Badge variant="dot" color="warning" invisible={!hasUnread}>
+              <AutoAwesomeOutlinedIcon />
+            </Badge>
+          </Fab>
+        </Tooltip>
+      )}
+    </>
   );
 };
 
