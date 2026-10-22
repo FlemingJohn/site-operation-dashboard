@@ -10,18 +10,20 @@ import ErrorAlert from './ErrorAlert';
 import ServiceDueLine from './ServiceDueLine';
 
 const SHOWN_COUNT = 4;
-const NO_UNITS = [];
+const NO_UNITS = { data: [] };
+
+const loadUrgent = () => getServiceDue({ limit: SHOWN_COUNT });
 
 const ServiceDueCard = () => {
-  const service = useLoader(getServiceDue, NO_UNITS);
-  const urgent = service.data.filter((unit) => unit.serviceState !== 'later');
+  const service = useLoader(loadUrgent, NO_UNITS);
+  const urgent = service.data.data.filter((unit) => unit.serviceState !== 'later');
 
   return (
     <Card className="overview-list-card">
       <CardHeader
         avatar={<CardIcon icon={HandymanOutlinedIcon} tone="warning" />}
         title="Check-ups due"
-        subheader="Sample data · most urgent first"
+        subheader="Most urgent first"
         action={
           <Button component={RouterLink} to="/service" variant="outlined">
             Open service
@@ -34,7 +36,7 @@ const ServiceDueCard = () => {
         <EmptyState title="No check-ups due in the next 7 days." />
       )}
       <List dense>
-        {urgent.slice(0, SHOWN_COUNT).map((unit) => (
+        {urgent.map((unit) => (
           <ListItem key={unit.id} divider className="overview-list-item">
             <Link component={RouterLink} to={`/equipment/${unit.id}`} className="text-strong">
               {EQUIPMENT_TYPE_LABELS[unit.type]} {unit.serial}
