@@ -111,4 +111,9 @@ export const MESSAGES = {
   requestMismatch: 'This request was already submitted with different details.',
   unavailable: 'The service is temporarily unavailable. Please try again shortly.',
   unexpected: 'Something went wrong. Please try again.',
+  badRequest: 'The request could not be read.',
+  requestTooLarge: 'The request is too large.',
+  notJson: 'Send the request as JSON.',
+  busy: 'The server is busy. Please try again.',
+  tookTooLong: 'The request took too long. Please try again.',
 };
