@@ -2,7 +2,6 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import PageIntro from '../components/PageIntro';
 import PartRequestsPanel from '../components/PartRequestsPanel';
-import SampleDataTag from '../components/SampleDataTag';
 import StockPanel from '../components/StockPanel';
 import SuccessSnackbar from '../components/SuccessSnackbar';
 import ViewToggle from '../components/ViewToggle';
@@ -26,7 +25,6 @@ const SparePartsPage = () => {
           and requests move from asked to ordered to delivered.
         </PageIntro>
         <div className="page-header-actions">
-          <SampleDataTag />
           <ViewToggle value={view ?? 'stock'} onChange={setView} options={PART_VIEWS} />
         </div>
       </div>
