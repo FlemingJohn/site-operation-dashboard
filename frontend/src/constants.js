@@ -84,6 +84,16 @@ export const LIST_VIEWS = { cards: 'cards', table: 'table' };
 
 export const CARD_VIEW_LIMIT = 50;
 
+export const ASSISTANT_MAX_CARDS = 5;
+
+export const ASSISTANT_DEFAULT_SIZE = { width: 400, height: 620 };
+
+export const ASSISTANT_MIN_SIZE = { width: 360, height: 480 };
+
+export const ASSISTANT_MAX_SHARE = 0.9;
+
+export const ASSISTANT_RESIZE_STEP = 20;
+
 export const SEARCH_DELAY_MS = 300;
 
 export const MAX_SELECT_OPTIONS = 100;
