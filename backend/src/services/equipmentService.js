@@ -49,7 +49,7 @@ const SERVICE_RECORDS_SELECT = `
   ORDER BY r.done_on DESC, r.id DESC
 `;
 
-const buildFilters = ({ search, type, status, siteId, state }) =>
+const buildFilters = ({ search, type, status, siteId, state, dueFrom, dueTo }) =>
   buildWhereClause([
     {
       value: search && toLikePattern(search),
@@ -59,6 +59,8 @@ const buildFilters = ({ search, type, status, siteId, state }) =>
     { value: status, clause: (param) => `e.status = ${param}` },
     { value: siteId, clause: (param) => `e.site_id = ${param}` },
     { value: state, clause: (param) => `${SERVICE_STATE} = ${param}` },
+    { value: dueFrom, clause: (param) => `e.next_service_on >= ${param}` },
+    { value: dueTo, clause: (param) => `e.next_service_on <= ${param}` },
   ]);
 
 export const findAll = async (query) => {
