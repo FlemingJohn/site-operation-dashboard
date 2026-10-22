@@ -1,5 +1,6 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { Chip, Typography } from '@mui/material';
+import AssistantCard from './AssistantCard';
 import AssistantSources from './AssistantSources';
 import AssistantSteps from './AssistantSteps';
 
@@ -27,6 +28,9 @@ const AssistantMessage = ({ message, onOpenRecord }) => {
         >
           {message.text}
         </Typography>
+      )}
+      {message.card && message.status !== 'error' && (
+        <AssistantCard card={message.card} onOpenRecord={onOpenRecord} />
       )}
       {message.records.length > 0 && (
         <div className="assistant-records">
