@@ -6,7 +6,6 @@ import EquipmentTable from '../components/EquipmentTable';
 import ErrorAlert from '../components/ErrorAlert';
 import ListPagination from '../components/ListPagination';
 import ListToolbar from '../components/ListToolbar';
-import PageIntro from '../components/PageIntro';
 import SummaryStrip from '../components/SummaryStrip';
 import ViewToggle from '../components/ViewToggle';
 import {
@@ -57,16 +56,13 @@ const EquipmentPage = () => {
   return (
     <>
       <div className="page-header">
-        <PageIntro>
-          Every machine we own, where it is and when it needs its next check-up. The ones that need
-          attention soonest come first.
-        </PageIntro>
         <div className="page-header-actions">
           <ViewToggle value={view} onChange={setView} />
         </div>
       </div>
 
       <SummaryStrip
+        area="equipment"
         items={[
           { key: '', label: 'All machines', count: counts.all },
           ...EQUIPMENT_TYPES.map(({ value, label }) => ({
