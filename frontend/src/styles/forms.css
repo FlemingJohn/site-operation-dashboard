@@ -9,3 +9,7 @@
 .Mui-focused .field-icon {
   color: var(--color-primary);
 }
+
+.dialog-side-action {
+  align-self: flex-start;
+}
