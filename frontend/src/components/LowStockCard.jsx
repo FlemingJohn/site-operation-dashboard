@@ -16,7 +16,7 @@ import CardIcon from './CardIcon';
 import EmptyState from './EmptyState';
 import ErrorAlert from './ErrorAlert';
 import StatusChip from './StatusChip';
-import StockBar from './StockBar';
+import StockMeter from './StockMeter';
 
 const SHOWN_COUNT = 4;
 const NO_PARTS = { data: [] };
@@ -53,7 +53,7 @@ const LowStockCard = () => {
               </Typography>
               <StatusChip status={part.stockLevel} />
             </div>
-            <StockBar part={part} />
+            <StockMeter part={part} />
           </ListItem>
         ))}
       </List>
