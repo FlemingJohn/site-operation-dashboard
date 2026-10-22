@@ -4,13 +4,16 @@ import { env } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 import { requestLogger } from './middleware/requestLogger.js';
+import { requireJson } from './middleware/requireJson.js';
 import { routes } from './routes/index.js';
 
 export const app = express();
 
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
 app.use(requestLogger);
 app.use(cors({ origin: env.CORS_ORIGIN, exposedHeaders: ['X-Request-Id', 'Idempotent-Replayed'] }));
+app.use(requireJson);
 app.use(express.json());
 app.use('/api', routes);
 app.use(notFound);
