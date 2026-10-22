@@ -1,5 +1,12 @@
 import { pool } from '../config/database.js';
-import { EQUIPMENT_SORT_COLUMNS, MESSAGES, SERVICE_SOON_DAYS } from '../constants.js';
+import {
+  EQUIPMENT_SORT_COLUMNS,
+  EQUIPMENT_TYPES,
+  MESSAGES,
+  SERVICE_SOON_DAYS,
+  SERVICE_STATES,
+} from '../constants.js';
+import { countEach } from '../utils/countEach.js';
 import { HttpError } from '../utils/HttpError.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
 import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
@@ -96,4 +103,17 @@ export const findById = async (id) => {
     partRequestService.findForEquipment(id),
   ]);
   return { ...unit, serviceRecords, partRequests };
+};
+
+export const countAll = async (query) => {
+  const { where, values } = buildFilters({ ...query, type: undefined, state: undefined });
+  const { rows } = await pool.query(
+    `SELECT
+       COUNT(*)::int AS "all",
+       ${countEach('e.type', EQUIPMENT_TYPES)},
+       ${countEach(SERVICE_STATE, SERVICE_STATES)}
+     ${EQUIPMENT_FROM} ${where}`,
+    values
+  );
+  return rows[0];
 };
