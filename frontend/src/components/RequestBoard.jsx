@@ -1,13 +1,14 @@
 import { PART_REQUEST_STATUSES } from '../constants';
 import RequestColumn from './RequestColumn';
 
-const RequestBoard = ({ requests, movingId, onMove }) => (
+const RequestBoard = ({ search, movingId, onMove }) => (
   <div className="request-board">
     {PART_REQUEST_STATUSES.map(({ value, label }) => (
       <RequestColumn
         key={value}
+        status={value}
         label={label}
-        requests={requests.filter((request) => request.status === value)}
+        search={search}
         movingId={movingId}
         onMove={onMove}
       />
