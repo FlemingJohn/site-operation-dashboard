@@ -14,3 +14,7 @@ export const recordService = async (req, res) => {
     .status(201)
     .json(await serviceRecordService.create(req.validated.params.id, req.validated.body));
 };
+
+export const counts = async (req, res) => {
+  res.json(await equipmentService.countAll(req.validated.query));
+};
