@@ -1,18 +1,21 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from agents import function_tool
 from pydantic import Field
 
 from siteops_ai.backend.get_json import get_json
+from siteops_ai.backend.models.activity_event import ActivityEvent
+from siteops_ai.backend.models.page import Page
+from siteops_ai.choices.activity_kind import ActivityKind
+from siteops_ai.choices.activity_period import ActivityPeriod
 from siteops_ai.schemas.record_link import RecordLink
+from siteops_ai.settings import get_settings
 from siteops_ai.tools.tool_context import ToolContext
 
-RESULT_LIMIT = 20
 
-
-def to_sentence(event: dict) -> str:
-    words = [event["actorName"] or "Someone", event["verb"], event["target"]["label"]]
-    return " ".join([*words, event["after"]] if event["after"] else words)
+def to_sentence(event: ActivityEvent) -> str:
+    words = [event.actor_name or "Someone", event.verb, event.target.label]
+    return " ".join([*words, event.after] if event.after else words)
 
 
 @function_tool(
@@ -24,27 +27,27 @@ def to_sentence(event: dict) -> str:
 async def search_activity(
     context: ToolContext,
     search: Annotated[str | None, Field(description="Person, machine, site or note text")],
-    kind: Literal["installation", "service", "part", "site", "user"] | None,
-    days: Literal["7", "30"] | None,
+    kind: ActivityKind | None,
+    days: ActivityPeriod | None,
 ) -> dict:
-    result = await get_json(
+    page = await get_json(
         context.context.backend,
         "/activity",
+        Page[ActivityEvent],
         search=search,
         kind=kind,
         days=days,
-        limit=RESULT_LIMIT,
+        limit=get_settings().tool_result_limit,
     )
-    events = result["data"]
     context.context.remember(
         "search_activity",
-        f"Read {len(events)} changes",
-        [RecordLink(label=e["target"]["label"], path=e["target"]["path"]) for e in events],
+        f"Read {len(page.data)} changes",
+        [RecordLink(label=event.target.label, path=event.target.path) for event in page.data],
     )
     return {
-        "total": result["pagination"]["total"],
+        "total": page.pagination.total,
         "events": [
-            {"occurredAt": e["occurredAt"], "sentence": to_sentence(e), "note": e["note"]}
-            for e in events
+            {"occurredAt": event.occurred_at, "sentence": to_sentence(event), "note": event.note}
+            for event in page.data
         ],
     }
