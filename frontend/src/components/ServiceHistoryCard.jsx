@@ -1,10 +1,16 @@
 import { Card, CardHeader, List, ListItem, ListItemText } from '@mui/material';
+import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined';
 import { formatDate } from '../utils';
+import CardIcon from './CardIcon';
 import EmptyState from './EmptyState';
 
 const ServiceHistoryCard = ({ records }) => (
   <Card>
-    <CardHeader title="Check-up history" subheader="Newest first" />
+    <CardHeader
+      avatar={<CardIcon icon={HandymanOutlinedIcon} tone="warning" />}
+      title="Check-up history"
+      subheader="Newest first"
+    />
     {records.length === 0 ? (
       <EmptyState title="No check-ups recorded yet." />
     ) : (
