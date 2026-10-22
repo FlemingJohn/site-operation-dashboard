@@ -184,7 +184,12 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | Component | Purpose |
 |---|---|
 | `AskSiteOps` | Round button at the bottom right of every page, with a dot when an answer arrived while the window was closed. Opens the window |
-| `AssistantWindow` | Chat window with Full screen, Minimise (keeps the chat) and Close (clears it). Full screen on phones. Escape leaves full screen first, then minimises |
+| `AssistantWindow` | Our header (Full screen, Close) above MUI X Chat's `ChatBox`, which draws the chat list, the conversation, suggestions and the composer. Close keeps everything. Full screen on phones. Escape leaves full screen first, then closes |
+| `ChatHistoryPanel` | The chat list: New chat, the saved chats with a ⋯ menu each, and Clear all chats |
+| `ChatRowMenu` | Rename and Delete for one chat |
+| `RenameChatDialog`, `DeleteChatDialog`, `ClearChatsDialog`, `ChatHistoryDialogs` | The warnings: deleting one chat asks once; clearing all says how many messages go and needs DELETE typed |
+| `ChatAvatar` | The Ask SiteOps mark beside each answer |
+| `ChatStepPart`, `ChatRecordsPart`, `ChatErrorPart` | Drawn inside an answer: each lookup with a spinner or tick, the record chips with Where this came from, and a red error line |
 | `AssistantShell` | Places the window: resizable from the left edge, top edge and top-left corner (360×480 up to 90% of the screen, 400×620 by default, remembered), or filling the screen |
 | `ResizeGrip` | A resize handle that also works from the keyboard: arrow keys resize in 20 px steps, Home or a double-click resets |
 | `AssistantCard` | Checks a `ui` card against its schema in `assistant/cardRegistry.js` and draws it; draws nothing if the card is unknown or wrong |
@@ -193,11 +198,7 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `MarkServiceDoneCard`, `ReorderPartCard`, `ConfirmMoveCard` | Forms filled in from the message. Nothing is saved until the person presses the button |
 | `ChatSavedNote` | What was saved, with a link to the record |
 | `SeeAllLink` | "Showing 5 of 12" with a link to the full page |
-| `AssistantSuggestions` | Four example questions shown before the first message |
-| `AssistantMessage` | A question, or an answer with its steps, the text, links to the records it mentions and How I found this |
-| `AssistantSteps` | Each lookup with a spinner that turns into a tick |
-| `AssistantSources` | The tool behind each step and what it read |
-| `AssistantComposer` | Question box and Send |
+| `AssistantSources` | Where this came from: what each lookup checked, in plain words |
 
 ## Hooks
 
@@ -217,7 +218,8 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `useTechnicians()` | Technicians for the dialogs | `technicians`, `error` |
 | `useLoadMore(fetchList, params, pageSize)` | One server list that grows a page at a time; starts again when `params` change | `items`, `total`, `isLoading`, `error`, `hasMore`, `loadMore` |
 | `useDebouncedValue(value)` | The value 300 ms after it stops changing | The settled value |
-| `useAssistantChat({ isOpen })` | Ask SiteOps messages, applying each streamed event to the answer as it arrives | `messages`, `isAnswering`, `hasUnread`, `ask`, `markRead`, `clear` |
+| `useChatSessions()` | The saved chats, the open chat, and new, rename, delete and clear all | `conversations`, `savedConversations`, `activeId`, `selectChat`, `startNewChat`, `renameChat`, `deleteChat`, `clearAllChats` |
+| `useChatHistoryActions(chat, showMessage)` | Which warning is open, and running the action behind it | `startRename`, `startDelete`, `startClear`, `confirmDelete`, `confirmClear` |
 | `useAssistantSize()` | The chat window size, kept between 360×480 and 90% of the screen and remembered in the browser | `size`, `saveSize`, `resetSize` |
 
 The hooks return ready-made props for Material UI components, so connecting them takes one line:
@@ -299,10 +301,11 @@ The Assets pages read the API like every other page:
 
 ### Ask SiteOps
 
-`askAssistant(question, history, onEvent)` in `api/assistantApi.js` posts to `/api/assistant` through `streamRequest`, which reads the reply line by line with `readJsonLines`. Each line is one event:
+Ask SiteOps uses MUI X Chat (`@mui/x-chat` 9.0.0-alpha.19, pinned because it is still an alpha). `assistant/createAssistantAdapter.js` connects it to our API: `listMessages` loads a saved chat, and `sendMessage` calls `askAssistant({ sessionId, question })`, which posts to `/api/assistant` with the browser's `X-Visitor-Id` through `streamRequest`. `assistant/createChunkMapper.js` turns each line into MUI chunks: steps become tool parts, text becomes text deltas, and the card, record links and errors become `data-card`, `data-records` and `data-error` parts drawn by `assistant/buildPartRenderers.jsx`. Each line is one event:
 
 | Event | Meaning |
 |---|---|
+| `session` | The chat's id and title, so a new chat moves into the list when the answer finishes |
 | `thinking` | The question was received |
 | `step` | A lookup started; the one before it finished |
 | `text` | The next part of the answer |
@@ -310,7 +313,7 @@ The Assets pages read the API like every other page:
 | `done` | The answer is complete, with its record links and sources |
 | `error` | The answer stopped; the message is shown in red in its place |
 
-`useAssistantChat` sends the last 12 finished messages as `history`, so a follow-up such as "who did the last check-up on it?" knows what "it" is. Close clears the chat; Minimise keeps it. The window notes that AI answers can be wrong and links every record it mentions. If the stream ends without `done` or `error`, the answer is marked "stopped before it finished".
+`useChatSessions` holds the chat list and the open chat. A new chat has a `draft-` id and shows as "New chat" at the top of the list until its first answer finishes; then it opens under its saved id. The server keeps the memory, so a follow-up such as "who did the last check-up on it?" knows what "it" is, even days later. `useChatHistoryActions` runs rename, delete and clear all behind their warnings. The window's code is loaded only when it is first opened, and it stays mounted while closed, so an answer can finish in the background and light the dot on the button. If the stream ends without `done` or `error`, the answer is marked "stopped before it finished".
 
 ## API layer
 
