@@ -1,4 +1,6 @@
 import { pool } from '../config/database.js';
+import { STOCK_LEVELS } from '../constants.js';
+import { countEach } from '../utils/countEach.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
 import { buildWhereClause, toLikePattern } from '../utils/sql.js';
 
@@ -46,4 +48,13 @@ export const findAll = async (query) => {
     data: rowsResult.rows,
     pagination: buildPagination(query, countResult.rows[0].total),
   };
+};
+
+export const countAll = async (query) => {
+  const { where, values } = buildFilters({ ...query, stockLevel: undefined });
+  const { rows } = await pool.query(
+    `SELECT COUNT(*)::int AS "all", ${countEach(STOCK_LEVEL, STOCK_LEVELS)} FROM spare_parts p ${where}`,
+    values
+  );
+  return rows[0];
 };
