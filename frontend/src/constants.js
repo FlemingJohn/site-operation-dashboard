@@ -108,13 +108,6 @@ export const INSTALLATION_STATUS_TABS = [
   ...INSTALLATION_STATUSES,
 ];
 
-export const INSTALLATION_COUNT_QUERIES = Object.fromEntries(
-  INSTALLATION_STATUS_TABS.map(({ value }) => [
-    value,
-    value === ALL_STATUSES_TAB ? {} : { status: value },
-  ])
-);
-
 export const SERVICE_INTERVAL_DAYS = 90;
 
 export const SERVICE_SOON_DAYS = 7;
