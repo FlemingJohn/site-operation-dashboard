@@ -1,11 +1,17 @@
 import { Card, CardHeader, List, ListItem, ListItemText } from '@mui/material';
+import { STATE_ICONS } from '../stateIcons';
 import { formatDate } from '../utils';
+import CardIcon from './CardIcon';
 import EmptyState from './EmptyState';
 import StatusChip from './StatusChip';
 
 const PartRequestListCard = ({ requests }) => (
   <Card>
-    <CardHeader title="Parts asked for" subheader="Spare parts requested for this machine" />
+    <CardHeader
+      avatar={<CardIcon {...STATE_ICONS.stock['']} />}
+      title="Parts asked for"
+      subheader="Spare parts requested for this machine"
+    />
     {requests.length === 0 ? (
       <EmptyState title="No parts asked for this machine." />
     ) : (
