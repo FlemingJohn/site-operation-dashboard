@@ -2,7 +2,7 @@
 
 The frontend is a React single-page application built with Vite and Material UI. It shows the dashboard, lets users search, filter and edit sites and installations, and talks to the backend only through the REST API.
 
-The Assets pages (Service, Equipment, Spare parts, Activity) and Ask SiteOps run on sample data for now. See [Sample data](#sample-data).
+Ask SiteOps is a preview: it answers from the same API as the pages, using fixed answer builders until the Gemini endpoint exists. See [Ask SiteOps](#ask-siteops).
 
 ## Stack
 
@@ -38,7 +38,6 @@ frontend/
     ├── fieldIcons.js             One icon per field, shared by table headers and form fields
     ├── activityKindIcons.js      One icon per kind of activity
     ├── api/                      One module per resource and a shared client
-    ├── sampleData/               Builds the sample machines, check-ups, parts and activity
     ├── assistant/                One answer builder per Ask SiteOps topic
     ├── lib/                      Small pure helpers: dates, sorting, paging, text
     ├── hooks/                    Reusable state logic
@@ -113,7 +112,7 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `InstallationFormPage` | `useEntityForm`, `OptionAutocomplete`, `getSites`, `getTechnicians` | Equipment, site, technician, date and status fields. Site and Technician are type-to-filter fields; clearing Technician means unassigned. The Site list offers active sites only, plus the current site when editing an installation at an inactive one |
 | `UsersPage` | `usePaginatedList`, `useFlashMessage`, `UserTable` | Searchable, filterable, sortable, paginated users |
 | `UserFormPage` | `useEntityForm` | Full name, email, phone and role fields |
-| `ServicePage` | `useLoader`, `ServiceGroup`, `ServiceCalendar`, `MarkDoneDialog` | Machines due a check-up, most urgent first. Later is folded away; each group shows 8 and then Show more |
+| `ServicePage` | `useListCounts`, `useDebouncedValue`, `ServiceGroup`, `ServiceCalendar`, `MarkDoneDialog` | Machines due a check-up, most urgent first. Each group asks the server for its own state, 8 at a time, with Show more. Later is folded away. The calendar asks only for the month it shows |
 | `EquipmentPage` | `usePaginatedList`, `useListCounts`, `EquipmentCard`, `EquipmentTable` | Machines by type, with the next check-up on every card and row |
 | `EquipmentDetailPage` | `useRecord`, `EquipmentDetailHeader`, `ServiceHistoryCard`, `PartRequestListCard`, `HistoryCard` | One machine and everything done to it |
 | `SparePartsPage` | `StockPanel`, `PartRequestsPanel` | Stock or Requests, picked with a toggle that is remembered |
@@ -179,7 +178,6 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `SiteMap` / `MapFocus` / `MapSiteList` | Leaflet map with a circle per site (teal active, red inactive), fitted to the sites shown, and the list beside it | Map |
 | `ActivityList` / `ActivityRow` / `ActivityChange` | Events grouped by day: time, avatar with a kind badge, a sentence with a link, and Show details for the change and note | Activity, `HistoryCard` |
 | `HistoryCard` | The activity for one site or machine, five at a time | Site page, Machine page |
-| `SampleDataTag` | "Sample data" label on pages that do not use the database yet | Assets pages |
 
 ### Ask SiteOps components
 
@@ -209,6 +207,8 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `useSiteOptions()` | Sites for the Site filter | `options`, `error` |
 | `useLoader(load, initialData)` | Anything loaded in one request, such as the check-ups due or the part requests | `data`, `isLoading`, `error`, `reload` |
 | `useTechnicians()` | Technicians for the dialogs | `technicians`, `error` |
+| `useLoadMore(fetchList, params, pageSize)` | One server list that grows a page at a time; starts again when `params` change | `items`, `total`, `isLoading`, `error`, `hasMore`, `loadMore` |
+| `useDebouncedValue(value)` | The value 300 ms after it stops changing | The settled value |
 | `useAssistantChat({ isOpen })` | Ask SiteOps messages, applying each streamed event to the answer as it arrives | `messages`, `isAnswering`, `hasUnread`, `ask`, `markRead`, `clear` |
 
 The hooks return ready-made props for Material UI components, so connecting them takes one line:
@@ -270,20 +270,23 @@ sequenceDiagram
 - Each form creates one `Idempotency-Key` when it opens and sends it with every submit, so a repeated click or retry never creates a duplicate.
 - After saving, the form returns to the list and the list shows "Site added" or "Installation updated".
 
-## Sample data
+## Asset data
 
-Machines, check-ups, spare parts, part requests and activity have no tables yet. Until they do, `src/sampleData` builds them in the browser from the real sites and technicians, so every link opens a real site or person.
+The Assets pages read the API like every other page:
 
-| File | Builds |
+| Module | Endpoints |
 |---|---|
-| `buildEquipment.js` | 12 machines of four types, spread over the real sites, with check-ups due from 19 days ago to 88 days ahead |
-| `buildServiceRecords.js` | Three past check-ups per machine, 90 days apart |
-| `buildSpareParts.js` | 7 parts with stock, reorder level and shelf capacity |
-| `buildPartRequests.js` | 6 requests across Requested, Ordered and Delivered |
-| `buildActivity.js` | Events made from the records above, so the activity matches each machine's history |
-| `getSampleData.js` | Loads sites and technicians once and keeps the result for the session |
+| `equipmentApi` | `GET /equipment`, `GET /equipment/:id` |
+| `serviceApi` | `GET /equipment` sorted by next check-up, `POST /equipment/:id/service-records` with an `Idempotency-Key` |
+| `sparePartsApi` | `GET /spare-parts`, `GET /part-requests`, `POST /part-requests` with an `Idempotency-Key`, `PATCH /part-requests/:id` |
+| `activityApi` | `GET /activity`, `GET /activity/people` |
 
-The sample modules in `src/api` (`equipmentApi`, `serviceApi`, `sparePartsApi`, `activityApi`) take the same parameters and return the same `{ data, pagination }` shape as the real endpoints will, after a short delay. Mark as done, Reorder and moving a request update the sample data and add an activity event; the changes are lost on reload. When the endpoints exist, only the inside of these modules changes.
+| Behaviour | Detail |
+|---|---|
+| Saving once | `MarkDoneDialog` and `ReorderDialog` make one key when they open, so a double click or a retry saves one record |
+| Moving a request | The card sends the status it should move to. If someone else moved it first, the board shows the message and reloads |
+| Paging | The Service groups and the request columns load 8 at a time from the server; lists use page numbers |
+| Errors | Dialogs show the server's field message, such as "The check-up date cannot be in the future." |
 
 ### Ask SiteOps
 
