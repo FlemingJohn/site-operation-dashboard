@@ -4,7 +4,6 @@ import CardGrid from '../components/CardGrid';
 import ErrorAlert from '../components/ErrorAlert';
 import ListPagination from '../components/ListPagination';
 import ListToolbar from '../components/ListToolbar';
-import PageIntro from '../components/PageIntro';
 import SiteCard from '../components/SiteCard';
 import SiteDeleteDialog from '../components/SiteDeleteDialog';
 import SiteTable from '../components/SiteTable';
@@ -66,13 +65,11 @@ const SitesPage = () => {
   return (
     <>
       <div className="page-header">
-        <PageIntro>
-          Every place where equipment is installed. Open a site to see its installations.
-        </PageIntro>
         <ViewToggle value={view} onChange={setView} />
       </div>
 
       <SummaryStrip
+        area="sites"
         items={[
           { key: '', label: 'All sites', count: counts.all },
           { key: 'active', label: 'Active', count: counts.active },
