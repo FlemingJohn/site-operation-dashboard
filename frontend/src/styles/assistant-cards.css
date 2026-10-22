@@ -1,6 +1,9 @@
 .assistant-card {
   display: grid;
   gap: 10px;
+  width: 100%;
+  container-type: inline-size;
+  container-name: assistant-card;
 }
 
 .assistant-machines {
@@ -14,13 +17,17 @@
 
 .assistant-machine {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
   gap: 10px;
   padding: 8px 10px;
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background-color: var(--color-surface);
+}
+
+.assistant-machine .machine-link {
+  justify-self: stretch;
 }
 
 .assistant-machine .equipment-drawing-small {
@@ -78,7 +85,7 @@
   color: var(--color-primary-text);
 }
 
-@container assistant (min-width: 560px) {
+@container assistant-card (min-width: 520px) {
   .assistant-machines {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -88,14 +95,8 @@
   }
 }
 
-@container assistant (min-width: 860px) {
+@container assistant-card (min-width: 900px) {
   .assistant-machines {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .assistant-messages > * {
-    width: 100%;
-    max-width: 860px;
-    margin-inline: auto;
   }
 }
