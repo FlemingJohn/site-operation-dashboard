@@ -48,6 +48,11 @@
   color: var(--color-success);
 }
 
+.stat-icon-warning {
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning-text);
+}
+
 .stat-icon-neutral {
   background-color: var(--color-neutral-soft);
   color: var(--color-ink);
@@ -170,4 +175,22 @@
   .chart-toggle-label {
     display: none;
   }
+}
+
+.overview-list-card {
+  height: 100%;
+}
+
+.overview-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 10px 16px;
+}
+
+.overview-list-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
