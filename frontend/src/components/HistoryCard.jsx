@@ -1,9 +1,11 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { Button, Card, CardHeader, LinearProgress } from '@mui/material';
+import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import { getActivity } from '../api/activityApi';
 import { ACTIVITY_DEFAULT_SORT } from '../constants';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import ActivityList from './ActivityList';
+import CardIcon from './CardIcon';
 import EmptyState from './EmptyState';
 import ErrorAlert from './ErrorAlert';
 import ListPagination from './ListPagination';
@@ -21,6 +23,7 @@ const HistoryCard = ({ path }) => {
   return (
     <Card>
       <CardHeader
+        avatar={<CardIcon icon={HistoryOutlinedIcon} tone="neutral" />}
         title="History"
         subheader="Who changed what here"
         action={
