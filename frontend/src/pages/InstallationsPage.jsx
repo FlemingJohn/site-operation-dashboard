@@ -9,7 +9,6 @@ import ErrorAlert from '../components/ErrorAlert';
 import InstallationTable from '../components/InstallationTable';
 import ListPagination from '../components/ListPagination';
 import ListToolbar from '../components/ListToolbar';
-import PageIntro from '../components/PageIntro';
 import StatusTabs from '../components/StatusTabs';
 import SuccessSnackbar from '../components/SuccessSnackbar';
 import {
@@ -46,10 +45,6 @@ const InstallationsPage = () => {
 
   return (
     <>
-      <PageIntro>
-        Equipment installed at your sites. Use the tabs to see what is pending, in progress or done.
-      </PageIntro>
-
       <StatusTabs
         label="Show installations by status"
         tabs={INSTALLATION_STATUS_TABS.map((tab) => ({ ...tab, count: counts[tab.value] }))}
