@@ -12,14 +12,14 @@ const AssistantSources = ({ sources }) => {
         aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? 'Hide how I found this' : 'How I found this'}
+        {isOpen ? 'Hide where this came from' : 'Where this came from'}
       </Button>
       <Collapse in={isOpen} unmountOnExit>
         <ul className="assistant-sources">
           {sources.map((source) => (
-            <li key={source.tool}>
+            <li key={`${source.label}-${source.summary}`}>
               <Typography variant="caption" color="text.secondary">
-                <code>{source.tool}</code> · {source.summary}
+                {source.label} · {source.summary}
               </Typography>
             </li>
           ))}
