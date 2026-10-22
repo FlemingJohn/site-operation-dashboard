@@ -1,6 +1,6 @@
 # Site Operations Dashboard
 
-A full-stack dashboard for managing operational sites, tracking equipment installations and viewing operational summaries. Built with React, Node.js and PostgreSQL, and deployed on Microsoft Azure.
+A full-stack dashboard for managing operational sites, tracking equipment installations, machine check-ups and spare parts, and viewing operational summaries. It includes Ask SiteOps, an AI assistant that answers questions about the data and fills in forms from a message. Built with React, Node.js, PostgreSQL and a Python AI service, and deployed on Microsoft Azure.
 
 ## Live demo
 
@@ -11,6 +11,8 @@ A full-stack dashboard for managing operational sites, tracking equipment instal
 | API example | https://siteops-dashboard-fj-api.azurewebsites.net/api/summary |
 
 The API runs on the App Service free tier, which sleeps when idle. The first request after a quiet period can take 10–20 seconds; later requests are fast.
+
+The live demo runs the `main` branch. The Machines, Service, Spare parts, Map and Activity pages and Ask SiteOps are on `feature/ui-refresh` and run locally until that branch is deployed.
 
 ## Screenshots
 
@@ -50,6 +52,12 @@ Production logs from the API: one JSON line per request with its request id, met
 - **Sites**: list, search by name or city, filter by status and region, add, edit and delete
 - **Installations**: list, search by equipment or technician, filter by site and status, add, edit and delete
 - **Users**: list, search by name or email, filter by role, add admins and technicians with an optional phone number
+- **Machines**: cards or a table with a count per type; each machine page shows its drawing, site, next check-up, check-up history and parts asked for
+- **Service**: check-ups grouped into Needs service now, Coming up this week and Later, as a list or a month calendar, with Mark as done
+- **Spare parts**: stock levels with a reorder mark and Reorder, and a requests board (Requested, Ordered, Delivered)
+- **Map**: sites on a map beside a list, with search and filters
+- **Activity**: who changed what, grouped by day, with filters for kind, person and time
+- **Ask SiteOps**: an AI assistant in a chat window that can be resized by dragging or opened full screen. It answers from the dashboard's data, shows machines and low parts as cards (five at most, with See all), and turns "TL-88 was serviced today by Ravi" into a filled-in form that only the person can save
 - **Filter menu** inside the search bar, with the active filters shown as removable chips
 - **Type-to-filter fields** (MUI Autocomplete) for site and technician in the installation form and the site filter
 - **Icons** in every table header and form field, and an empty state with a Clear filters button
@@ -57,6 +65,7 @@ Production logs from the API: one JSON line per request with its request id, met
 - **Server-side sorting** by clicking a column header
 - **Validation** in the browser and on the server, with errors shown under each form field
 - **Safe retries**: create requests carry an `Idempotency-Key`, so a repeated submit never creates a duplicate
+- **Rate limits and security headers** on the API, with a tighter limit for AI questions
 - **Structured logging** with a request id on every log line and response
 - **Responsive layout** with a sidebar on desktop and a slide-in menu on mobile
 
@@ -64,10 +73,11 @@ Production logs from the API: one JSON line per request with its request id, met
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19, Vite, React Router 7, Material UI 9, MUI X Charts |
-| Backend | Node.js 20+, Express 5, `pg`, Zod, Pino |
+| Frontend | React 19, Vite, React Router 7, Material UI 9, MUI X Charts, Leaflet, re-resizable |
+| Backend | Node.js 20+, Express 5, `pg`, Zod, Pino, Helmet, express-rate-limit |
+| AI service | Python 3.12, FastAPI, OpenAI Agents SDK, gpt-4o on Azure OpenAI, Pydantic |
 | Database | PostgreSQL hosted on Supabase |
-| Hosting | Azure Static Web Apps (frontend), Azure App Service (backend) |
+| Hosting | Azure Static Web Apps (frontend), Azure App Service (backend and AI service) |
 
 ## Requirements coverage
 
@@ -85,33 +95,39 @@ Production logs from the API: one JSON line per request with its request id, met
 | **Database:** joins, aggregations, optimized queries | Joins across all three tables, `WITH` queries, `COUNT ... FILTER`, window functions, `generate_series`; indexes on every filtered, sorted and joined column, index-friendly date ranges, SQL-side pagination and aggregation, parallel queries. See [Query optimization](docs/database.md#query-optimization) |
 | **Azure:** deployment with environment variables | Frontend on Static Web Apps, backend on App Service; all configuration through environment variables |
 | **API:** GET/POST for sites and installations plus a summary endpoint | `/api/sites`, `/api/installations`, `/api/summary` |
+| **Beyond the brief:** machines, check-ups, spare parts, map, activity and an AI assistant | Pages, endpoints and tables listed below; the assistant is described in [docs/ai.md](docs/ai.md) |
 | **Source control:** Git and README | This repository and README; commits follow the Conventional Commits style |
 
 ## Client-server architecture
 
-The application is split into three parts that each do one job and talk over the network:
+The application is split into parts that each do one job and talk over the network:
 
 - The **client** shows things and asks for things.
 - The **server** checks things and decides.
 - The **database** stores things.
+- The **AI service** answers questions by reading through the server.
 
-The browser never talks to the database directly. Every request goes through the server.
+The browser never talks to the database or the AI service directly. Every request goes through the server.
 
 ```mermaid
 flowchart LR
     C["Client<br/>React app in the browser<br/>Azure Static Web Apps"]
     S["Server<br/>Express API<br/>Azure App Service"]
     D[("Database<br/>PostgreSQL<br/>Supabase")]
+    A["AI service<br/>FastAPI + gpt-4o<br/>Azure App Service"]
 
     C -- "HTTPS request · JSON" --> S
     S -- "JSON response" --> C
     S -- "SQL over SSL" --> D
     D -- "rows" --> S
+    S -- "question · service key" --> A
+    A -- "read-only GET requests" --> S
+    A -- "streamed answer" --> S
 ```
 
 ### Client: show and ask
 
-- Draws the pages: Overview, Sites, Installations and the forms
+- Draws the pages: Overview, Sites, Installations, Users, Machines, Service, Spare parts, Map, Activity and the forms
 - Remembers what is on screen: current page, search text, form values
 - Checks forms for instant feedback, such as "Enter a site name."
 - Sends requests, such as "give me page 2 of the sites"
@@ -129,10 +145,19 @@ flowchart LR
 
 ### Database: store and protect
 
-- Holds the `users`, `sites` and `installations` tables
+- Holds the `users`, `sites` and `installations` tables, and the asset tables `equipment`, `service_records`, `spare_parts`, `part_requests` and `activity_log`
 - Enforces required fields, unique site names and valid statuses
 - Enforces relationships, such as deleting a site's installations with the site
 - Accepts encrypted connections from the server only
+
+### AI service: read and suggest
+
+- Receives questions from the server only, with a shared service key
+- Lets gpt-4o pick from 11 tools: 8 read data through the server's `GET` endpoints, 3 fill in a form
+- Never connects to the database and never saves; a form it fills in is saved by the person, through the normal endpoints
+- Streams the answer back as JSON lines: the steps, the text, one card or form, and links to the records it used
+
+How it works, the tools, the guardrails and the tested attacks are in [docs/ai.md](docs/ai.md).
 
 ### How the client and server talk
 
@@ -195,7 +220,7 @@ The inner layers of the client and server are described in [docs/backend.md](doc
 
 ## Local project setup
 
-Set up the three parts in this order: database, backend, frontend.
+Set up the parts in this order: database, backend, frontend, then the AI service if you want Ask SiteOps.
 
 ### Prerequisites
 
@@ -205,6 +230,7 @@ Set up the three parts in this order: database, backend, frontend.
 | npm | Included with Node.js | `npm -v` |
 | PostgreSQL | 14 or later, installed locally or a Supabase project | `psql --version` |
 | Git | Any recent version | `git --version` |
+| Python | 3.12, only for the AI service | `py -3.12 --version` |
 
 Get the code:
 
@@ -280,15 +306,18 @@ LOG_LEVEL=info
 | `DATABASE_SSL_CA` | Path to the CA certificate, required when `DATABASE_SSL` is `true` |
 | `CORS_ORIGIN` | The frontend URL, `http://localhost:5173` |
 | `LOG_LEVEL` | `debug`, `info`, `warn` or `error` |
+| `AI_SERVICE_URL` | Optional. The AI service address, `http://localhost:8000`. Without it, Ask SiteOps replies that it is not set up |
+| `AI_SERVICE_KEY` | Required with `AI_SERVICE_URL`. A long random secret, the same value as in `ai/.env` |
 
 **Create the tables and sample data**
 
 ```bash
 npm run db:migrate
 npm run db:seed
+npm run db:seed:assets
 ```
 
-This creates the tables and loads 5 users, 5 sites and 5 installations.
+`db:seed` empties the tables and loads 5 users, 5 sites and 5 installations, so never run it against a database with real data. `db:seed:assets` adds sample machines, check-ups, spare parts, part requests and activity, and leaves existing rows alone.
 
 **Start the API**
 
@@ -328,6 +357,37 @@ Open `http://localhost:5173`. The Overview page shows the summary cards and char
 
 No `.env` file is needed locally: Vite forwards every `/api` request to `http://localhost:5000`. `VITE_API_URL` in `frontend/.env.example` is only used for deployment, where it points to the deployed API.
 
+### 4. AI service setup (optional)
+
+In a third terminal, from the project root. Python 3.12 is needed; 3.11.0 has a `typing` bug that stops `openai-agents` from importing.
+
+```bash
+cd ai
+py -3.12 -m venv .venv
+.venv\Scripts\pip install -r requirements-dev.txt
+copy .env.example .env
+```
+
+Edit `ai/.env`:
+
+| Variable | Description |
+|---|---|
+| `AZURE_OPENAI_API_KEY` | Key of the Azure OpenAI resource |
+| `AZURE_OPENAI_ENDPOINT` | Resource endpoint, such as `https://<resource>.cognitiveservices.azure.com/` |
+| `AZURE_OPENAI_DEPLOYMENT_NAME` | Model deployment name, `gpt-4o` |
+| `BACKEND_API_URL` | `http://localhost:5000` |
+| `AI_SERVICE_KEY` | The same secret as `AI_SERVICE_KEY` in `backend/.env` |
+
+The optional settings are listed in [docs/ai.md](docs/ai.md#settings).
+
+**Start the service**
+
+```bash
+.venv\Scripts\python -m uvicorn --app-dir src siteops_ai.main:app --port 8000
+```
+
+Add `AI_SERVICE_URL=http://localhost:8000` and the same `AI_SERVICE_KEY` to `backend/.env`, then restart the backend. The round button at the bottom right of every page opens Ask SiteOps.
+
 ### Troubleshooting
 
 | Problem | Cause | Fix |
@@ -340,7 +400,11 @@ No `.env` file is needed locally: Vite forwards every `/api` request to `http://
 | `relation "sites" does not exist` | The tables were not created | Run `npm run db:migrate` in `backend` |
 | `EADDRINUSE` on port 5000 | Another program uses the port | Stop that program, or change `PORT` and the proxy target in `frontend/vite.config.js` |
 | The app shows "Cannot reach the server" | The backend is not running | Start it with `npm run dev` in `backend` |
-| Empty tables and charts | No sample data | Run `npm run db:seed` in `backend` |
+| Empty tables and charts | No sample data | Run `npm run db:seed` in `backend` on a new database |
+| Empty Machines, Service or Spare parts pages | No asset data | Run `npm run db:seed:assets` in `backend` |
+| Ask SiteOps says it is not set up | `AI_SERVICE_URL` is missing from `backend/.env` | Set it and `AI_SERVICE_KEY`, then restart the backend |
+| Ask SiteOps says it couldn't get an answer | The AI service is not running, or the two `AI_SERVICE_KEY` values differ | Start the AI service and make both keys the same |
+| `TypeError` from `typing` when the AI service starts | Python 3.11.0 | Rebuild `ai/.venv` with Python 3.12 |
 
 ## Scripts
 
@@ -349,10 +413,14 @@ No `.env` file is needed locally: Vite forwards every `/api` request to `http://
 | `backend` | `npm run dev` | Start the API with automatic restart |
 | `backend` | `npm start` | Start the API in production mode |
 | `backend` | `npm run db:migrate` | Run `database/migrations` in order; safe to run again |
-| `backend` | `npm run db:seed` | Reset the tables and load sample data |
+| `backend` | `npm run db:seed` | Empty the tables and load sample data |
+| `backend` | `npm run db:seed:assets` | Add sample machines, check-ups, parts, requests and activity; leaves existing rows alone |
 | `frontend` | `npm run dev` | Start the Vite development server |
 | `frontend` | `npm run build` | Build the production bundle into `frontend/dist` |
 | `frontend` | `npm run preview` | Serve the production build locally |
+| `ai` | `.venv\Scripts\python -m uvicorn --app-dir src siteops_ai.main:app --port 8000` | Start the AI service |
+| `ai` | `.venv\Scripts\python -m pytest` | Run the AI service tests |
+| `ai` | `.venv\Scripts\ruff check src tests` | Lint the AI service |
 
 ## API
 
@@ -363,17 +431,32 @@ All endpoints are under `/api` and use JSON.
 | GET | `/health` | API and database status |
 | GET | `/summary` | Totals, status breakdown, monthly counts, recent installations |
 | GET | `/sites` | Paginated list with `search`, `status`, `region`, `sortBy`, `order` |
+| GET | `/sites/counts` | Counts for the summary strip, with the same filters |
 | GET | `/sites/:id` | One site |
 | POST | `/sites` | Create a site |
 | PUT | `/sites/:id` | Update a site |
 | DELETE | `/sites/:id` | Delete a site and its installations |
 | GET | `/installations` | Paginated list with `search`, `siteId`, `status`, `sortBy`, `order` |
+| GET | `/installations/counts` | Counts for the summary strip, with the same filters |
 | GET | `/installations/:id` | One installation |
 | POST | `/installations` | Create an installation |
 | PUT | `/installations/:id` | Update an installation |
 | DELETE | `/installations/:id` | Delete an installation |
 | GET | `/users` | Paginated list with `search`, `role`, `sortBy`, `order` |
+| GET | `/users/counts` | Counts for the summary strip, with the same filters |
 | POST | `/users` | Create a user (`Idempotency-Key` supported) |
+| GET | `/equipment` | Paginated machines with `search`, `type`, `status`, check-up `state`, `siteId`, `dueFrom`, `dueTo` |
+| GET | `/equipment/counts` | Counts per type and check-up state, with the same filters |
+| GET | `/equipment/:id` | One machine with its check-ups and part requests |
+| POST | `/equipment/:id/service-records` | Record a finished check-up (`Idempotency-Key` supported) |
+| GET | `/spare-parts` | Parts with their stock level, filtered by `stockLevel` |
+| GET | `/spare-parts/counts` | Counts per stock level |
+| GET | `/part-requests` | Requests filtered by `status` |
+| POST | `/part-requests` | Ask for a part (`Idempotency-Key` supported) |
+| PATCH | `/part-requests/:id` | Move a request to its next status |
+| GET | `/activity` | Recent changes with `search`, `kind`, `actor` and `days` |
+| GET | `/activity/people` | People who appear in the activity |
+| POST | `/assistant` | Ask SiteOps a question; the answer streams back as JSON lines |
 
 Paginated responses:
 
@@ -436,6 +519,16 @@ erDiagram
 | `users` → `installations` | One-to-many, optional. Deleting a user keeps the installations as unassigned. |
 | `sites` ↔ `users` | Many-to-many through `installations` |
 
+The asset tables for machines, check-ups and spare parts:
+
+| Table | Holds |
+|---|---|
+| `equipment` | A machine, optionally at a site; set to no site when the site is deleted |
+| `service_records` | A check-up of one machine by an optional technician; a machine with check-ups cannot be deleted |
+| `spare_parts` | A part with its stock, reorder level and shelf capacity |
+| `part_requests` | A request for one part, optionally for a machine and by a user; a part with requests cannot be deleted |
+| `activity_log` | Who changed what; no foreign keys, so the history stays after a record is deleted |
+
 Example queries demonstrating joins and aggregations are in `database/queries`. Column rules, constraints, the `idempotency_keys` table and normalization notes are in [docs/database.md](docs/database.md).
 
 ## Deployment on Azure
@@ -446,9 +539,11 @@ The application is deployed with the Azure CLI:
 |---|---|
 | Frontend | Azure Static Web Apps (Free) |
 | Backend | Azure App Service, Linux, Node.js |
+| AI service | Azure App Service, Linux, Python 3.12, on the same plan as the backend |
+| Model | Azure OpenAI, gpt-4o |
 | Database | Supabase PostgreSQL (not on Azure) |
 
-All configuration is passed through environment variables: App Service application settings for the backend and `VITE_API_URL` at build time for the frontend.
+All configuration is passed through environment variables: App Service application settings for the backend and the AI service, and `VITE_API_URL` at build time for the frontend.
 
 Outline:
 
@@ -460,6 +555,8 @@ az webapp create --name <api-name> --resource-group rg-siteops --plan plan-siteo
 az staticwebapp create --name <web-name> --resource-group rg-siteops --location eastasia --sku Free
 az webapp config appsettings set --name <api-name> --resource-group rg-siteops --settings NODE_ENV=production ...
 az webapp deploy --name <api-name> --resource-group rg-siteops --src-path backend.zip --type zip
+az webapp create --name <ai-name> --resource-group rg-siteops --plan plan-siteops --runtime "PYTHON:3.12"
+az webapp deploy --name <ai-name> --resource-group rg-siteops --src-path ai.zip --type zip
 npx @azure/static-web-apps-cli deploy ./dist --deployment-token <token> --env production
 ```
 
