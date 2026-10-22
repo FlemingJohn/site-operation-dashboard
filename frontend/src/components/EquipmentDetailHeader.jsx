@@ -4,7 +4,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { EQUIPMENT_TYPE_LABELS } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import EquipmentDrawing from './EquipmentDrawing';
-import SampleDataTag from './SampleDataTag';
 import ServiceDueLine from './ServiceDueLine';
 import StatusChip from './StatusChip';
 
@@ -29,7 +28,6 @@ const EquipmentDetailHeader = ({ unit, action }) => (
             {EQUIPMENT_TYPE_LABELS[unit.type]} {unit.serial}
           </Typography>
           <StatusChip status={unit.status} />
-          <SampleDataTag />
         </div>
         <Typography variant="body2" color="text.secondary" className="entity-card-meta">
           <SiteIcon fontSize="inherit" />
