@@ -4,6 +4,7 @@ import { logger } from '../utils/logger.js';
 import { env } from './env.js';
 
 const DATE_TYPE_ID = 1082;
+const STATEMENT_TIMEOUT_MS = 10000;
 
 pg.types.setTypeParser(DATE_TYPE_ID, (value) => value);
 
@@ -15,6 +16,7 @@ export const pool = new pg.Pool({
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
+  onConnect: (client) => client.query(`SET statement_timeout = ${STATEMENT_TIMEOUT_MS}`),
 });
 
 pool.on('error', (error) => {
