@@ -13,6 +13,7 @@ import {
 import { markServiceDone } from '../api/serviceApi';
 import { EQUIPMENT_TYPE_LABELS, SERVICE_INTERVAL_DAYS } from '../constants';
 import { addDays } from '../lib/addDays';
+import { getErrorText } from '../lib/getErrorText';
 import { formatDate, getToday } from '../utils';
 import TechnicianSelect from './TechnicianSelect';
 
@@ -22,16 +23,18 @@ const MarkDoneDialog = ({ unit, onClose, onSaved }) => {
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const canSave = Boolean(doneOn && doneBy) && !isSaving;
 
   const save = async () => {
     setIsSaving(true);
     setError('');
     try {
-      await markServiceDone(unit.id, { doneOn, doneBy, notes: notes.trim() });
+      const serviceRecord = { doneOn, technicianId: doneBy, notes: notes.trim() };
+      await markServiceDone(unit.id, serviceRecord, idempotencyKey);
       onSaved(unit);
     } catch (err) {
-      setError(err.message);
+      setError(getErrorText(err));
       setIsSaving(false);
     }
   };
