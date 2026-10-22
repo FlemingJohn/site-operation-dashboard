@@ -57,7 +57,7 @@ export const useEntityForm = ({
 
     const result = schema.safeParse(values);
     if (!result.success) {
-      setErrors(toFieldErrors(result.error.issues));
+      setErrors(toFieldErrors(result.error));
       return;
     }
 
