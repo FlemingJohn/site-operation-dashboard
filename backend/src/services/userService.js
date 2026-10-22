@@ -2,6 +2,8 @@ import { pool } from '../config/database.js';
 import { USER_SORT_COLUMNS } from '../constants.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
 import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
+import { withTransaction } from '../utils/withTransaction.js';
+import * as activityService from './activityService.js';
 
 const USER_SELECT = `
   SELECT
@@ -30,10 +32,11 @@ export const findAll = async (query) => {
   const orderBy = buildOrderBy(USER_SORT_COLUMNS, query, 'u.id');
 
   const [rowsResult, countResult] = await Promise.all([
-    pool.query(
-      `${USER_SELECT} ${where} ${orderBy} LIMIT ${limitParam} OFFSET ${offsetParam}`,
-      [...values, query.limit, getOffset(query)]
-    ),
+    pool.query(`${USER_SELECT} ${where} ${orderBy} LIMIT ${limitParam} OFFSET ${offsetParam}`, [
+      ...values,
+      query.limit,
+      getOffset(query),
+    ]),
     pool.query(`SELECT COUNT(*)::int AS total FROM users u ${where}`, values),
   ]);
 
@@ -43,12 +46,19 @@ export const findAll = async (query) => {
   };
 };
 
-export const create = async ({ fullName, email, phone, role }) => {
-  const { rows } = await pool.query(
-    `INSERT INTO users (full_name, email, phone, role)
-     VALUES ($1, $2, $3, $4)
-     RETURNING id, full_name AS "fullName", email, phone, role, created_at AS "createdAt"`,
-    [fullName, email, phone, role]
-  );
-  return rows[0];
-};
+export const create = ({ fullName, email, phone, role }) =>
+  withTransaction(async (client) => {
+    const { rows } = await client.query(
+      `INSERT INTO users (full_name, email, phone, role)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, full_name AS "fullName", email, phone, role, created_at AS "createdAt"`,
+      [fullName, email, phone, role]
+    );
+    await activityService.record(client, {
+      kind: 'user',
+      verb: 'added',
+      target: { label: rows[0].fullName, path: '/users' },
+      after: role === 'admin' ? 'as an admin' : 'as a technician',
+    });
+    return rows[0];
+  });
