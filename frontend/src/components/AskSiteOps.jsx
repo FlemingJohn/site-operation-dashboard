@@ -26,6 +26,7 @@ const AskSiteOps = () => {
     return (
       <AssistantWindow
         chat={chat}
+        isPhone={isPhone}
         onMinimise={() => changeOpen(false)}
         onClose={close}
         onOpenRecord={() => isPhone && changeOpen(false)}
