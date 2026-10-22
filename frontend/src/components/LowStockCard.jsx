@@ -32,7 +32,7 @@ const LowStockCard = () => {
       <CardHeader
         avatar={<CardIcon icon={Inventory2OutlinedIcon} tone="neutral" />}
         title="Spare parts running low"
-        subheader="Sample data · lowest stock first"
+        subheader="Lowest stock first"
         action={
           <Button component={RouterLink} to="/spare-parts" variant="outlined">
             Open spare parts
