@@ -75,10 +75,6 @@ const AssistantWindow = ({ chat, isPhone, onMinimise, onClose, onOpenRecord }) =
         </div>
 
         <AssistantComposer isDisabled={chat.isAnswering} onSend={chat.ask} />
-        <Typography variant="caption" color="text.secondary" className="assistant-footnote">
-          AI answers come from this dashboard&apos;s data and can be wrong. Check the linked
-          records.
-        </Typography>
       </Paper>
     </AssistantShell>
   );
