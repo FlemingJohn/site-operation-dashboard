@@ -1,6 +1,7 @@
 class PagePath:
     OVERVIEW = "/"
     INSTALLATIONS = "/installations"
+    SERVICE = "/service"
     SPARE_PARTS = "/spare-parts"
 
     @staticmethod
