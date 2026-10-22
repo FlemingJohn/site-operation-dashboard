@@ -15,6 +15,9 @@ const envSchema = z
     DATABASE_SSL_CA: z.string().optional(),
     CORS_ORIGIN: z.string().min(1),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+    GEMINI_API_KEY: z.string().optional(),
+    GEMINI_MODEL: z.string().min(1).default('gemini-3.5-flash-lite'),
+    GEMINI_FALLBACK_MODEL: z.string().min(1).default('gemini-3.8-flash'),
   })
   .refine((env) => !env.DATABASE_SSL || env.DATABASE_SSL_CA, {
     path: ['DATABASE_SSL_CA'],
