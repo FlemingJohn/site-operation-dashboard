@@ -88,13 +88,31 @@
   background-color: var(--color-avatar-6);
 }
 
-.site-chip {
+.record-chip {
   justify-self: start;
   max-width: 100%;
   padding-left: 4px;
   background-color: var(--color-surface);
+  vertical-align: baseline;
 }
 
-.site-chip::before {
+.record-chip::before {
   display: none;
+}
+
+.row-title {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 6px;
+  color: inherit;
+  text-align: left;
+}
+
+.row-title:hover,
+.row-title.Mui-focusVisible {
+  color: var(--color-primary-text);
+  background-color: var(--color-primary-soft);
 }
