@@ -1,5 +1,6 @@
 import { pool } from '../config/database.js';
-import { USER_SORT_COLUMNS } from '../constants.js';
+import { USER_ROLES, USER_SORT_COLUMNS } from '../constants.js';
+import { countEach } from '../utils/countEach.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
 import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
 import { withTransaction } from '../utils/withTransaction.js';
@@ -62,3 +63,12 @@ export const create = ({ fullName, email, phone, role }) =>
     });
     return rows[0];
   });
+
+export const countAll = async (query) => {
+  const { where, values } = buildFilters({ ...query, role: undefined });
+  const { rows } = await pool.query(
+    `SELECT COUNT(*)::int AS "all", ${countEach('u.role', USER_ROLES)} FROM users u ${where}`,
+    values
+  );
+  return rows[0];
+};
