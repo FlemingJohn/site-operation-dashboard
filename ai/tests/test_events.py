@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 import httpx
-from agents import MaxTurnsExceeded
+from agents import MaxTurnsExceeded, ModelBehaviorError
 from agents.stream_events import RawResponsesStreamEvent, RunItemStreamEvent
 from openai import BadRequestError, RateLimitError
 from openai.types.responses import ResponseTextDeltaEvent
@@ -43,6 +43,19 @@ def test_content_filter_block_has_its_own_message():
         "blocked", response=response, body={"code": "content_filter", "message": "blocked"}
     )
     assert to_error_message(error) == BLOCKED
+
+
+def test_answer_cut_off_by_the_content_filter_has_the_same_message():
+    error = ModelBehaviorError(
+        "Responses stream ended with terminal event `response.incomplete`. "
+        "status=incomplete; incomplete_details=IncompleteDetails(reason='content_filter')."
+    )
+    assert to_error_message(error) == BLOCKED
+
+
+def test_answer_cut_off_for_another_reason_gets_the_general_message():
+    error = ModelBehaviorError("incomplete_details=IncompleteDetails(reason='max_output_tokens')")
+    assert to_error_message(error) == FAILED
 
 
 def test_rate_limit_asks_to_wait():
