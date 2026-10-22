@@ -8,6 +8,7 @@ import { equipmentListQuery, serviceRecordBody } from '../validators/equipmentSc
 export const equipmentRoutes = Router();
 
 equipmentRoutes.get('/', validate({ query: equipmentListQuery }), equipmentController.list);
+equipmentRoutes.get('/counts', validate({ query: equipmentListQuery }), equipmentController.counts);
 equipmentRoutes.get('/:id', validate({ params: idParams }), equipmentController.getById);
 equipmentRoutes.post(
   '/:id/service-records',
