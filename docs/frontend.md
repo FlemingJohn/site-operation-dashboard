@@ -2,7 +2,7 @@
 
 The frontend is a React single-page application built with Vite and Material UI. It shows the dashboard, lets users search, filter and edit sites and installations, and talks to the backend only through the REST API.
 
-Ask SiteOps is a preview: it answers from the same API as the pages, using fixed answer builders until the Gemini endpoint exists. See [Ask SiteOps](#ask-siteops).
+Ask SiteOps answers questions with Gemini, which reads the same data as the pages through read-only tools on the backend. See [Ask SiteOps](#ask-siteops).
 
 ## Stack
 
@@ -38,7 +38,6 @@ frontend/
     ├── fieldIcons.js             One icon per field, shared by table headers and form fields
     ├── activityKindIcons.js      One icon per kind of activity
     ├── api/                      One module per resource and a shared client
-    ├── assistant/                One answer builder per Ask SiteOps topic
     ├── lib/                      Small pure helpers: dates, sorting, paging, text
     ├── hooks/                    Reusable state logic
     ├── validation/               Zod form schemas mirroring backend/src/validators
@@ -290,7 +289,7 @@ The Assets pages read the API like every other page:
 
 ### Ask SiteOps
 
-`askAssistant(question, onEvent)` in `api/assistantApi.js` sends the same events the backend will stream:
+`askAssistant(question, history, onEvent)` in `api/assistantApi.js` posts to `/api/assistant` through `streamRequest`, which reads the reply line by line with `readJsonLines`. Each line is one event:
 
 | Event | Meaning |
 |---|---|
@@ -298,8 +297,9 @@ The Assets pages read the API like every other page:
 | `step` | A lookup started; the one before it finished |
 | `text` | The next part of the answer |
 | `done` | The answer is complete, with its record links and sources |
+| `error` | The answer stopped; the message is shown in red in its place |
 
-For now `assistant/pickAnswer.js` matches words in the question to one of five answer builders (check-ups due, low stock, inactive sites, technician workload, overview totals), and each builder reads the same API modules as the pages. The window shows "Preview" and a reminder to check the linked records.
+`useAssistantChat` sends the last 12 finished messages as `history`, so a follow-up such as "who did the last check-up on it?" knows what "it" is. Close clears the chat; Minimise keeps it. The window notes that Gemini can be wrong and links every record it mentions.
 
 ## API layer
 
