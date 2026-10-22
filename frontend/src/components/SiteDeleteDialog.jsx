@@ -1,5 +1,6 @@
 import { Link as RouterLink } from 'react-router-dom';
-import { DialogContentText, Link } from '@mui/material';
+import { Button, DialogContentText } from '@mui/material';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { pluralize } from '../lib/pluralize';
 import DeleteDialog from './DeleteDialog';
 
@@ -20,13 +21,20 @@ const SiteDeleteDialog = ({ site, ...dialogProps }) => {
       confirmText={hasInstallations ? site.name : undefined}
     >
       {hasInstallations && (
-        <DialogContentText>
-          Want to keep the history?{' '}
-          <Link component={RouterLink} to={`/sites/${site.id}/edit`}>
-            Edit the site
-          </Link>{' '}
-          and set its status to Inactive.
-        </DialogContentText>
+        <>
+          <DialogContentText>
+            Want to keep the history? Set the site to Inactive instead.
+          </DialogContentText>
+          <Button
+            variant="outlined"
+            component={RouterLink}
+            to={`/sites/${site.id}/edit`}
+            startIcon={<EditOutlinedIcon />}
+            className="dialog-side-action"
+          >
+            Edit site instead
+          </Button>
+        </>
       )}
     </DeleteDialog>
   );
