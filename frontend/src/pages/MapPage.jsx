@@ -4,7 +4,6 @@ import { getSites } from '../api/siteApi';
 import ErrorAlert from '../components/ErrorAlert';
 import ListToolbar from '../components/ListToolbar';
 import MapSiteList from '../components/MapSiteList';
-import PageIntro from '../components/PageIntro';
 import SiteMap from '../components/SiteMap';
 import { MAX_SELECT_OPTIONS, REGIONS, SITE_DEFAULT_SORT, SITE_STATUSES } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
@@ -50,11 +49,6 @@ const MapPage = () => {
 
   return (
     <>
-      <PageIntro>
-        Where every site is. Pick a site in the list or on the map, then open it to see its
-        installations. Pins are placed at the site's city.
-      </PageIntro>
-
       <ListToolbar
         search={{
           value: sites.searchInput,
