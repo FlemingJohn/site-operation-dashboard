@@ -42,6 +42,8 @@ async def stream_answer(request: AskRequest) -> AsyncIterator[str]:
 
         if not has_text:
             yield AssistantEvent(type="text", text=NO_ANSWER).to_line()
+        if context.card:
+            yield AssistantEvent(type="ui", card=context.card).to_line()
         records = list({(r.path, r.label): r for r in context.records}.values())
         yield AssistantEvent(
             type="done", records=records[:MAX_RECORDS], sources=context.sources
