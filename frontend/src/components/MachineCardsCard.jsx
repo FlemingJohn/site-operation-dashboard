@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { Button, Link, Typography } from '@mui/material';
-import { EQUIPMENT_TYPE_LABELS } from '../constants';
+import { Button, Typography } from '@mui/material';
 import { getToday } from '../utils';
-import EquipmentDrawing from './EquipmentDrawing';
+import MachineLink from './MachineLink';
 import MarkServiceDoneCard from './MarkServiceDoneCard';
 import SeeAllLink from './SeeAllLink';
 import ServiceDueLine from './ServiceDueLine';
@@ -16,21 +14,12 @@ const MachineCardsCard = ({ machines, total, seeAll, onOpenRecord }) => {
       <ul className="assistant-machines">
         {machines.map((machine) => (
           <li key={machine.id} className="assistant-machine">
-            <EquipmentDrawing type={machine.type} size="small" />
-            <div className="assistant-machine-text">
-              <Link
-                component={RouterLink}
-                to={`/equipment/${machine.id}`}
-                onClick={onOpenRecord}
-                className="text-strong"
-              >
-                {machine.serial}
-              </Link>
+            <MachineLink unit={machine} onOpen={onOpenRecord}>
               <Typography variant="caption" color="text.secondary" noWrap>
-                {EQUIPMENT_TYPE_LABELS[machine.type]} · {machine.siteName ?? 'In the warehouse'}
+                {machine.siteName ?? 'In the warehouse'}
               </Typography>
               <ServiceDueLine unit={machine} variant="caption" />
-            </div>
+            </MachineLink>
             <Button
               size="small"
               variant="outlined"
