@@ -1,0 +1,17 @@
+from dataclasses import dataclass, field
+
+import httpx
+
+from siteops_ai.schemas.record_link import RecordLink
+from siteops_ai.schemas.source import Source
+
+
+@dataclass
+class AnswerContext:
+    backend: httpx.AsyncClient
+    records: list[RecordLink] = field(default_factory=list)
+    sources: list[Source] = field(default_factory=list)
+
+    def remember(self, tool: str, summary: str, records: list[RecordLink]) -> None:
+        self.sources.append(Source(tool=tool, summary=summary))
+        self.records.extend(records)
