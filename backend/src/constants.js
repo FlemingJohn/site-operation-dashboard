@@ -116,4 +116,5 @@ export const MESSAGES = {
   notJson: 'Send the request as JSON.',
   busy: 'The server is busy. Please try again.',
   tookTooLong: 'The request took too long. Please try again.',
+  tooManyRequests: 'Too many requests. Please wait a minute and try again.',
 };
