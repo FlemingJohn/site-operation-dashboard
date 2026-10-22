@@ -1,6 +1,7 @@
 import { rateLimit } from 'express-rate-limit';
 import { MESSAGES } from '../constants.js';
 import { HttpError } from '../utils/HttpError.js';
+import { isServiceRequest } from '../utils/isServiceRequest.js';
 
 const ONE_MINUTE_MS = 60000;
 const REQUESTS_PER_MINUTE = 300;
@@ -15,6 +16,7 @@ export const requestLimit = rateLimit({
   limit: REQUESTS_PER_MINUTE,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
+  skip: isServiceRequest,
   handler: rejectTooMany,
 });
 
