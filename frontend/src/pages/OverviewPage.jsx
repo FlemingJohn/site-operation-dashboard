@@ -13,6 +13,8 @@ import CardIcon from '../components/CardIcon';
 import ErrorAlert from '../components/ErrorAlert';
 import InstallationBreakdownCard from '../components/InstallationBreakdownCard';
 import InstallationTable from '../components/InstallationTable';
+import LowStockCard from '../components/LowStockCard';
+import ServiceDueCard from '../components/ServiceDueCard';
 import StatCard from '../components/StatCard';
 import StatusDonutCard from '../components/StatusDonutCard';
 import { COLORS } from '../styles/colors';
@@ -124,6 +126,15 @@ const OverviewPage = () => {
         </Grid>
         <Grid size={{ xs: 12, lg: 7 }}>
           <InstallationBreakdownCard summary={summary} />
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <ServiceDueCard />
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <LowStockCard />
         </Grid>
       </Grid>
 
