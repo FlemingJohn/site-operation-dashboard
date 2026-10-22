@@ -12,7 +12,7 @@ A full-stack dashboard for managing operational sites, tracking equipment instal
 
 The API runs on the App Service free tier, which sleeps when idle. The first request after a quiet period can take 10–20 seconds; later requests are fast.
 
-The live demo runs the `main` branch. The Machines, Service, Spare parts, Map and Activity pages and Ask SiteOps are on `feature/ui-refresh` and run locally until that branch is deployed.
+The live demo was deployed before the Machines, Service, Spare parts, Map and Activity pages and Ask SiteOps were added; those run locally until the next deployment.
 
 ## Screenshots
 
@@ -57,7 +57,7 @@ Production logs from the API: one JSON line per request with its request id, met
 - **Spare parts**: stock levels with a reorder mark and Reorder, and a requests board (Requested, Ordered, Delivered)
 - **Map**: sites on a map beside a list, with search and filters
 - **Activity**: who changed what, grouped by day, with filters for kind, person and time
-- **Ask SiteOps**: an AI assistant in a chat window that can be resized by dragging or opened full screen. It answers from the dashboard's data, shows machines and low parts as cards (five at most, with See all), and turns "TL-88 was serviced today by Ravi" into a filled-in form that only the person can save
+- **Ask SiteOps**: an AI assistant in a chat window that can be resized by dragging or opened full screen. It answers from the dashboard's data, shows machines and low parts as cards (five at most, with See all), and turns "TL-88 was serviced today by Ravi" into a filled-in form that only the person can save. Chats are saved with their memory: start a new chat, pick an old one up later, rename it, delete it, or clear them all, each behind a warning
 - **Filter menu** inside the search bar, with the active filters shown as removable chips
 - **Type-to-filter fields** (MUI Autocomplete) for site and technician in the installation form and the site filter
 - **Icons** in every table header and form field, and an empty state with a Clear filters button
@@ -456,7 +456,12 @@ All endpoints are under `/api` and use JSON.
 | PATCH | `/part-requests/:id` | Move a request to its next status |
 | GET | `/activity` | Recent changes with `search`, `kind`, `actor` and `days` |
 | GET | `/activity/people` | People who appear in the activity |
-| POST | `/assistant` | Ask SiteOps a question; the answer streams back as JSON lines |
+| POST | `/assistant` | Ask SiteOps a question in a new or saved chat; the answer streams back as JSON lines and is saved |
+| GET | `/chat-sessions` | This browser's saved chats |
+| GET | `/chat-sessions/:id/messages` | One chat's messages |
+| PATCH | `/chat-sessions/:id` | Rename a chat |
+| DELETE | `/chat-sessions/:id` | Delete one chat |
+| DELETE | `/chat-sessions` | Delete all of this browser's chats |
 
 Paginated responses:
 
@@ -487,6 +492,7 @@ erDiagram
     SPARE_PARTS ||--o{ PART_REQUESTS : "is asked for in"
     EQUIPMENT |o--o{ PART_REQUESTS : "needs"
     USERS |o--o{ PART_REQUESTS : "asks"
+    CHAT_SESSIONS ||--o{ CHAT_MESSAGES : "holds"
 
     SITES {
         serial id PK
@@ -572,6 +578,26 @@ erDiagram
         jsonb change
         varchar note
     }
+
+    CHAT_SESSIONS {
+        uuid id PK
+        uuid visitor_id
+        varchar title
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    CHAT_MESSAGES {
+        bigserial id PK
+        uuid session_id FK
+        varchar role
+        varchar text
+        jsonb card
+        jsonb records
+        jsonb sources
+        varchar status
+        timestamptz created_at
+    }
 ```
 
 | Relationship | Type |
@@ -586,6 +612,7 @@ erDiagram
 | `equipment` → `part_requests` | One-to-many, optional. A request can be for the shelf rather than a machine. |
 | `users` → `part_requests` | One-to-many, optional. Deleting a user keeps the requests without a name. |
 | `activity_log` | No foreign keys, so the history stays after a record is deleted. |
+| `chat_sessions` → `chat_messages` | One-to-many, required. Deleting a chat deletes its messages. Each chat belongs to one browser through `visitor_id`. |
 
 Example queries demonstrating joins and aggregations are in `database/queries`. Column rules, constraints, the `idempotency_keys` table and normalization notes are in [docs/database.md](docs/database.md).
 
