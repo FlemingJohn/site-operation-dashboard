@@ -21,7 +21,10 @@ const AssistantMessage = ({ message, onOpenRecord }) => {
       )}
       {message.steps.length > 0 && <AssistantSteps steps={message.steps} />}
       {message.text && (
-        <Typography variant="body2" className="assistant-text">
+        <Typography
+          variant="body2"
+          className={`assistant-text${message.status === 'error' ? ' assistant-text-error' : ''}`}
+        >
           {message.text}
         </Typography>
       )}
@@ -29,7 +32,7 @@ const AssistantMessage = ({ message, onOpenRecord }) => {
         <div className="assistant-records">
           {message.records.map((record) => (
             <Chip
-              key={record.path}
+              key={`${record.path}-${record.label}`}
               label={record.label}
               clickable
               component={RouterLink}
