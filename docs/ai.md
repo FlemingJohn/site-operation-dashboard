@@ -57,8 +57,11 @@ ai/
 │   │   ├── to_error_message.py   failure → plain message
 │   │   └── step_labels.py        plain label for each lookup
 │   ├── tools/                    one read-only tool per file
-│   ├── backend/                  client for the Node API
-│   ├── schemas/                  one Pydantic model per file
+│   ├── choices/                  allowed values (statuses, regions, states, kinds, periods), one per file
+│   ├── backend/
+│   │   ├── create_backend_client.py, get_json.py
+│   │   └── models/               typed Node API responses, one per file
+│   ├── schemas/                  request, events, record links, PagePath (frontend addresses)
 │   └── security/
 │       └── require_service_key.py
 └── tests/
@@ -78,6 +81,18 @@ ai/
 | `search_activity` | `GET /api/activity` | Recent changes as sentences |
 
 Each tool adds its record links and a one-line source to the answer context. These are sent to the browser in the `done` event, not to the model.
+
+## Nothing copied by hand
+
+| Value | Defined once in | Checked by |
+|---|---|---|
+| Allowed statuses, regions, check-up states, activity kinds and periods | `choices/` | `tests/test_choices.py` reads `backend/src/constants.js` and fails if they differ |
+| Node API response fields | `backend/models/` | Pydantic: a renamed field fails the lookup with a logged validation error instead of a silent wrong answer; the model only sees "An error occurred while running the tool" |
+| Frontend page addresses for record links | `schemas/page_path.py` | — |
+| Service key header name | `security/service_key_header.py` | — |
+| Today's date | `TIMEZONE` setting (Asia/Kolkata) | `tests/test_instructions.py`; Azure servers run on UTC, so the date is taken in the site timezone |
+
+The service uses no regular expressions; input is checked with Pydantic field limits and `Literal` types.
 
 ## Guardrails
 
@@ -112,6 +127,10 @@ If the stream ends without `done` or `error`, the window shows "The answer stopp
 | `AZURE_OPENAI_DEPLOYMENT_NAME` | Model deployment name, `gpt-4o` |
 | `BACKEND_API_URL` | Node API address without `/api` |
 | `AI_SERVICE_KEY` | Shared secret, at least 32 characters; the same value is set as `AI_SERVICE_KEY` on the Node API |
+| `TIMEZONE` | Timezone for "today" in the prompt. Default `Asia/Kolkata` |
+| `MAX_ANSWER_TOKENS` | Longest answer the model may write. Default `800` |
+| `TOOL_RESULT_LIMIT` | Rows each list lookup reads. Default `20` |
+| `MAX_TURNS`, `MODEL_TIMEOUT_SECONDS`, `MODEL_MAX_RETRIES`, `BACKEND_TIMEOUT_SECONDS` | Optional; defaults 4, 30, 2 and 10 |
 
 ## Run locally
 
