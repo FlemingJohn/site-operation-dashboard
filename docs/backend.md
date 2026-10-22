@@ -126,6 +126,7 @@ flowchart LR
 | DELETE | `/api/installations/:id` | Delete an installation | 204 |
 | GET | `/api/users` | Paginated list of users | 200 |
 | POST | `/api/users` | Create a user | 201 |
+| GET | `/api/sites/counts`, `/api/installations/counts`, `/api/users/counts`, `/api/equipment/counts`, `/api/spare-parts/counts` | Every summary count for a list in one query | 200 |
 | GET | `/api/equipment` | Paginated list of machines with their next check-up | 200 |
 | GET | `/api/equipment/:id` | One machine with its check-ups and part requests | 200 |
 | POST | `/api/equipment/:id/service-records` | Record a check-up and move the next date 90 days on | 201 |
@@ -397,6 +398,20 @@ Responds `201` with the created user. Responds `409` if the email is already use
 | `PATCH /api/part-requests/:id` | `{ status }`, `ordered` or `delivered` | Sends the status to move to, not "next". The update only matches the step before it, so a double click changes nothing and a request cannot skip a step. Delivered adds the quantity to the stock, up to the shelf capacity |
 | `GET /api/activity` | `page`, `limit`, `search`, `kind`, `actor`, `days` (`7` or `30`), `path` | `path` returns the history of one record, such as `/sites/3` or `/equipment/5` |
 
+### Counts
+
+Each list has a `/counts` route that takes the same filters as the list and returns every summary number in one query, using PostgreSQL `COUNT(*) FILTER (WHERE …)`. The filter being counted is ignored, so the tiles always show every option.
+
+| Route | Response |
+|---|---|
+| `/api/sites/counts` | `{ all, active, inactive }` |
+| `/api/installations/counts?siteId=1` | `{ all, pending, in_progress, completed }` |
+| `/api/users/counts` | `{ all, admin, technician }` |
+| `/api/equipment/counts?search=Pune` | `{ all, blade_yoke, tower_gripper, tagline_system, mobile_robot, late, this_week, later }` |
+| `/api/spare-parts/counts` | `{ all, out, low, stocked }` |
+
+A page with five tiles makes one request instead of five.
+
 ### Activity log
 
 Every write adds one row to `activity_log` inside the same transaction as the change, so a change and its history are saved together or not at all.
@@ -442,14 +457,20 @@ Every error response has the same shape:
 | Duplicate user email (PostgreSQL `23505`) | 409 | `A user with this email already exists.` with `errors.email` set to the same text |
 | Same `Idempotency-Key` still being processed | 409 | `This request is still being processed. Please wait a moment.` |
 | Same `Idempotency-Key` sent with a different body | 422 | `This request was already submitted with different details.` |
-| Database unreachable | 503 | `The service is temporarily unavailable. Please try again shortly.` |
+| Body larger than 100 KB | 413 | `The request is too large.` |
+| Broken URL encoding, or any other client error raised by Express | 400 | `The request could not be read.` |
+| `POST`, `PUT` or `PATCH` not sent as JSON | 415 | `Send the request as JSON.` |
+| More than 300 requests or 30 writes a minute from one address | 429 | `Too many requests. Please wait a minute and try again.` with a `Retry-After` header |
+| Database unreachable, or no free connection within 5 seconds | 503 | `The service is temporarily unavailable. Please try again shortly.` |
+| Query ran longer than 10 seconds (`57014`) | 503 | `The request took too long. Please try again.` |
+| Deadlock or serialization failure (`40P01`, `40001`) | 503 | `The server is busy. Please try again.` |
 | Anything else | 500 | `Something went wrong. Please try again.` |
 
 Field messages in `errors` use the same wording as the frontend form checks, for example `Enter a site name.` and `Choose a region.`, so the user sees one consistent message whether the browser or the server catches the problem. The frontend's Zod schemas in `frontend/src/validation` mirror `src/validators`; when a rule or message changes, change both.
 
 For `5xx` responses the frontend appends the first eight characters of the `X-Request-Id` header, for example `Something went wrong. Please try again. (Reference: b1e2c3d4)`. The `cors` middleware lists `X-Request-Id` in `exposedHeaders` so the browser can read it.
 
-`errorHandler` is the only place that turns errors into responses. Services throw `HttpError` for expected cases such as not found. PostgreSQL error codes are mapped in one table. Stack traces and SQL details are logged and never sent to the client.
+`errorHandler` is the only place that turns errors into responses. Services throw `HttpError` for expected cases such as not found. Errors raised by Express and its JSON parser carry their own 4xx `status`, which is kept. PostgreSQL error codes are mapped in `utils/toDatabaseError.js`. Field errors are collected with zod's `z.flattenError`. Stack traces and SQL details are logged and never sent to the client.
 
 ## Idempotency
 
@@ -529,6 +550,16 @@ The migration and seed scripts are also safe to run repeatedly:
 | Migrations | `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, `CREATE OR REPLACE FUNCTION` and `CREATE OR REPLACE TRIGGER` |
 | Seeds | `000_reset.sql` empties the tables and restarts the ids first, so every run produces the same data. **Never run it against the live database** |
 | Asset seeds | `database/asset-seeds` only inserts into the asset tables and skips rows that already exist, so it is safe on the live database |
+
+## Protection
+
+| Middleware | What it does |
+|---|---|
+| `helmet` | Standard security headers such as `Strict-Transport-Security`, `X-Content-Type-Options` and `Content-Security-Policy`, and removes `X-Powered-By`. `Cross-Origin-Resource-Policy` is `cross-origin` because the frontend is on another domain |
+| `requestLimit` / `writeLimit` (`express-rate-limit`) | 300 requests and 30 writes a minute per address, with `RateLimit` headers |
+| `trust proxy` | Azure App Service sits behind one proxy, so `req.ip` is the real visitor and the limits count per visitor |
+| `requireJson` | Writes must be sent as `application/json` |
+| Statement timeout | Every connection runs `SET statement_timeout = 10000` through the pool's `onConnect` hook, so a stuck query is stopped after 10 seconds. A connection option would not work because the Supabase pooler ignores it |
 
 ## Logging
 
