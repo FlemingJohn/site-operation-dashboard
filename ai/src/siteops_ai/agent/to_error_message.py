@@ -1,10 +1,12 @@
 from agents import MaxTurnsExceeded, ModelBehaviorError, ModelTimeoutError
 from openai import APIStatusError, APITimeoutError, RateLimitError
 
-BLOCKED = "That question was blocked by the content filter. Please rephrase it."
+BLOCKED = "I can't help with that question. Try asking it another way."
 BUSY = "Ask SiteOps is busy right now. Please try again in a minute."
 SLOW = "Ask SiteOps took too long to answer. Please try again."
-TOO_MANY_STEPS = "That needed too many lookups. Try a narrower question."
+TOO_MANY_STEPS = (
+    "That question was too big to answer at once. Try asking about one site, machine or part."
+)
 FAILED = "Sorry, I couldn't get an answer just now. Please try again."
 
 CONTENT_FILTER = "content_filter"
