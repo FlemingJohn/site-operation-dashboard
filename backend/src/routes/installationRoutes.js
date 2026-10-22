@@ -7,7 +7,16 @@ import { installationBody, installationListQuery } from '../validators/installat
 
 export const installationRoutes = Router();
 
-installationRoutes.get('/', validate({ query: installationListQuery }), installationController.list);
+installationRoutes.get(
+  '/',
+  validate({ query: installationListQuery }),
+  installationController.list
+);
+installationRoutes.get(
+  '/counts',
+  validate({ query: installationListQuery }),
+  installationController.counts
+);
 installationRoutes.get('/:id', validate({ params: idParams }), installationController.getById);
 installationRoutes.post(
   '/',
