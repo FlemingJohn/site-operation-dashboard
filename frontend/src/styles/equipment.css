@@ -30,8 +30,38 @@
   fill: var(--color-sidebar);
 }
 
-.drawing-icon {
-  color: var(--color-sidebar);
+.machine-link {
+  display: flex;
+  flex: 1;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 6px;
+  border-radius: 8px;
+  color: inherit;
+  text-align: left;
+}
+
+.machine-link:hover,
+.machine-link.Mui-focusVisible {
+  background-color: var(--color-surface-muted);
+}
+
+.machine-link-text {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.machine-link-arrow {
+  color: var(--color-muted);
+}
+
+.overview-list-card .machine-link {
+  padding: 10px 16px;
+  border-radius: 0;
 }
 
 .health-ring {
