@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { Button, Collapse, Link, Typography } from '@mui/material';
+import { Button, Collapse, Typography } from '@mui/material';
 import TimelineConnector from '@mui/lab/TimelineConnector';
 import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
@@ -11,6 +10,7 @@ import { ACTIVITY_KIND_ICONS } from '../activityKindIcons';
 import { formatTime } from '../lib/formatTime';
 import ActivityChange from './ActivityChange';
 import PersonAvatar from './PersonAvatar';
+import RecordChip from './RecordChip';
 
 const ActivityRow = ({ event, dayLabel, isLast }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,9 +41,7 @@ const ActivityRow = ({ event, dayLabel, isLast }) => {
           <PersonAvatar name={actorName} />
           <Typography variant="body2" className="activity-text">
             <span className="text-strong">{actorName}</span> {event.verb}{' '}
-            <Link component={RouterLink} to={event.target.path} underline="hover">
-              {event.target.label}
-            </Link>{' '}
+            <RecordChip label={event.target.label} path={event.target.path} icon={KindIcon} />{' '}
             {event.after}
           </Typography>
         </div>
