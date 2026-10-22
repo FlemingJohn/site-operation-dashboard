@@ -3,6 +3,8 @@ import { INSTALLATION_SORT_COLUMNS, MESSAGES } from '../constants.js';
 import { HttpError } from '../utils/HttpError.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
 import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
+import { withTransaction } from '../utils/withTransaction.js';
+import * as installationActivity from './installationActivity.js';
 
 const INSTALLATION_FROM = `
   FROM installations i
@@ -62,34 +64,42 @@ export const findRecent = async (limit) => {
   return rows;
 };
 
-export const findById = async (id) => {
-  const { rows } = await pool.query(`${INSTALLATION_SELECT} WHERE i.id = $1`, [id]);
+export const findById = async (id, executor = pool) => {
+  const { rows } = await executor.query(`${INSTALLATION_SELECT} WHERE i.id = $1`, [id]);
   if (!rows[0]) throw new HttpError(404, MESSAGES.installationNotFound);
   return rows[0];
 };
 
-export const create = async ({ equipment, siteId, technicianId, installedOn, status }) => {
-  const { rows } = await pool.query(
-    `INSERT INTO installations (equipment, site_id, technician_id, installed_on, status)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id`,
-    [equipment, siteId, technicianId, installedOn, status]
-  );
-  return findById(rows[0].id);
-};
+export const create = ({ equipment, siteId, technicianId, installedOn, status }) =>
+  withTransaction(async (client) => {
+    const { rows } = await client.query(
+      `INSERT INTO installations (equipment, site_id, technician_id, installed_on, status)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+      [equipment, siteId, technicianId, installedOn, status]
+    );
+    const installation = await findById(rows[0].id, client);
+    await installationActivity.recordAdded(client, installation);
+    return installation;
+  });
 
-export const update = async (id, { equipment, siteId, technicianId, installedOn, status }) => {
-  const { rowCount } = await pool.query(
-    `UPDATE installations
-     SET equipment = $1, site_id = $2, technician_id = $3, installed_on = $4, status = $5
-     WHERE id = $6`,
-    [equipment, siteId, technicianId, installedOn, status, id]
-  );
-  if (rowCount === 0) throw new HttpError(404, MESSAGES.installationNotFound);
-  return findById(id);
-};
+export const update = (id, { equipment, siteId, technicianId, installedOn, status }) =>
+  withTransaction(async (client) => {
+    const before = await findById(id, client);
+    await client.query(
+      `UPDATE installations
+       SET equipment = $1, site_id = $2, technician_id = $3, installed_on = $4, status = $5
+       WHERE id = $6`,
+      [equipment, siteId, technicianId, installedOn, status, id]
+    );
+    const after = await findById(id, client);
+    await installationActivity.recordChanged(client, before, after);
+    return after;
+  });
 
-export const remove = async (id) => {
-  const { rowCount } = await pool.query('DELETE FROM installations WHERE id = $1', [id]);
-  if (rowCount === 0) throw new HttpError(404, MESSAGES.installationNotFound);
-};
+export const remove = (id) =>
+  withTransaction(async (client) => {
+    const installation = await findById(id, client);
+    await client.query('DELETE FROM installations WHERE id = $1', [id]);
+    await installationActivity.recordDeleted(client, installation);
+  });
