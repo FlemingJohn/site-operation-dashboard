@@ -1,31 +1,29 @@
 import { useState } from 'react';
-import { LinearProgress } from '@mui/material';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import ViewListOutlinedIcon from '@mui/icons-material/ViewListOutlined';
-import EmptyState from '../components/EmptyState';
-import ErrorAlert from '../components/ErrorAlert';
+import { getServiceDue } from '../api/serviceApi';
 import MarkDoneDialog from '../components/MarkDoneDialog';
 import PageIntro from '../components/PageIntro';
-import SampleDataTag from '../components/SampleDataTag';
 import SearchField from '../components/SearchField';
 import ServiceCalendar from '../components/ServiceCalendar';
 import ServiceGroup from '../components/ServiceGroup';
 import SuccessSnackbar from '../components/SuccessSnackbar';
 import SummaryStrip from '../components/SummaryStrip';
 import ViewToggle from '../components/ViewToggle';
-import { EQUIPMENT_TYPE_LABELS, SERVICE_STATES } from '../constants';
-import { getServiceDue } from '../api/serviceApi';
+import { SERVICE_STATES } from '../constants';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useFlashMessage } from '../hooks/useFlashMessage';
-import { useLoader } from '../hooks/useLoader';
+import { useListCounts } from '../hooks/useListCounts';
 import { useStoredChoice } from '../hooks/useStoredChoice';
-import { includesText } from '../lib/includesText';
 
 const SERVICE_VIEWS = [
   { value: 'list', label: 'List', icon: ViewListOutlinedIcon },
   { value: 'calendar', label: 'Calendar', icon: CalendarMonthOutlinedIcon },
 ];
 
-const NO_UNITS = [];
+const STATE_COUNT_QUERIES = Object.fromEntries(
+  SERVICE_STATES.map(({ value }) => [value, { state: value }])
+);
 
 const GROUP_EMPTY_MESSAGES = {
   late: 'Nothing is overdue.',
@@ -34,20 +32,18 @@ const GROUP_EMPTY_MESSAGES = {
 };
 
 const ServicePage = () => {
-  const service = useLoader(getServiceDue, NO_UNITS);
   const flash = useFlashMessage();
   const [view, setView] = useStoredChoice('siteops.serviceView');
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const search = useDebouncedValue(searchInput.trim());
+  const [version, setVersion] = useState(0);
   const [selectedUnit, setSelectedUnit] = useState(null);
-  const units = service.data.filter((unit) =>
-    includesText([unit.serial, unit.siteName, EQUIPMENT_TYPE_LABELS[unit.type]], search.trim())
-  );
-  const unitsInState = (state) => units.filter((unit) => unit.serviceState === state);
+  const counts = useListCounts(getServiceDue, STATE_COUNT_QUERIES, { search }, version);
 
   const handleSaved = (unit) => {
     setSelectedUnit(null);
     flash.showMessage(`Check-up for ${unit.serial} saved`);
-    service.reload();
+    setVersion(version + 1);
   };
 
   return (
@@ -57,55 +53,39 @@ const ServicePage = () => {
           Machines that need a check-up, most urgent first. When a check-up is finished, mark it as
           done and the next date is set for you.
         </PageIntro>
-        <div className="page-header-actions">
-          <SampleDataTag />
-          <ViewToggle value={view ?? 'list'} onChange={setView} options={SERVICE_VIEWS} />
-        </div>
+        <ViewToggle value={view ?? 'list'} onChange={setView} options={SERVICE_VIEWS} />
       </div>
 
       <SummaryStrip
         items={SERVICE_STATES.map(({ value, label }) => ({
           key: value,
           label,
-          count: service.isLoading ? undefined : unitsInState(value).length,
+          count: counts[value],
         }))}
       />
 
       <SearchField
-        value={search}
-        onChange={setSearch}
-        placeholder="Search by machine, serial number or site"
+        value={searchInput}
+        onChange={setSearchInput}
+        placeholder="Search by serial number or site"
         label="Search check-ups"
       />
 
-      {service.error && <ErrorAlert message={service.error} onRetry={service.reload} />}
-      {service.isLoading && <LinearProgress />}
-
-      {!service.isLoading && units.length === 0 && (
-        <EmptyState
-          title="No machines match this search."
-          actionLabel="Clear search"
-          onAction={() => setSearch('')}
-        />
-      )}
-
-      {!service.isLoading && units.length > 0 && view === 'calendar' && (
-        <ServiceCalendar units={units} />
-      )}
-
-      {!service.isLoading &&
-        units.length > 0 &&
-        view !== 'calendar' &&
+      {view === 'calendar' ? (
+        <ServiceCalendar key={version} search={search} />
+      ) : (
         SERVICE_STATES.map(({ value, label }) => (
           <ServiceGroup
-            key={value}
+            key={`${value}-${version}`}
+            state={value}
             title={label}
-            units={unitsInState(value)}
-            emptyMessage={GROUP_EMPTY_MESSAGES[value]}
+            search={search}
+            emptyMessage={search ? 'No machines match this search.' : GROUP_EMPTY_MESSAGES[value]}
             isOpenByDefault={value !== 'later'}
             onMarkDone={setSelectedUnit}
           />
-        ))}
+        ))
+      )}
 
       {selectedUnit && (
         <MarkDoneDialog
