@@ -7,4 +7,7 @@ STEP_LABELS = {
     "get_equipment": "Opening the machine",
     "list_low_stock_parts": "Looking at spare parts stock",
     "search_activity": "Reading the activity log",
+    "prepare_service_done": "Preparing the check-up form",
+    "prepare_reorder": "Preparing the reorder form",
+    "prepare_request_move": "Preparing the request change",
 }
