@@ -1,50 +1,45 @@
 import { useState } from 'react';
-import { LinearProgress } from '@mui/material';
-import { getPartRequests, moveRequestForward } from '../api/sparePartsApi';
+import { moveRequest } from '../api/sparePartsApi';
 import { STATUS_LABELS } from '../constants';
-import { useLoader } from '../hooks/useLoader';
-import { includesText } from '../lib/includesText';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { getErrorText } from '../lib/getErrorText';
 import ErrorAlert from './ErrorAlert';
 import RequestBoard from './RequestBoard';
 import SearchField from './SearchField';
 
-const NO_REQUESTS = [];
+const NEXT_STATUS = { requested: 'ordered', ordered: 'delivered' };
 
 const PartRequestsPanel = ({ onChange }) => {
-  const requests = useLoader(getPartRequests, NO_REQUESTS);
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const search = useDebouncedValue(searchInput.trim());
+  const [version, setVersion] = useState(0);
   const [movingId, setMovingId] = useState(null);
   const [moveError, setMoveError] = useState('');
-  const matches = requests.data.filter((request) =>
-    includesText([request.partName, request.serial, request.siteName], search.trim())
-  );
 
   const moveForward = async (request) => {
     setMovingId(request.id);
     setMoveError('');
     try {
-      const moved = await moveRequestForward(request.id);
-      requests.reload();
+      const moved = await moveRequest(request.id, NEXT_STATUS[request.status]);
       onChange(`${moved.partName} marked as ${STATUS_LABELS[moved.status].toLowerCase()}`);
     } catch (err) {
-      setMoveError(err.message);
+      setMoveError(getErrorText(err));
     } finally {
       setMovingId(null);
+      setVersion((current) => current + 1);
     }
   };
 
   return (
     <>
       <SearchField
-        value={search}
-        onChange={setSearch}
+        value={searchInput}
+        onChange={setSearchInput}
         placeholder="Search by part, serial number or site"
         label="Search part requests"
       />
-      {requests.error && <ErrorAlert message={requests.error} onRetry={requests.reload} />}
       {moveError && <ErrorAlert message={moveError} />}
-      {requests.isLoading && <LinearProgress />}
-      <RequestBoard requests={matches} movingId={movingId} onMove={moveForward} />
+      <RequestBoard key={version} search={search} movingId={movingId} onMove={moveForward} />
     </>
   );
 };
