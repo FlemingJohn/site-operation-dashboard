@@ -15,7 +15,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { formatDate } from '../utils';
 import { FIELD_ICONS } from '../fieldIcons';
 import EmptyTableRow from './EmptyTableRow';
-import SiteChip from './SiteChip';
+import RecordChip from './RecordChip';
 import TableHeaderCell from './TableHeaderCell';
 import StatusChip from './StatusChip';
 
@@ -81,7 +81,11 @@ const InstallationTable = ({
               </TableCell>
               {showSite && (
                 <TableCell>
-                  <SiteChip siteId={installation.siteId} siteName={installation.siteName} />
+                  <RecordChip
+                    label={installation.siteName}
+                    path={`/sites/${installation.siteId}`}
+                    icon={FIELD_ICONS.site}
+                  />
                 </TableCell>
               )}
               <TableCell>{installation.technicianName ?? 'Unassigned'}</TableCell>
