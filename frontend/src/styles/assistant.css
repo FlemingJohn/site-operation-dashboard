@@ -20,8 +20,8 @@
 .assistant-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 8px 10px 16px;
+  gap: 10px;
+  padding: 10px 8px 10px 12px;
   background-color: var(--color-sidebar);
   color: var(--color-white);
 }
@@ -30,86 +30,91 @@
   color: var(--color-sidebar-text);
 }
 
-.assistant-title {
-  margin-right: auto;
-  font-weight: 600;
-}
-
-.assistant-messages {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  overflow-y: auto;
-  background-color: var(--color-page);
-}
-
-.assistant-welcome {
+.assistant-mark {
   display: grid;
-  gap: 12px;
-}
-
-.assistant-suggestions {
-  display: grid;
-  gap: 8px;
-  justify-items: start;
-}
-
-.assistant-suggestion {
-  height: auto;
-  padding-block: 6px;
-  background-color: var(--color-surface);
-}
-
-.assistant-suggestion::before {
-  display: none;
-}
-
-.assistant-suggestion .MuiChip-label {
-  white-space: normal;
-}
-
-.assistant-message {
-  display: grid;
-  gap: 8px;
-  max-width: 88%;
-  padding: 10px 12px;
-  border-radius: 12px;
-}
-
-.assistant-message-user {
-  align-self: flex-end;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
   background-color: var(--color-primary);
   color: var(--color-white);
 }
 
-.assistant-message-answer {
-  align-self: flex-start;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-surface);
+.assistant-heading {
+  display: grid;
+  margin-right: auto;
+  min-width: 0;
 }
 
-.assistant-message-answer:has(.assistant-card) {
-  align-self: stretch;
+.assistant-title {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.assistant-status {
+  color: var(--color-sidebar-text);
+  line-height: 1.2;
+}
+
+.assistant-chat {
+  flex: 1;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.assistant-chat .MuiChatMessage-bubble {
+  max-width: min(100%, 75ch);
+}
+
+.assistant-chat .MuiChatMessage-bubble:has(.assistant-card) {
+  width: 100%;
   max-width: 100%;
 }
 
-.assistant-text {
-  white-space: pre-line;
+.chat-avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background-color: var(--color-primary);
+  color: var(--color-white);
 }
 
-.assistant-text-error {
+.chat-history {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 8px;
+  height: 100%;
+  padding: 12px 8px;
+  background-color: var(--color-surface);
+}
+
+.chat-history-new {
+  margin-inline: 4px;
+}
+
+.chat-history-list {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.chat-history-clear {
+  justify-self: stretch;
+  margin-inline: 4px;
+}
+
+.chat-row-menu {
+  display: flex;
+}
+
+.chat-row-menu-delete {
   color: var(--color-danger);
 }
 
-.assistant-steps,
-.assistant-sources {
-  display: grid;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.chat-row-menu-delete .MuiListItemIcon-root {
+  color: inherit;
 }
 
 .assistant-step {
@@ -122,6 +127,11 @@
   color: var(--color-primary);
 }
 
+.assistant-answer-footer {
+  display: grid;
+  gap: 4px;
+}
+
 .assistant-records {
   display: flex;
   flex-wrap: wrap;
@@ -129,19 +139,16 @@
 }
 
 .assistant-sources-toggle {
+  justify-self: start;
   margin-left: -8px;
 }
 
 .assistant-sources {
-  padding: 4px 0 0;
-}
-
-.assistant-composer {
-  display: flex;
-  align-items: center;
+  display: grid;
   gap: 4px;
-  padding: 10px 8px 4px 12px;
-  border-top: 1px solid var(--color-border);
+  margin: 0;
+  padding: 4px 0 0;
+  list-style: none;
 }
 
 @media (max-width: 600px) {
