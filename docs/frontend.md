@@ -2,7 +2,7 @@
 
 The frontend is a React single-page application built with Vite and Material UI. It shows the dashboard, lets users search, filter and edit sites and installations, and talks to the backend only through the REST API.
 
-Ask SiteOps answers questions with Gemini, which reads the same data as the pages through read-only tools on the backend. See [Ask SiteOps](#ask-siteops).
+Ask SiteOps answers questions with gpt-4o through the Python AI service, which reads the same data as the pages through read-only tools. See [Ask SiteOps](#ask-siteops) and [ai.md](ai.md).
 
 ## Stack
 
@@ -299,7 +299,7 @@ The Assets pages read the API like every other page:
 | `done` | The answer is complete, with its record links and sources |
 | `error` | The answer stopped; the message is shown in red in its place |
 
-`useAssistantChat` sends the last 12 finished messages as `history`, so a follow-up such as "who did the last check-up on it?" knows what "it" is. Close clears the chat; Minimise keeps it. The window notes that Gemini can be wrong and links every record it mentions.
+`useAssistantChat` sends the last 12 finished messages as `history`, so a follow-up such as "who did the last check-up on it?" knows what "it" is. Close clears the chat; Minimise keeps it. The window notes that AI answers can be wrong and links every record it mentions. If the stream ends without `done` or `error`, the answer is marked "stopped before it finished".
 
 ## API layer
 
