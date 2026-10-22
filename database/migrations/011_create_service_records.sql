@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS service_records (
+  id SERIAL PRIMARY KEY,
+  equipment_id INTEGER NOT NULL REFERENCES equipment (id) ON DELETE RESTRICT,
+  technician_id INTEGER REFERENCES users (id) ON DELETE SET NULL,
+  done_on DATE NOT NULL,
+  notes VARCHAR(500),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
