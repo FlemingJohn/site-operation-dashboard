@@ -138,3 +138,28 @@ export const ACTIVITY_PERIODS = [
   { value: '7', label: 'Last 7 days' },
   { value: '30', label: 'Last 30 days' },
 ];
+
+export const ASSISTANT_STOPPED_TEXT = 'The answer stopped before it finished. Please ask again.';
+
+export const ASSISTANT_SUGGESTIONS = [
+  'Which machines need a check-up this week?',
+  'Which spare parts are running low?',
+  'Which sites are inactive?',
+  'Which technician has the most open work?',
+];
+
+export const ASSISTANT_MEMBERS = [
+  { id: 'assistant', displayName: 'Ask SiteOps', role: 'assistant' },
+  { id: 'user', displayName: 'You', role: 'user' },
+];
+
+export const ASSISTANT_CHAT_TEXT = {
+  composerInputPlaceholder: 'Ask about sites, machines or parts',
+  composerInputAriaLabel: 'Your question',
+  threadNoMessagesLabel: 'What would you like to know?',
+  threadNoMessagesHelperText: 'Ask about sites, machines, check-ups or spare parts.',
+  conversationListNoConversationsLabel: 'No chats yet. Ask a question and it will be saved here.',
+  messageAuthorAssistantLabel: 'Ask SiteOps',
+  messageAuthorUserLabel: 'You',
+  conversationHeaderMenuLabel: 'Your chats',
+};
