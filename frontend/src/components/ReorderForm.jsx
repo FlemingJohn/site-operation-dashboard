@@ -4,8 +4,6 @@ import { requestPart } from '../api/sparePartsApi';
 import { getErrorText } from '../lib/getErrorText';
 import TechnicianSelect from './TechnicianSelect';
 
-const FROM_MESSAGE = 'Filled in from your message';
-
 const ReorderForm = ({ part, defaults = {}, onSaved, onCancel }) => {
   const id = useId();
   const [quantity, setQuantity] = useState(String(defaults.quantity ?? part.capacity - part.stock));
@@ -38,7 +36,6 @@ const ReorderForm = ({ part, defaults = {}, onSaved, onCancel }) => {
           label="How many"
           value={quantity}
           onChange={(event) => setQuantity(event.target.value)}
-          helperText={defaults.quantity ? FROM_MESSAGE : undefined}
           slotProps={{ htmlInput: { min: 1 } }}
         />
         <TechnicianSelect
@@ -46,7 +43,6 @@ const ReorderForm = ({ part, defaults = {}, onSaved, onCancel }) => {
           label="Asked by"
           value={requestedBy}
           onChange={setRequestedBy}
-          helperText={defaults.requestedBy ? FROM_MESSAGE : undefined}
         />
       </div>
       {error && <Alert severity="error">{error}</Alert>}
