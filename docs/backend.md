@@ -136,7 +136,12 @@ flowchart LR
 | PATCH | `/api/part-requests/:id` | Move a request to `ordered` or `delivered` | 200 |
 | GET | `/api/activity` | Paginated activity log, newest first | 200 |
 | GET | `/api/activity/people` | Names that appear in the activity log | 200 |
-| POST | `/api/assistant` | Ask SiteOps: forwards the question to the AI service and streams its answer as JSON lines | 200 |
+| POST | `/api/assistant` | Ask SiteOps: saves the question, forwards it with the chat's memory to the AI service, streams the answer as JSON lines and saves it | 200 |
+| GET | `/api/chat-sessions` | This browser's saved chats, newest first, with the last message and a message count | 200 |
+| GET | `/api/chat-sessions/:id/messages` | One chat's messages, with their cards, record links and sources | 200 |
+| PATCH | `/api/chat-sessions/:id` | Rename a chat | 200 |
+| DELETE | `/api/chat-sessions/:id` | Delete one chat and its messages | 204 |
+| DELETE | `/api/chat-sessions` | Delete every chat of this browser | 200 |
 
 ### GET /api/health
 
@@ -429,14 +434,33 @@ The wording lives in `services/siteActivity.js` and `services/installationActivi
 
 ### Ask SiteOps
 
-`POST /api/assistant` takes `{ question, history }` (question up to 300 characters, up to 12 earlier messages), applies the limit of 8 questions a minute per visitor, and forwards the body to the Python AI service at `AI_SERVICE_URL/ask` with the `X-Service-Key` header. The AI service's `application/x-ndjson` stream is passed straight back to the browser. How answers are made is described in [ai.md](ai.md).
+`POST /api/assistant` takes `{ sessionId?, question }` (question up to 300 characters) and the `X-Visitor-Id` header, and applies the limit of 8 questions a minute per visitor. `services/chatTurnService.js` then:
+
+1. Opens the chat, or creates it on the first question with the question as its title.
+2. Loads its memory: the last 12 messages, keeping only questions that got a finished answer.
+3. Saves the question.
+
+The question and memory go to the Python AI service at `AI_SERVICE_URL/ask` with the `X-Service-Key` header. Node writes a `session` line first, then passes the AI service's `application/x-ndjson` stream straight back while `utils/collectAnswer.js` reads it, and saves the answer with its card, record links, sources and status when the stream ends. How answers are made is described in [ai.md](ai.md).
+
+### Chat history
+
+| Rule | How |
+|---|---|
+| Whose chats | There is no sign-in, so the browser keeps a random `X-Visitor-Id`. `middleware/requireVisitor.js` rejects a missing or malformed id with `400`, and every query filters by it, so one browser can never list, open, rename or delete another's chats (they get `404`) |
+| New chat | Nothing is saved until the first question |
+| Memory | The last 12 answered messages of that chat. A stopped or failed answer, and its question, are left out so the next answer does not reply to the wrong question |
+| Limit | 50 chats per browser; the oldest go when a new one starts |
+| Delete | Deleting a chat removes its messages through `ON DELETE CASCADE`; clearing all is one `DELETE` for the visitor |
+| Visitor closes the window mid-answer | The AI request is cancelled and whatever arrived is saved as `stopped` |
 
 | Situation | Response |
 |---|---|
 | No `AI_SERVICE_URL` | `503` "Ask SiteOps is not set up on this server yet." |
 | AI service unreachable | `503` "Ask SiteOps is not reachable right now. Please try again shortly." |
 | AI service refuses the request | `502` "Sorry, I couldn't get an answer just now." |
-| Visitor closes the window | The request to the AI service is cancelled |
+| Visitor closes the page mid-answer | The request to the AI service is cancelled and the answer is saved as stopped |
+| No or malformed `X-Visitor-Id` | `400` "X-Visitor-Id must be a UUID." |
+| Chat id of another browser, or deleted | `404` "Chat not found." |
 | Requests from the AI service (valid `X-Service-Key`) | Skip the 300-a-minute request limit, so every visitor's lookups do not share one budget |
 
 ## Errors
