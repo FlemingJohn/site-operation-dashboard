@@ -1,7 +1,6 @@
 import { Link as RouterLink } from 'react-router-dom';
 import {
   IconButton,
-  Link,
   Table,
   TableBody,
   TableCell,
@@ -16,6 +15,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { formatDate } from '../utils';
 import { FIELD_ICONS } from '../fieldIcons';
 import EmptyTableRow from './EmptyTableRow';
+import SiteChip from './SiteChip';
 import TableHeaderCell from './TableHeaderCell';
 import StatusChip from './StatusChip';
 
@@ -81,9 +81,7 @@ const InstallationTable = ({
               </TableCell>
               {showSite && (
                 <TableCell>
-                  <Link component={RouterLink} to={`/sites/${installation.siteId}`}>
-                    {installation.siteName}
-                  </Link>
+                  <SiteChip siteId={installation.siteId} siteName={installation.siteName} />
                 </TableCell>
               )}
               <TableCell>{installation.technicianName ?? 'Unassigned'}</TableCell>
