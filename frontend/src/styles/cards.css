@@ -87,3 +87,14 @@
 .person-avatar-tone-6 {
   background-color: var(--color-avatar-6);
 }
+
+.site-chip {
+  justify-self: start;
+  max-width: 100%;
+  padding-left: 4px;
+  background-color: var(--color-surface);
+}
+
+.site-chip::before {
+  display: none;
+}
