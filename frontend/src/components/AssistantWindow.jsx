@@ -49,7 +49,7 @@ const AssistantWindow = ({ chat, onMinimise, onClose, onOpenRecord }) => {
 
       <AssistantComposer isDisabled={chat.isAnswering} onSend={chat.ask} />
       <Typography variant="caption" color="text.secondary" className="assistant-footnote">
-        Gemini answers from this dashboard&apos;s data and can be wrong. Check the linked records.
+        AI answers come from this dashboard&apos;s data and can be wrong. Check the linked records.
       </Typography>
     </Paper>
   );
