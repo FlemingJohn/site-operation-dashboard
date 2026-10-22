@@ -1,6 +1,6 @@
 # Database
 
-The Site Operations Dashboard stores its data in PostgreSQL. Three normalized tables hold the business data: `users`, `sites` and `installations`. A fourth table, `idempotency_keys`, supports the API and has no relationships.
+The Site Operations Dashboard stores its data in PostgreSQL. Three normalized tables hold the business data: `users`, `sites` and `installations`. Four more hold the assets: `equipment`, `service_records`, `spare_parts` and `part_requests`. `activity_log` keeps the history of every change, and `idempotency_keys` supports the API. Neither of those two has relationships.
 
 ## Entity relationship diagram
 
@@ -108,6 +108,12 @@ erDiagram
 |---|---|---|
 | Delete a site | `ON DELETE CASCADE` removes its installations | An installation cannot exist without its site. The app asks for the site name before deleting a site that has installations, and suggests setting it to Inactive instead to keep the history. |
 | Delete a user | `ON DELETE SET NULL` keeps the installations as unassigned | Installation history is kept when a technician leaves. |
+| Delete a site with machines | `equipment.site_id` `ON DELETE SET NULL` | The machine still exists; it shows as "In the warehouse". |
+| Delete a machine with check-ups | `service_records.equipment_id` `ON DELETE RESTRICT` | Check-up history cannot be lost by accident. The API answers `409`. |
+| Delete a machine with part requests | `part_requests.equipment_id` `ON DELETE SET NULL` | The request stays, for the store. |
+| Delete a part with requests | `part_requests.part_id` `ON DELETE RESTRICT` | A request must always say which part. The API answers `409`. |
+| Delete a user who did check-ups or asked for parts | `ON DELETE SET NULL` | The records stay without a name. |
+| Delete anything | `activity_log` has no foreign keys | The history keeps the name and link it had, even after the record is gone. |
 
 ## Tables
 
@@ -156,6 +162,67 @@ erDiagram
 | `status_code` | `SMALLINT` | `NULL` while the request runs, then the response status |
 | `response_body` | `JSONB` | The stored response returned on a retry |
 | `created_at` | `TIMESTAMPTZ` | Defaults to `NOW()`; rows older than 24 hours are deleted |
+
+### `equipment`
+
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `SERIAL` | Primary key |
+| `serial` | `VARCHAR(40)` | Required, unique |
+| `type` | `VARCHAR(20)` | `blade_yoke`, `tower_gripper`, `tagline_system` or `mobile_robot` |
+| `status` | `VARCHAR(20)` | `deployed`, `in_service` or `in_stock`, defaults to `in_stock` |
+| `site_id` | `INTEGER` | Optional, references `sites.id`, set to `NULL` when the site is deleted |
+| `next_service_on` | `DATE` | Required. Set to the check-up date + 90 days when a check-up is recorded |
+| `created_at`, `updated_at` | `TIMESTAMPTZ` | `updated_at` refreshed by a trigger |
+
+### `service_records`
+
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `SERIAL` | Primary key |
+| `equipment_id` | `INTEGER` | Required, references `equipment.id`, `RESTRICT` on delete |
+| `technician_id` | `INTEGER` | Optional, references `users.id`, set to `NULL` when the user is deleted |
+| `done_on` | `DATE` | Required |
+| `notes` | `VARCHAR(500)` | Optional |
+| `created_at` | `TIMESTAMPTZ` | Defaults to `NOW()` |
+
+### `spare_parts`
+
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `SERIAL` | Primary key |
+| `name` | `VARCHAR(120)` | Required, unique |
+| `stock` | `INTEGER` | 0 or more (`spare_parts_stock_check`) |
+| `reorder_at` | `INTEGER` | 0 or more; at or below this the part is "Running low" |
+| `capacity` | `INTEGER` | More than 0; a delivery never fills the shelf past it |
+| `created_at`, `updated_at` | `TIMESTAMPTZ` | `updated_at` refreshed by a trigger |
+
+### `part_requests`
+
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `SERIAL` | Primary key |
+| `part_id` | `INTEGER` | Required, references `spare_parts.id`, `RESTRICT` on delete |
+| `equipment_id` | `INTEGER` | Optional, references `equipment.id`, set to `NULL` when the machine is deleted |
+| `requested_by` | `INTEGER` | Optional, references `users.id`, set to `NULL` when the user is deleted |
+| `quantity` | `INTEGER` | More than 0 |
+| `status` | `VARCHAR(20)` | `requested`, `ordered` or `delivered`, defaults to `requested` |
+| `requested_on` | `DATE` | Defaults to today |
+| `created_at`, `updated_at` | `TIMESTAMPTZ` | `updated_at` refreshed by a trigger |
+
+### `activity_log`
+
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `BIGSERIAL` | Primary key |
+| `kind` | `VARCHAR(20)` | `installation`, `service`, `part`, `site` or `user` |
+| `occurred_at` | `TIMESTAMPTZ` | Defaults to `NOW()` |
+| `actor_name` | `VARCHAR(100)` | Who did it, copied as text |
+| `verb`, `target_label`, `target_path`, `after_text` | `VARCHAR` | The sentence and the link, copied as text so they survive deletes |
+| `change` | `JSONB` | The status before and after, such as `["active", "inactive"]` |
+| `note` | `VARCHAR(500)` | Optional, such as the check-up notes |
+
+Indexes on the asset tables: `equipment (site_id)`, `equipment (next_service_on, id)`, `service_records (equipment_id, done_on DESC)`, `part_requests (status, requested_on DESC)` and each foreign key, `activity_log (occurred_at DESC, id DESC)` and `activity_log (target_path, occurred_at DESC)`. Row Level Security is on for every new table, as for the others.
 
 ### Constraints and indexes
 
@@ -323,7 +390,13 @@ npm run db:migrate
 npm run db:seed
 ```
 
-Each script prints one line per file it runs and stops at the first error. `db:migrate` is safe to run again. `db:seed` empties the tables and reloads the sample data every time.
+Each script prints one line per file it runs and stops at the first error. `db:migrate` is safe to run again. `db:seed` empties the tables and reloads the sample data every time, so it is for a local database only.
+
+To add the sample machines, parts and activity without touching anything else, for example on the live database:
+
+```bash
+npm run db:seed:assets
+```
 
 ### 4. Run a query
 
