@@ -8,8 +8,9 @@ sequenceDiagram
     participant API as Node API /api/assistant
     participant AI as AI service /ask
     participant M as gpt-4o (Azure OpenAI)
-    UI->>API: question + history
-    API->>AI: same body + X-Service-Key
+    UI->>API: question + chat id
+    API->>API: load the chat's last 12 answered messages
+    API->>AI: question + history + X-Service-Key
     AI-->>UI: thinking
     AI->>M: instructions, tools, question
     M-->>AI: call list_service_due, get_technician_workload
@@ -20,7 +21,9 @@ sequenceDiagram
     AI-->>UI: text, text, … ui, done
 ```
 
-The Node API stays the only public entry point: it checks the question, applies the per-visitor limit of 8 questions a minute, and passes the AI service's stream straight through. The browser sees these events: `thinking`, `step`, `text`, `ui` (one card or form under the answer), `done`, `error`.
+The Node API stays the only public entry point: it checks the question, applies the per-visitor limit of 8 questions a minute, loads the chat's memory from the database, and passes the AI service's stream straight through while saving the answer. The browser sees these events: `session` (added by Node: the chat's id and title), `thinking`, `step`, `text`, `ui` (one card or form under the answer), `done`, `error`.
+
+The AI service itself still has no database access and keeps no memory between requests. Chat history lives in the Node API's `chat_sessions` and `chat_messages` tables; see [backend.md](backend.md#chat-history). Each `done` event's `sources` carry a plain label from `agent/source_labels.py`, such as "Checked the machines due a check-up", never a tool's code name.
 
 ## Stack
 
