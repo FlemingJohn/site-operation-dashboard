@@ -27,3 +27,9 @@
   stroke: var(--color-pending);
   stroke-width: 3;
 }
+
+.not-found-picture {
+  display: grid;
+  place-items: center;
+  padding-bottom: 0;
+}
