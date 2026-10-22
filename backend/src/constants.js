@@ -46,6 +46,16 @@ export const STATUS_LABELS = {
   delivered: 'Delivered',
 };
 
+export const CHAT_ROLES = ['user', 'assistant'];
+
+export const CHAT_MESSAGE_STATUSES = ['done', 'error', 'stopped'];
+
+export const MAX_CHATS_PER_VISITOR = 50;
+
+export const CHAT_MEMORY_MESSAGES = 12;
+
+export const CHAT_TITLE_LENGTH = 60;
+
 export const DEFAULT_PAGE_SIZE = 10;
 
 export const MAX_PAGE_SIZE = 100;
@@ -120,4 +130,6 @@ export const MESSAGES = {
   assistantOff: 'Ask SiteOps is not set up on this server yet.',
   assistantUnreachable: 'Ask SiteOps is not reachable right now. Please try again shortly.',
   assistantFailed: "Sorry, I couldn't get an answer just now. Please try again.",
+  visitorMissing: 'X-Visitor-Id must be a UUID.',
+  chatNotFound: 'Chat not found.',
 };
