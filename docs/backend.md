@@ -136,6 +136,7 @@ flowchart LR
 | PATCH | `/api/part-requests/:id` | Move a request to `ordered` or `delivered` | 200 |
 | GET | `/api/activity` | Paginated activity log, newest first | 200 |
 | GET | `/api/activity/people` | Names that appear in the activity log | 200 |
+| POST | `/api/assistant` | Ask SiteOps: answers a question with Gemini, streamed as JSON lines | 200 |
 
 ### GET /api/health
 
@@ -426,6 +427,43 @@ Every write adds one row to `activity_log` inside the same transaction as the ch
 
 The wording lives in `services/siteActivity.js` and `services/installationActivity.js` and in the asset services. There is no sign-in yet, so changes to sites, installations and users have no person; check-ups and part requests name the technician who did them.
 
+### Ask SiteOps
+
+`POST /api/assistant` takes `{ question, history }` (question up to 300 characters, up to 12 earlier messages) and answers with `Content-Type: application/x-ndjson`, one JSON event per line: `thinking`, then a `step` for each lookup, `text` pieces as Gemini writes, and finally `done` with record links and sources, or `error` with a plain message.
+
+```mermaid
+sequenceDiagram
+    participant UI as Ask SiteOps window
+    participant API as /api/assistant
+    participant G as Gemini
+    participant S as Services (read only)
+    UI->>API: question + history
+    API-->>UI: thinking
+    API->>G: question, tools
+    G-->>API: call listServiceDue, getTechnicianWorkload
+    API-->>UI: step, step
+    API->>S: both lookups at once
+    API->>G: tool results
+    G-->>API: answer, streamed
+    API-->>UI: text, text, … done
+```
+
+| Piece | File | Job |
+|---|---|---|
+| Tools | `assistant/tools/*.js` | Eight read-only lookups: `getSummary`, `searchSites`, `listInstallations`, `getTechnicianWorkload`, `listServiceDue`, `getEquipment`, `listLowStockParts`, `searchActivity`. Each checks its arguments with the existing list validators and calls the existing services, so the model reads data the same way the pages do and can never write |
+| Loop | `assistant/runAssistant.js` | Up to three rounds. In each, Gemini may call several tools; they run at the same time. The last round has tools switched off so it must answer |
+| One turn | `assistant/streamModelTurn.js` | Streams one Gemini reply and passes its parts back unchanged, which keeps the model's thought signatures intact |
+| Instructions | `assistant/getSystemInstruction.js` | Answer only from tool results, plain short lines, real page names, never change data |
+
+| Situation | What happens |
+|---|---|
+| Main model slow (20 s per turn), overloaded (500, 503, 504) or over its free limit (429) before any text was sent | The turn is retried once on `GEMINI_FALLBACK_MODEL` |
+| Both models fail | `error` event: "Gemini is very busy right now…" or "…reached its free limit…" |
+| Whole answer takes over 60 s | `error` event: "Ask SiteOps took too long to answer." |
+| Visitor closes the window | The Gemini request is cancelled |
+| No `GEMINI_API_KEY` | `503` "Ask SiteOps is not set up on this server yet." |
+| More than 8 questions a minute from one address | `429` |
+
 ## Errors
 
 Every error response has the same shape:
@@ -675,6 +713,9 @@ DATABASE_URL=postgresql://postgres.<project-ref>:<password>@aws-0-<region>.poole
 DATABASE_SSL_CA=certs/supabase-ca.crt
 CORS_ORIGIN=http://localhost:5173
 LOG_LEVEL=info
+GEMINI_API_KEY=<your-gemini-api-key>
+GEMINI_MODEL=gemini-3.5-flash-lite
+GEMINI_FALLBACK_MODEL=gemini-3.8-flash
 ```
 
 | Variable | Required | Description |
@@ -685,6 +726,9 @@ LOG_LEVEL=info
 | `DATABASE_SSL_CA` | Yes | Path to the Supabase CA certificate |
 | `CORS_ORIGIN` | Yes | Frontend origin, for example the Azure Static Web Apps URL |
 | `LOG_LEVEL` | No | `debug`, `info`, `warn` or `error`. Defaults to `info`. |
+| `GEMINI_API_KEY` | For Ask SiteOps | Key from Google AI Studio. Without it the rest of the API works and Ask SiteOps answers `503` |
+| `GEMINI_MODEL` | No | Main model. Defaults to `gemini-3.5-flash-lite` |
+| `GEMINI_FALLBACK_MODEL` | No | Used when the main model is slow, busy or over its limit. Defaults to `gemini-3.8-flash` |
 
 `config/env.js` validates these variables with `zod` at startup. A missing or invalid value stops the server with a `fatal` log that names the variable.
 
