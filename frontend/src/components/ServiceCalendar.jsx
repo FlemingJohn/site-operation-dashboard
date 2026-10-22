@@ -1,11 +1,16 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Button, Card, Chip, IconButton, Tooltip, Typography } from '@mui/material';
+import { Button, Card, Chip, IconButton, LinearProgress, Tooltip, Typography } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { EQUIPMENT_TYPE_LABELS } from '../constants';
+import { getServiceDue } from '../api/serviceApi';
+import { EQUIPMENT_TYPE_LABELS, MAX_SELECT_OPTIONS } from '../constants';
+import { useLoader } from '../hooks/useLoader';
 import { getMonthDays } from '../lib/getMonthDays';
 import { getToday } from '../utils';
+import ErrorAlert from './ErrorAlert';
+
+const NO_UNITS = { data: [] };
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -25,10 +30,18 @@ const groupByDate = (units) =>
     return groups;
   }, {});
 
-const ServiceCalendar = ({ units }) => {
+const ServiceCalendar = ({ search }) => {
   const [shown, setShown] = useState(getCurrentMonth);
+  const days = getMonthDays(shown.year, shown.month);
+  const dueFrom = days[0].key;
+  const dueTo = days[days.length - 1].key;
+  const loadMonth = useCallback(
+    () => getServiceDue({ dueFrom, dueTo, search, limit: MAX_SELECT_OPTIONS }),
+    [dueFrom, dueTo, search]
+  );
+  const units = useLoader(loadMonth, NO_UNITS);
   const today = getToday();
-  const unitsByDate = groupByDate(units);
+  const unitsByDate = groupByDate(units.data.data);
   const monthLabel = new Date(shown.year, shown.month, 1).toLocaleDateString('en-GB', {
     month: 'long',
     year: 'numeric',
@@ -54,13 +67,15 @@ const ServiceCalendar = ({ units }) => {
           This month
         </Button>
       </div>
+      {units.isLoading && <LinearProgress />}
+      {units.error && <ErrorAlert message={units.error} onRetry={units.reload} />}
       <div className="calendar-grid">
         {WEEKDAYS.map((weekday) => (
           <Typography key={weekday} variant="caption" className="calendar-weekday">
             {weekday}
           </Typography>
         ))}
-        {getMonthDays(shown.year, shown.month).map(({ key, day, isCurrentMonth }) => (
+        {days.map(({ key, day, isCurrentMonth }) => (
           <div
             key={key}
             className={`calendar-day${isCurrentMonth ? '' : ' calendar-day-outside'}${
