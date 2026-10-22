@@ -1,5 +1,5 @@
 import { Card, LinearProgress } from '@mui/material';
-import { getUsers } from '../api/userApi';
+import { getUserCounts, getUsers } from '../api/userApi';
 import CardGrid from '../components/CardGrid';
 import ErrorAlert from '../components/ErrorAlert';
 import ListPagination from '../components/ListPagination';
@@ -13,18 +13,12 @@ import ViewToggle from '../components/ViewToggle';
 import { LIST_PAGE_SIZE_OPTIONS, LIST_VIEWS, USER_DEFAULT_SORT, USER_ROLES } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import { useFlashMessage } from '../hooks/useFlashMessage';
-import { useListCounts } from '../hooks/useListCounts';
+import { useCounts } from '../hooks/useCounts';
 import { useListView } from '../hooks/useListView';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 
 const INITIAL_FILTERS = { role: '' };
 const NO_FILTERS = {};
-const USER_COUNT_QUERIES = {
-  all: {},
-  technician: { role: 'technician' },
-  admin: { role: 'admin' },
-};
-
 const USER_FILTERS = [
   {
     name: 'role',
@@ -42,7 +36,7 @@ const UsersPage = () => {
     USER_DEFAULT_SORT,
     LIST_PAGE_SIZE_OPTIONS
   );
-  const counts = useListCounts(getUsers, USER_COUNT_QUERIES, NO_FILTERS, users.version);
+  const counts = useCounts(getUserCounts, NO_FILTERS, users.version);
   const [view, setView] = useListView('siteops.usersView', counts.all);
   const flash = useFlashMessage();
   const emptyMessage = users.clearFilters ? 'No users match these filters.' : 'No users yet.';
