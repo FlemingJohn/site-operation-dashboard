@@ -15,8 +15,10 @@ export const optionalId = (message) =>
 
 export const optionValues = (options) => options.map(({ value }) => value);
 
-export const toFieldErrors = (issues) =>
-  issues.reduce((errors, issue) => {
-    const field = issue.path.join('.');
-    return errors[field] ? errors : { ...errors, [field]: issue.message };
-  }, {});
+export const toFieldErrors = (error) =>
+  Object.fromEntries(
+    Object.entries(z.flattenError(error).fieldErrors).map(([field, messages]) => [
+      field,
+      messages[0],
+    ])
+  );
