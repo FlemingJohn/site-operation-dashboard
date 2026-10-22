@@ -15,13 +15,16 @@ const envSchema = z
     DATABASE_SSL_CA: z.string().optional(),
     CORS_ORIGIN: z.string().min(1),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
-    GEMINI_API_KEY: z.string().optional(),
-    GEMINI_MODEL: z.string().min(1).default('gemini-3.5-flash-lite'),
-    GEMINI_FALLBACK_MODEL: z.string().min(1).default('gemini-3.8-flash'),
+    AI_SERVICE_URL: z.url().optional(),
+    AI_SERVICE_KEY: z.string().min(32, 'Use at least 32 characters').optional(),
   })
   .refine((env) => !env.DATABASE_SSL || env.DATABASE_SSL_CA, {
     path: ['DATABASE_SSL_CA'],
     message: 'Required when DATABASE_SSL is true',
+  })
+  .refine((env) => !env.AI_SERVICE_URL || env.AI_SERVICE_KEY, {
+    path: ['AI_SERVICE_KEY'],
+    message: 'Required when AI_SERVICE_URL is set',
   });
 
 const result = envSchema.safeParse(process.env);
