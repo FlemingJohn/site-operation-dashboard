@@ -1,7 +1,7 @@
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { Button, Card, CardHeader, LinearProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { getInstallations } from '../api/installationApi';
+import { getInstallationCounts, getInstallations } from '../api/installationApi';
 import { deleteSite, getSite } from '../api/siteApi';
 import ErrorAlert from '../components/ErrorAlert';
 import HistoryCard from '../components/HistoryCard';
@@ -10,13 +10,9 @@ import ListPagination from '../components/ListPagination';
 import SiteDeleteDialog from '../components/SiteDeleteDialog';
 import SiteDetailHeader from '../components/SiteDetailHeader';
 import SummaryStrip from '../components/SummaryStrip';
-import {
-  INSTALLATION_COUNT_QUERIES,
-  INSTALLATION_DEFAULT_SORT,
-  INSTALLATION_STATUS_TABS,
-} from '../constants';
+import { INSTALLATION_DEFAULT_SORT, INSTALLATION_STATUS_TABS } from '../constants';
 import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
-import { useListCounts } from '../hooks/useListCounts';
+import { useCounts } from '../hooks/useCounts';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useRecord } from '../hooks/useRecord';
 
@@ -29,12 +25,7 @@ const SiteDetailPage = () => {
     { siteId: id },
     INSTALLATION_DEFAULT_SORT
   );
-  const counts = useListCounts(
-    getInstallations,
-    INSTALLATION_COUNT_QUERIES,
-    { siteId: id },
-    installations.version
-  );
+  const counts = useCounts(getInstallationCounts, { siteId: id }, installations.version);
   const deletion = useDeleteConfirmation({
     deleteRequest: deleteSite,
     onDeleted: (deleted) => navigate('/sites', { state: { message: `${deleted.name} deleted` } }),
