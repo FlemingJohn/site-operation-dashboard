@@ -50,7 +50,8 @@ frontend/
         ├── global.css            Imports the stylesheets below
         └── layout.css, lists.css, cards.css, forms.css, detail.css, overview.css,
             empty-state.css, equipment.css, service.css, spare-parts.css,
-            activity.css, map.css, assistant.css   One stylesheet per area
+            activity.css, map.css, assistant.css, assistant-shell.css,
+            assistant-cards.css                    One stylesheet per area
 ```
 
 ## Architecture
@@ -168,10 +169,10 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `ServiceHistoryCard` / `PartRequestListCard` | Check-ups done and parts asked for on one machine | Machine page |
 | `ServiceItem` / `ServiceGroup` | One machine due a check-up; a titled group of them that can be folded | Service |
 | `ServiceCalendar` | Month grid with each machine on its due date, coloured by urgency, with Previous, Next and This month | Service |
-| `MarkDoneDialog` | Date, technician and notes; shows the next check-up date before saving | Service, Machine page |
+| `MarkDoneDialog` | `MarkDoneForm` in a dialog: date, technician and notes; shows the next check-up date before saving | Service, Machine page |
 | `TechnicianSelect` | Dropdown of technicians | Check-up and reorder dialogs |
 | `StockPanel` / `StockLevelRow` / `StockBar` | Parts with a bar to the shelf capacity, a line at the reorder level and Reorder when low | Spare parts, Overview |
-| `ReorderDialog` | How many and who asked | Spare parts |
+| `ReorderDialog` | `ReorderForm` in a dialog: how many and who asked | Spare parts |
 | `PartRequestsPanel` / `RequestBoard` / `RequestColumn` / `RequestCard` | Three columns of requests; a card moves forward with Mark as ordered or Mark as delivered. Each column shows 8 and then Show more | Spare parts |
 | `ServiceDueCard` / `LowStockCard` | The four most urgent check-ups and the four lowest parts | Overview |
 | `SiteMap` / `MapFocus` / `MapSiteList` | Leaflet map with a circle per site (teal active, red inactive), fitted to the sites shown, and the list beside it | Map |
@@ -183,7 +184,15 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | Component | Purpose |
 |---|---|
 | `AskSiteOps` | Round button at the bottom right of every page, with a dot when an answer arrived while the window was closed. Opens the window |
-| `AssistantWindow` | Chat window with Minimise (keeps the chat) and Close (clears it). Full screen on phones. Escape minimises |
+| `AssistantWindow` | Chat window with Full screen, Minimise (keeps the chat) and Close (clears it). Full screen on phones. Escape leaves full screen first, then minimises |
+| `AssistantShell` | Places the window: resizable from the left edge, top edge and top-left corner (360×480 up to 90% of the screen, 400×620 by default, remembered), or filling the screen |
+| `ResizeGrip` | A resize handle that also works from the keyboard: arrow keys resize in 20 px steps, Home or a double-click resets |
+| `AssistantCard` | Checks a `ui` card against its schema in `assistant/cardRegistry.js` and draws it; draws nothing if the card is unknown or wrong |
+| `MachineCardsCard` | Up to five machines with their drawing and due date, Mark as done on each, and See all |
+| `StockRowsCard` | Up to five low parts as stock rows with Reorder, and See all |
+| `MarkServiceDoneCard`, `ReorderPartCard`, `ConfirmMoveCard` | Forms filled in from the message. Nothing is saved until the person presses the button |
+| `ChatSavedNote` | What was saved, with a link to the record |
+| `SeeAllLink` | "Showing 5 of 12" with a link to the full page |
 | `AssistantSuggestions` | Four example questions shown before the first message |
 | `AssistantMessage` | A question, or an answer with its steps, the text, links to the records it mentions and How I found this |
 | `AssistantSteps` | Each lookup with a spinner that turns into a tick |
@@ -209,6 +218,7 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `useLoadMore(fetchList, params, pageSize)` | One server list that grows a page at a time; starts again when `params` change | `items`, `total`, `isLoading`, `error`, `hasMore`, `loadMore` |
 | `useDebouncedValue(value)` | The value 300 ms after it stops changing | The settled value |
 | `useAssistantChat({ isOpen })` | Ask SiteOps messages, applying each streamed event to the answer as it arrives | `messages`, `isAnswering`, `hasUnread`, `ask`, `markRead`, `clear` |
+| `useAssistantSize()` | The chat window size, kept between 360×480 and 90% of the screen and remembered in the browser | `size`, `saveSize`, `resetSize` |
 
 The hooks return ready-made props for Material UI components, so connecting them takes one line:
 
@@ -282,7 +292,7 @@ The Assets pages read the API like every other page:
 
 | Behaviour | Detail |
 |---|---|
-| Saving once | `MarkDoneDialog` and `ReorderDialog` make one key when they open, so a double click or a retry saves one record |
+| Saving once | `MarkDoneForm` and `ReorderForm` (in their dialogs and in chat) make one key when they open, so a double click or a retry saves one record |
 | Moving a request | The card sends the status it should move to. If someone else moved it first, the board shows the message and reloads |
 | Paging | The Service groups and the request columns load 8 at a time from the server; lists use page numbers |
 | Errors | Dialogs show the server's field message, such as "The check-up date cannot be in the future." |
@@ -296,6 +306,7 @@ The Assets pages read the API like every other page:
 | `thinking` | The question was received |
 | `step` | A lookup started; the one before it finished |
 | `text` | The next part of the answer |
+| `ui` | One card or form to draw under the answer |
 | `done` | The answer is complete, with its record links and sources |
 | `error` | The answer stopped; the message is shown in red in its place |
 
@@ -331,6 +342,7 @@ The reference code matches the `X-Request-Id` in the backend log, so a reported 
 |---|---|---|
 | `validation/siteSchema.js` | Name and city required and length-limited, region and status from the allowed lists | `backend/src/validators/siteSchemas.js` |
 | `validation/installationSchema.js` | Equipment required, site required, technician optional, `YYYY-MM-DD` date, status from the allowed list | `backend/src/validators/installationSchemas.js` |
+| `validation/assistantCardSchema.js` and one schema per card | A `ui` card's name, total, See all path and props, before it is drawn | `ai/src/siteops_ai/schemas/card.py` and the tools |
 | `validation/commonSchemas.js` | Shared rules (`requiredText`, `positiveId`, `optionalId`) and `toFieldErrors`, which turns Zod issues into `{ field: message }` | `backend/src/validators/commonSchemas.js` |
 
 The frontend and backend use the same Zod version, the same rules and the same messages, kept as two copies so each side builds and deploys on its own. When a rule or message changes, change both. The browser check gives instant feedback; the server check is the one that counts, because any request can bypass the browser. Checks that need the database, such as a duplicate site name, happen only on the server and appear under the matching field.
@@ -358,7 +370,7 @@ Colours and the font live in one file, and components use no inline styles or `s
 | `styles/theme.css` | Every colour and the font as CSS variables, based on the ENABL palette (Stormfront Blue sidebar, Evergreen Tide actions, Solar Glow for in progress). Font: Aptos where installed, otherwise Albert Sans |
 | `styles/colors.js` | Reads the tokens at start-up so Material UI and the charts use the same values |
 | `styles/theme.js` | Palette, typography and `styleOverrides` for Material UI components: the sidebar, outlined cards, uppercase table headers, tinted status chips, rounded inputs and buttons |
-| `styles/global.css` | Imports one stylesheet per area: `layout.css`, `lists.css`, `cards.css`, `forms.css`, `detail.css`, `overview.css`, `empty-state.css`, `equipment.css`, `service.css`, `spare-parts.css`, `activity.css`, `map.css` and `assistant.css`. All colours come from the tokens |
+| `styles/global.css` | Imports one stylesheet per area: `layout.css`, `lists.css`, `cards.css`, `forms.css`, `detail.css`, `overview.css`, `empty-state.css`, `equipment.css`, `service.css`, `spare-parts.css`, `activity.css`, `map.css`, `assistant.css`, `assistant-shell.css` and `assistant-cards.css`. All colours come from the tokens |
 
 `main.jsx` wraps the app in `StyledEngineProvider injectFirst`, so Material UI's styles load first and the area stylesheets can adjust them without `!important`.
 
