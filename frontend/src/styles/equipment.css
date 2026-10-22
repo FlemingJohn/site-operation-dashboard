@@ -21,76 +21,17 @@
   max-width: 100%;
 }
 
-.equipment-drawing {
-  width: 90%;
-  height: 90%;
+.equipment-drawing-frame .equipment-drawing {
+  width: 64%;
+  height: 64%;
 }
 
-.drawing-frame {
+.drawing-line {
   fill: var(--color-sidebar);
 }
 
-.drawing-frame-light {
-  fill: var(--color-sidebar-hover);
-}
-
-.drawing-accent {
-  fill: var(--color-primary);
-}
-
-.drawing-light {
-  fill: var(--color-border);
-}
-
-.drawing-metal {
-  fill: var(--color-pending);
-}
-
-.drawing-dark {
-  fill: var(--color-muted);
-}
-
-.drawing-signal {
-  fill: var(--color-warning);
-}
-
-.drawing-mint {
-  fill: var(--color-sidebar-accent);
-}
-
-.drawing-blade {
-  fill: none;
-  stroke: var(--color-pending);
-  stroke-width: 10;
-  stroke-linecap: round;
-}
-
-.drawing-rope {
-  fill: none;
-  stroke: var(--color-muted);
-  stroke-width: 3;
-  stroke-dasharray: 6 5;
-}
-
-.drawing-ring {
-  fill: none;
-  stroke: var(--color-sidebar);
-  stroke-width: 5;
-}
-
-.drawing-arm {
-  fill: none;
-  stroke: var(--color-sidebar-hover);
-  stroke-width: 10;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.drawing-claw {
-  fill: none;
-  stroke: var(--color-muted);
-  stroke-width: 4;
-  stroke-linecap: round;
+.drawing-icon {
+  color: var(--color-sidebar);
 }
 
 .health-ring {
