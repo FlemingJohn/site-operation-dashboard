@@ -2,16 +2,16 @@
 
 ## Energy Icons
 
-Material Icons, already part of the app, has no icon for three of the machine types. Those three pictures come from [Energy Icons](https://github.com/Sam-r-passmore/energy-icons) by Sam Passmore, used under the MIT License.
+Material Icons, already part of the app, has no icon for these machine types. The four pictures come from [Energy Icons](https://github.com/Sam-r-passmore/energy-icons) by Sam Passmore, used under the MIT License.
 
-| Machine type | Component | Icon | Source |
-|---|---|---|---|
-| Blade yoke | `BladeYokeDrawing.jsx` | `crane-hook-48` | Energy Icons |
-| Tower gripper | `TowerGripperDrawing.jsx` | `construction-crane-48` | Energy Icons |
-| Tagline system | `TaglineSystemDrawing.jsx` | `winch-48` | Energy Icons |
-| Mobile robot | `MobileRobotDrawing.jsx` | `PrecisionManufacturingOutlined` | Material Icons |
+| Machine type | Component | Icon |
+|---|---|---|
+| Blade yoke | `BladeYokeDrawing.jsx` | `crane-hook-48` |
+| Tower gripper | `TowerGripperDrawing.jsx` | `construction-crane-48` |
+| Tagline system | `TaglineSystemDrawing.jsx` | `winch-48` |
+| Mobile robot | `MobileRobotDrawing.jsx` | `robot-arm-48` |
 
-The Energy Icons shapes are copied unchanged. All four take their colour from the `--color-sidebar` token in `frontend/src/styles/equipment.css`.
+The shapes are copied unchanged. All four take their colour from the `--color-sidebar` token in `frontend/src/styles/equipment.css`.
 
 ```
 MIT License
