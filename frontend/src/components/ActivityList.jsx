@@ -1,22 +1,30 @@
-import { Typography } from '@mui/material';
+import Timeline from '@mui/lab/Timeline';
 import { groupByDay } from '../lib/groupByDay';
 import ActivityRow from './ActivityRow';
 
-const ActivityList = ({ events }) => (
-  <div className="activity-list">
-    {groupByDay(events).map((group) => (
-      <section key={group.day} aria-label={group.label}>
-        <Typography variant="overline" component="h3" className="activity-day">
-          {group.label}
-        </Typography>
-        <ul className="activity-rows">
-          {group.events.map((event) => (
-            <ActivityRow key={event.id} event={event} />
-          ))}
-        </ul>
-      </section>
-    ))}
-  </div>
-);
+const toTimelineEntries = (events) =>
+  groupByDay(events).flatMap((group) =>
+    group.events.map((event, index) => ({
+      event,
+      dayLabel: index === 0 ? group.label : null,
+    }))
+  );
+
+const ActivityList = ({ events }) => {
+  const entries = toTimelineEntries(events);
+
+  return (
+    <Timeline className="activity-timeline">
+      {entries.map(({ event, dayLabel }, index) => (
+        <ActivityRow
+          key={event.id}
+          event={event}
+          dayLabel={dayLabel}
+          isLast={index === entries.length - 1}
+        />
+      ))}
+    </Timeline>
+  );
+};
 
 export default ActivityList;
