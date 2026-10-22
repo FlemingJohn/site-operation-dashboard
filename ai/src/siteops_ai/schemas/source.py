@@ -2,5 +2,5 @@ from pydantic import BaseModel
 
 
 class Source(BaseModel):
-    tool: str
+    label: str
     summary: str
