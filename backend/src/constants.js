@@ -118,9 +118,6 @@ export const MESSAGES = {
   tookTooLong: 'The request took too long. Please try again.',
   tooManyRequests: 'Too many requests. Please wait a minute and try again.',
   assistantOff: 'Ask SiteOps is not set up on this server yet.',
-  assistantBusy: 'Ask SiteOps has reached its free limit for now. Please try again in a minute.',
-  assistantOverloaded: 'Gemini is very busy right now. Please try again in a minute.',
+  assistantUnreachable: 'Ask SiteOps is not reachable right now. Please try again shortly.',
   assistantFailed: "Sorry, I couldn't get an answer just now. Please try again.",
-  assistantSlow: 'Ask SiteOps took too long to answer. Please try again.',
-  assistantNoAnswer: "I couldn't find an answer to that in the dashboard.",
 };
