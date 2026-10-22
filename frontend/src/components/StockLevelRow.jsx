@@ -15,7 +15,7 @@ const StockLevelRow = ({ part, onReorder }) => (
     <StockBar part={part} />
     <StatusChip status={part.stockLevel} />
     <div className="stock-row-action">
-      {part.stockLevel !== 'stocked' && (
+      {part.stockLevel !== 'stocked' && onReorder && (
         <Button size="small" variant="outlined" onClick={() => onReorder(part)}>
           Reorder
         </Button>
