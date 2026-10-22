@@ -2,6 +2,8 @@ import { request } from './client';
 
 export const getInstallations = (params) => request('/installations', { params });
 
+export const getInstallationCounts = (params) => request('/installations/counts', { params });
+
 export const getInstallation = (id) => request(`/installations/${id}`);
 
 export const createInstallation = (installation, idempotencyKey) =>
