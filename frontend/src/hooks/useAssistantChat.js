@@ -3,6 +3,7 @@ import { askAssistant } from '../api/assistantApi';
 
 const HISTORY_LIMIT = 12;
 const ANSWERING_STATUSES = ['thinking', 'working', 'writing'];
+const STOPPED_TEXT = 'The answer stopped before it finished. Please ask again.';
 
 export const useAssistantChat = ({ isOpen }) => {
   const [messages, setMessages] = useState([]);
@@ -29,6 +30,7 @@ export const useAssistantChat = ({ isOpen }) => {
       await askAssistant(question, history, (event) =>
         updateMessage(answerId, (message) => applyEvent(message, event))
       );
+      updateMessage(answerId, markStoppedIfUnfinished);
     } catch (err) {
       updateMessage(answerId, (message) => ({ ...message, status: 'error', text: err.message }));
     }
@@ -63,6 +65,12 @@ const applyEvent = (message, event) => {
     return { ...message, status: 'error', steps: finishSteps(message.steps), text: event.message };
   }
   return { ...message, status: 'done', records: event.records, sources: event.sources };
+};
+
+const markStoppedIfUnfinished = (message) => {
+  if (!ANSWERING_STATUSES.includes(message.status)) return message;
+  const text = message.text ? `${message.text}\n\n${STOPPED_TEXT}` : STOPPED_TEXT;
+  return { ...message, status: 'error', steps: finishSteps(message.steps), text };
 };
 
 const toHistory = (messages) =>
