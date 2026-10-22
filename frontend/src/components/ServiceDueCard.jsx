@@ -1,12 +1,12 @@
 import { Link as RouterLink } from 'react-router-dom';
-import { Button, Card, CardHeader, LinearProgress, Link, List, ListItem } from '@mui/material';
+import { Button, Card, CardHeader, LinearProgress, List, ListItem } from '@mui/material';
 import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined';
 import { getServiceDue } from '../api/serviceApi';
-import { EQUIPMENT_TYPE_LABELS } from '../constants';
 import { useLoader } from '../hooks/useLoader';
 import CardIcon from './CardIcon';
 import EmptyState from './EmptyState';
 import ErrorAlert from './ErrorAlert';
+import MachineLink from './MachineLink';
 import ServiceDueLine from './ServiceDueLine';
 
 const SHOWN_COUNT = 4;
@@ -37,11 +37,10 @@ const ServiceDueCard = () => {
       )}
       <List dense>
         {urgent.map((unit) => (
-          <ListItem key={unit.id} divider className="overview-list-item">
-            <Link component={RouterLink} to={`/equipment/${unit.id}`} className="text-strong">
-              {EQUIPMENT_TYPE_LABELS[unit.type]} {unit.serial}
-            </Link>
-            <ServiceDueLine unit={unit} />
+          <ListItem key={unit.id} divider disablePadding>
+            <MachineLink unit={unit}>
+              <ServiceDueLine unit={unit} />
+            </MachineLink>
           </ListItem>
         ))}
       </List>
