@@ -2,6 +2,8 @@
 
 The frontend is a React single-page application built with Vite and Material UI. It shows the dashboard, lets users search, filter and edit sites and installations, and talks to the backend only through the REST API.
 
+The Assets pages (Service, Equipment, Spare parts, Activity) and Ask SiteOps run on sample data for now. See [Sample data](#sample-data).
+
 ## Stack
 
 | Concern | Library | Purpose |
@@ -14,6 +16,7 @@ The frontend is a React single-page application built with Vite and Material UI.
 | Charts | `@mui/x-charts` | Donut, stacked bar, sparkline and gauge on the Overview page |
 | Styling engine | `@emotion/react`, `@emotion/styled` | Required by Material UI |
 | Validation | `zod` 4 | Form schemas that mirror the backend's |
+| Map | `leaflet`, `react-leaflet` 5 | Site map with OpenStreetMap tiles |
 
 HTTP requests use the browser's built-in `fetch`; no extra HTTP library is needed.
 
@@ -21,7 +24,7 @@ HTTP requests use the browser's built-in `fetch`; no extra HTTP library is neede
 
 ```
 frontend/
-├── index.html                    HTML entry, loads IBM Plex Sans
+├── index.html                    HTML entry, loads Albert Sans
 ├── vite.config.js                React plugin and /api proxy to localhost:5000
 ├── .env.example                  VITE_API_URL for deployed builds
 ├── public/
@@ -33,7 +36,11 @@ frontend/
     ├── constants.js              Statuses, regions, colours, page sizes
     ├── utils.js                  Date, percentage and option helpers
     ├── fieldIcons.js             One icon per field, shared by table headers and form fields
+    ├── activityKindIcons.js      One icon per kind of activity
     ├── api/                      One module per resource and a shared client
+    ├── sampleData/               Builds the sample machines, check-ups, parts and activity
+    ├── assistant/                One answer builder per Ask SiteOps topic
+    ├── lib/                      Small pure helpers: dates, sorting, paging, text
     ├── hooks/                    Reusable state logic
     ├── validation/               Zod form schemas mirroring backend/src/validators
     ├── components/               Reusable UI pieces
@@ -42,7 +49,10 @@ frontend/
         ├── theme.css             Colour and font tokens, the only place colours are written
         ├── colors.js             Reads the tokens for Material UI and the charts
         ├── theme.js              Material UI palette, typography and component overrides
-        └── global.css            Layout classes, all colours from the tokens
+        ├── global.css            Imports the stylesheets below
+        └── layout.css, lists.css, cards.css, forms.css, detail.css, overview.css,
+            empty-state.css, equipment.css, service.css, spare-parts.css,
+            activity.css, map.css, assistant.css   One stylesheet per area
 ```
 
 ## Architecture
@@ -82,6 +92,12 @@ Components never call the API, and the API layer never touches the UI. Each laye
 | `/installations/:id/edit` | `InstallationFormPage` | Edit an installation |
 | `/users` | `UsersPage` | User list with search, role filter, sorting and pagination |
 | `/users/new` | `UserFormPage` | Create a user |
+| `/service` | `ServicePage` | Check-ups grouped into Needs service now, Coming up this week and Later, as a list or a month calendar, with Mark as done |
+| `/equipment` | `EquipmentPage` | Machines as cards or a table, with a count per type, search, filters and pagination |
+| `/equipment/:id` | `EquipmentDetailPage` | One machine: drawing, site, next check-up, check-up history, parts asked for, history and Mark check-up as done |
+| `/spare-parts` | `SparePartsPage` | Stock levels with a reorder mark and Reorder, or the requests board (Requested, Ordered, Delivered) |
+| `/map` | `MapPage` | Sites on a map beside a list, with search and filters |
+| `/activity` | `ActivityPage` | Who changed what, grouped by day, with search and filters for kind, person and time |
 | any other URL | `NotFoundPage` | "Page not found" with a link back |
 
 Every page is loaded with `React.lazy`, so the browser downloads a page's code, including the chart library, only when that page is opened.
@@ -97,6 +113,12 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `InstallationFormPage` | `useEntityForm`, `OptionAutocomplete`, `getSites`, `getTechnicians` | Equipment, site, technician, date and status fields. Site and Technician are type-to-filter fields; clearing Technician means unassigned. The Site list offers active sites only, plus the current site when editing an installation at an inactive one |
 | `UsersPage` | `usePaginatedList`, `useFlashMessage`, `UserTable` | Searchable, filterable, sortable, paginated users |
 | `UserFormPage` | `useEntityForm` | Full name, email, phone and role fields |
+| `ServicePage` | `useLoader`, `ServiceGroup`, `ServiceCalendar`, `MarkDoneDialog` | Machines due a check-up, most urgent first. Later is folded away; each group shows 8 and then Show more |
+| `EquipmentPage` | `usePaginatedList`, `useListCounts`, `EquipmentCard`, `EquipmentTable` | Machines by type, with the next check-up on every card and row |
+| `EquipmentDetailPage` | `useRecord`, `EquipmentDetailHeader`, `ServiceHistoryCard`, `PartRequestListCard`, `HistoryCard` | One machine and everything done to it |
+| `SparePartsPage` | `StockPanel`, `PartRequestsPanel` | Stock or Requests, picked with a toggle that is remembered |
+| `MapPage` | `usePaginatedList`, `SiteMap`, `MapSiteList` | Real sites placed by city. Picking one in the list flies the map to it and opens its popup with Open site |
+| `ActivityPage` | `usePaginatedList`, `ListToolbar`, `ActivityList` | 20 events a page, grouped under Today, Yesterday or the date |
 | `NotFoundPage` | — | Message and a link to the Overview |
 
 ## Components
@@ -104,7 +126,7 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | Component | Purpose | Used by |
 |---|---|---|
 | `Layout` | Sidebar `Drawer` (fixed on desktop, slide-in on mobile), top `AppBar` with the page title and Add button, page area | Every page |
-| `SidebarNav` | Brand, page links and, on desktop, a Collapse sidebar button. Based on MUI's mini variant drawer: collapsed, the sidebar shrinks from 232px to 64px, labels fade out and each icon shows its page name as a tooltip. The choice is saved in `localStorage`. Phones keep the slide-in menu | `Layout` |
+| `SidebarNav` | Brand, page links in two groups (Operations and Assets) and, on desktop, a Collapse sidebar button. Based on MUI's mini variant drawer: collapsed, the sidebar shrinks from 232px to 64px, labels fade out and each icon shows its page name as a tooltip. The choice is saved in `localStorage`. Phones keep the slide-in menu | `Layout` |
 | `SiteTable` | Sites table with sortable headers, status chips, installation counts, edit and delete buttons | Sites page |
 | `UserTable` | Users table with sortable headers, phone and role chips | Users page |
 | `TableHeaderCell` | Header cell with the column's icon and, when `onSort` and `column` are passed, a `TableSortLabel` arrow | All tables |
@@ -137,6 +159,40 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `ErrorAlert` | Red message with optional Retry and Back buttons | Overview, list pages, form pages |
 | `ErrorBoundary` | Replaces a crashed page with a recovery message instead of a blank screen | `Layout` |
 
+### Assets components
+
+| Component | Purpose | Used by |
+|---|---|---|
+| `EquipmentDrawing` | Picks `BladeYokeDrawing`, `TowerGripperDrawing`, `TaglineSystemDrawing` or `MobileRobotDrawing`. Each is a small inline SVG whose parts are coloured by CSS classes from the tokens | Equipment, Service |
+| `HealthRing` / `ServiceDueLine` | A ring that empties as a check-up gets closer, with the due date in words, such as "Check-up was due on 03 Oct 2026, 19 days ago" | Equipment, Service, Overview |
+| `EquipmentCard` / `EquipmentTable` | One machine as a card or a table row | Equipment |
+| `EquipmentDetailHeader` | Drawing, name, status, site link, next check-up and an action button | Machine page |
+| `ServiceHistoryCard` / `PartRequestListCard` | Check-ups done and parts asked for on one machine | Machine page |
+| `ServiceItem` / `ServiceGroup` | One machine due a check-up; a titled group of them that can be folded | Service |
+| `ServiceCalendar` | Month grid with each machine on its due date, coloured by urgency, with Previous, Next and This month | Service |
+| `MarkDoneDialog` | Date, technician and notes; shows the next check-up date before saving | Service, Machine page |
+| `TechnicianSelect` | Dropdown of technicians | Check-up and reorder dialogs |
+| `StockPanel` / `StockLevelRow` / `StockBar` | Parts with a bar to the shelf capacity, a line at the reorder level and Reorder when low | Spare parts, Overview |
+| `ReorderDialog` | How many and who asked | Spare parts |
+| `PartRequestsPanel` / `RequestBoard` / `RequestColumn` / `RequestCard` | Three columns of requests; a card moves forward with Mark as ordered or Mark as delivered. Each column shows 8 and then Show more | Spare parts |
+| `ServiceDueCard` / `LowStockCard` | The four most urgent check-ups and the four lowest parts | Overview |
+| `SiteMap` / `MapFocus` / `MapSiteList` | Leaflet map with a circle per site (teal active, red inactive), fitted to the sites shown, and the list beside it | Map |
+| `ActivityList` / `ActivityRow` / `ActivityChange` | Events grouped by day: time, avatar with a kind badge, a sentence with a link, and Show details for the change and note | Activity, `HistoryCard` |
+| `HistoryCard` | The activity for one site or machine, five at a time | Site page, Machine page |
+| `SampleDataTag` | "Sample data" label on pages that do not use the database yet | Assets pages |
+
+### Ask SiteOps components
+
+| Component | Purpose |
+|---|---|
+| `AskSiteOps` | Round button at the bottom right of every page, with a dot when an answer arrived while the window was closed. Opens the window |
+| `AssistantWindow` | Chat window with Minimise (keeps the chat) and Close (clears it). Full screen on phones. Escape minimises |
+| `AssistantSuggestions` | Four example questions shown before the first message |
+| `AssistantMessage` | A question, or an answer with its steps, the text, links to the records it mentions and How I found this |
+| `AssistantSteps` | Each lookup with a spinner that turns into a tick |
+| `AssistantSources` | The tool behind each step and what it read |
+| `AssistantComposer` | Question box and Send |
+
 ## Hooks
 
 | Hook | Holds | Returns |
@@ -149,8 +205,11 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `useStoredChoice(key)` | A text value kept in `localStorage` | `[choice, setChoice]` |
 | `useListView(key, total)` | Cards or Table; defaults to Table when there are more than 50 records | `[view, setView]` |
 | `useListCounts(fetchList, queries, params, version)` | Totals for several filters at once, each read from the API's `pagination.total` with `limit=1` | `{ name: count }` |
-| `useRecord(load, id)` | One record by id | `record`, `error`, `isLoading` |
+| `useRecord(load, id)` | One record by id | `record`, `error`, `isLoading`, `reload` |
 | `useSiteOptions()` | Sites for the Site filter | `options`, `error` |
+| `useLoader(load, initialData)` | Anything loaded in one request, such as the check-ups due or the part requests | `data`, `isLoading`, `error`, `reload` |
+| `useTechnicians()` | Technicians for the dialogs | `technicians`, `error` |
+| `useAssistantChat({ isOpen })` | Ask SiteOps messages, applying each streamed event to the answer as it arrives | `messages`, `isAnswering`, `hasUnread`, `ask`, `markRead`, `clear` |
 
 The hooks return ready-made props for Material UI components, so connecting them takes one line:
 
@@ -211,6 +270,34 @@ sequenceDiagram
 - Each form creates one `Idempotency-Key` when it opens and sends it with every submit, so a repeated click or retry never creates a duplicate.
 - After saving, the form returns to the list and the list shows "Site added" or "Installation updated".
 
+## Sample data
+
+Machines, check-ups, spare parts, part requests and activity have no tables yet. Until they do, `src/sampleData` builds them in the browser from the real sites and technicians, so every link opens a real site or person.
+
+| File | Builds |
+|---|---|
+| `buildEquipment.js` | 12 machines of four types, spread over the real sites, with check-ups due from 19 days ago to 88 days ahead |
+| `buildServiceRecords.js` | Three past check-ups per machine, 90 days apart |
+| `buildSpareParts.js` | 7 parts with stock, reorder level and shelf capacity |
+| `buildPartRequests.js` | 6 requests across Requested, Ordered and Delivered |
+| `buildActivity.js` | Events made from the records above, so the activity matches each machine's history |
+| `getSampleData.js` | Loads sites and technicians once and keeps the result for the session |
+
+The sample modules in `src/api` (`equipmentApi`, `serviceApi`, `sparePartsApi`, `activityApi`) take the same parameters and return the same `{ data, pagination }` shape as the real endpoints will, after a short delay. Mark as done, Reorder and moving a request update the sample data and add an activity event; the changes are lost on reload. When the endpoints exist, only the inside of these modules changes.
+
+### Ask SiteOps
+
+`askAssistant(question, onEvent)` in `api/assistantApi.js` sends the same events the backend will stream:
+
+| Event | Meaning |
+|---|---|
+| `thinking` | The question was received |
+| `step` | A lookup started; the one before it finished |
+| `text` | The next part of the answer |
+| `done` | The answer is complete, with its record links and sources |
+
+For now `assistant/pickAnswer.js` matches words in the question to one of five answer builders (check-ups due, low stock, inactive sites, technician workload, overview totals), and each builder reads the same API modules as the pages. The window shows "Preview" and a reminder to check the linked records.
+
 ## API layer
 
 `src/api/client.js` is the only place that calls `fetch`.
@@ -261,31 +348,32 @@ The frontend and backend use the same Zod version, the same rules and the same m
 
 ## Styling
 
-Styling lives in two files, and components use no inline styles or `sx` props.
+Colours and the font live in one file, and components use no inline styles or `sx` props.
 
 | File | Contains |
 |---|---|
 | `styles/theme.css` | Every colour and the font as CSS variables, based on the ENABL palette (Stormfront Blue sidebar, Evergreen Tide actions, Solar Glow for in progress). Font: Aptos where installed, otherwise Albert Sans |
 | `styles/colors.js` | Reads the tokens at start-up so Material UI and the charts use the same values |
 | `styles/theme.js` | Palette, typography and `styleOverrides` for Material UI components: the sidebar, outlined cards, uppercase table headers, tinted status chips, rounded inputs and buttons |
-| `styles/global.css` | Layout classes such as `app-layout`, `app-page-title`, `chart-card`, `donut-legend`, `toolbar-search`, `form-actions` and `text-strong` |
+| `styles/global.css` | Imports one stylesheet per area: `layout.css`, `lists.css`, `cards.css`, `forms.css`, `detail.css`, `overview.css`, `empty-state.css`, `equipment.css`, `service.css`, `spare-parts.css`, `activity.css`, `map.css` and `assistant.css`. All colours come from the tokens |
 
-`main.jsx` wraps the app in `StyledEngineProvider injectFirst`, so Material UI's styles load first and the classes in `global.css` can adjust them without `!important`.
+`main.jsx` wraps the app in `StyledEngineProvider injectFirst`, so Material UI's styles load first and the area stylesheets can adjust them without `!important`.
 
-Material UI 9 removed shortcut style props such as `flexGrow`, `fontWeight`, `alignItems` and `justifyContent` from `Typography` and `Stack`; they are ignored without an error. Use a class in `global.css` instead.
+Material UI 9 removed shortcut style props such as `flexGrow`, `fontWeight`, `alignItems` and `justifyContent` from `Typography` and `Stack`; they are ignored without an error. Use a class in the area stylesheet instead.
 
 ### Colours
 
 | Token | Value | Used for |
 |---|---|---|
-| `sidebar` | `#16202e` | Sidebar background |
-| `primary` | `#2457d6` | Buttons, links, bar chart |
-| `page` | `#f3f5f8` | Page background |
-| `border` | `#e1e5eb` | Card and table borders |
-| `success` | `#1e8a4c` | Completed, Active |
-| `warning` | `#b86e00` | In Progress |
-| `danger` | `#c4372b` | Inactive, errors |
-| `neutral` | `#5f6b7a` | Pending, secondary text |
+| `sidebar` | `#004165` | Sidebar background, machine drawings |
+| `primary` | `#007a87` | Buttons, links, charts, Active, Completed |
+| `page` | `#edf3f6` | Page background |
+| `border` | `#dbe4e9` | Card and table borders |
+| `warning` | `#f0ab00` | In Progress, check-ups due this week, low stock |
+| `highlight` | `#ff7f45` | Late check-ups |
+| `danger` | `#c4372b` | Inactive, out of stock, errors |
+| `pending` | `#a7b1b6` | Pending |
+| `muted` | `#56636b` | Secondary text |
 
 ### Responsive layout
 
@@ -293,7 +381,8 @@ Material UI 9 removed shortcut style props such as `flexGrow`, `fontWeight`, `al
 |---|---|
 | 900 px and wider | Fixed sidebar, four stat cards per row, charts side by side |
 | Below 900 px | Sidebar becomes a slide-in menu opened from the top bar |
-| Below 600 px | Stat cards and form fields stack in one column; tables scroll sideways |
+| Below 900 px | The map list moves under the map and the requests board becomes one column |
+| Below 600 px | Stat cards and form fields stack in one column; tables scroll sideways; Ask SiteOps opens full screen |
 
 ## Configuration
 
