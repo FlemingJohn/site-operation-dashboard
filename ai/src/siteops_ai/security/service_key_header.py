@@ -1,0 +1,1 @@
+SERVICE_KEY_HEADER = "X-Service-Key"
