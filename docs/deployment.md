@@ -181,6 +181,41 @@ Invoke-RestMethod "$apiUrl/api/health"
 
 Expected result: `status: ok`, `database: connected`. The first request after a deployment can take up to a minute while the app starts.
 
+## 6b. Deploy the AI service
+
+The Python AI service runs as a second web app on the **same App Service plan**, so it adds no hosting cost on B1.
+
+```powershell
+$ai = "siteops-dashboard-fj-ai"
+$serviceKey = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+
+az webapp create --name $ai --resource-group $resourceGroup --plan $plan --runtime "PYTHON:3.12"
+
+az webapp config appsettings set --name $ai --resource-group $resourceGroup --output none --settings `
+  AZURE_OPENAI_API_KEY="<key>" `
+  AZURE_OPENAI_ENDPOINT="<endpoint>" `
+  AZURE_OPENAI_DEPLOYMENT_NAME="gpt-4o" `
+  BACKEND_API_URL=$apiUrl `
+  AI_SERVICE_KEY=$serviceKey `
+  SCM_DO_BUILD_DURING_DEPLOYMENT=true
+
+az webapp config set --name $ai --resource-group $resourceGroup --output none `
+  --startup-file "gunicorn --chdir src -k uvicorn.workers.UvicornWorker --timeout 120 siteops_ai.main:app"
+
+tar -a -c -f ai.zip -C ai src requirements.txt
+az webapp deploy --name $ai --resource-group $resourceGroup --src-path ai.zip --type zip
+Remove-Item ai.zip
+
+$aiUrl = "https://" + (az webapp show --name $ai --resource-group $resourceGroup --query defaultHostName --output tsv)
+az webapp config appsettings set --name $api --resource-group $resourceGroup --output none --settings `
+  AI_SERVICE_URL=$aiUrl AI_SERVICE_KEY=$serviceKey
+Remove-Variable serviceKey
+```
+
+- `SCM_DO_BUILD_DURING_DEPLOYMENT=true` makes Azure install `requirements.txt` during the deploy, as it runs `npm install` for the backend.
+- The Azure OpenAI key is set only on the AI service. The backend holds just the AI service address and the shared key.
+- `/ask` refuses any request without the shared key. For extra protection, add an access restriction so the AI service only accepts the backend's outbound addresses.
+
 ## 7. Deploy the frontend
 
 ```powershell
@@ -209,6 +244,8 @@ cd ..
 | Frontend | Open `$webUrl` in a browser | Overview page with cards and charts |
 | End to end | Add a site in the app | "Site added" message and the new row in the Sites list |
 | Logs | `az webapp log tail --name $api --resource-group $resourceGroup` | JSON lines for each request |
+| AI service | `Invoke-RestMethod "$aiUrl/health"` | `status: ok` |
+| Ask SiteOps | Ask "Which machines need a check-up this week?" in the app | Steps, a streamed answer and links to the machines |
 
 ## Updating the application
 
