@@ -1,5 +1,5 @@
 import { Card, LinearProgress } from '@mui/material';
-import { getEquipment } from '../api/equipmentApi';
+import { getEquipment, getEquipmentCounts } from '../api/equipmentApi';
 import CardGrid from '../components/CardGrid';
 import EquipmentCard from '../components/EquipmentCard';
 import EquipmentTable from '../components/EquipmentTable';
@@ -17,16 +17,12 @@ import {
   LIST_VIEWS,
 } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
-import { useListCounts } from '../hooks/useListCounts';
+import { useCounts } from '../hooks/useCounts';
 import { useListView } from '../hooks/useListView';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 
 const INITIAL_FILTERS = { type: '', status: '' };
 const NO_FILTERS = {};
-const TYPE_COUNT_QUERIES = Object.fromEntries([
-  ['all', {}],
-  ...EQUIPMENT_TYPES.map(({ value }) => [value, { type: value }]),
-]);
 
 const EQUIPMENT_FILTERS = [
   {
@@ -52,7 +48,7 @@ const EquipmentPage = () => {
     EQUIPMENT_DEFAULT_SORT,
     LIST_PAGE_SIZE_OPTIONS
   );
-  const counts = useListCounts(getEquipment, TYPE_COUNT_QUERIES, NO_FILTERS, equipment.version);
+  const counts = useCounts(getEquipmentCounts, NO_FILTERS, equipment.version);
   const [view, setView] = useListView('siteops.equipmentView', counts.all);
   const emptyMessage = equipment.clearFilters
     ? 'No machines match these filters.'
