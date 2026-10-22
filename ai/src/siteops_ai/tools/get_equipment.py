@@ -4,6 +4,10 @@ from agents import function_tool
 from pydantic import Field
 
 from siteops_ai.backend.get_json import get_json
+from siteops_ai.backend.models.machine import Machine
+from siteops_ai.backend.models.machine_detail import MachineDetail
+from siteops_ai.backend.models.page import Page
+from siteops_ai.schemas.page_path import PagePath
 from siteops_ai.schemas.record_link import RecordLink
 from siteops_ai.tools.tool_context import ToolContext
 
@@ -22,16 +26,21 @@ async def get_equipment(
     serial: Annotated[str, Field(min_length=1, description="Serial number, such as BY-204")],
 ) -> dict:
     backend = context.context.backend
-    matches = (await get_json(backend, "/equipment", search=serial, limit=MATCH_LIMIT))["data"]
-    exact = [unit for unit in matches if unit["serial"].lower() == serial.lower()]
+    matches = (
+        await get_json(backend, "/equipment", Page[Machine], search=serial, limit=MATCH_LIMIT)
+    ).data
+    exact = [unit for unit in matches if unit.serial.lower() == serial.lower()]
     chosen = exact or (matches if len(matches) == 1 else [])
     if not chosen:
-        return {"error": "No single machine matches that serial.", "machines": matches}
+        return {
+            "error": "No single machine matches that serial.",
+            "machines": [unit.to_tool_result() for unit in matches],
+        }
 
-    unit = await get_json(backend, f"/equipment/{chosen[0]['id']}")
+    unit = await get_json(backend, f"/equipment/{chosen[0].id}", MachineDetail)
     context.context.remember(
         "get_equipment",
-        f"Opened {unit['serial']}",
-        [RecordLink(label=unit["serial"], path=f"/equipment/{unit['id']}")],
+        f"Opened {unit.serial}",
+        [RecordLink(label=unit.serial, path=PagePath.machine(unit.id))],
     )
-    return {**unit, "serviceRecords": unit["serviceRecords"][:HISTORY_LIMIT]}
+    return unit.to_tool_result() | {"serviceRecords": unit.service_records[:HISTORY_LIMIT]}
