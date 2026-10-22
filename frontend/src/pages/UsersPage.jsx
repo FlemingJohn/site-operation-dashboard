@@ -4,7 +4,6 @@ import CardGrid from '../components/CardGrid';
 import ErrorAlert from '../components/ErrorAlert';
 import ListPagination from '../components/ListPagination';
 import ListToolbar from '../components/ListToolbar';
-import PageIntro from '../components/PageIntro';
 import SuccessSnackbar from '../components/SuccessSnackbar';
 import SummaryStrip from '../components/SummaryStrip';
 import UserCard from '../components/UserCard';
@@ -44,11 +43,11 @@ const UsersPage = () => {
   return (
     <>
       <div className="page-header">
-        <PageIntro>The admins and technicians who can be assigned to installations.</PageIntro>
         <ViewToggle value={view} onChange={setView} />
       </div>
 
       <SummaryStrip
+        area="users"
         items={[
           { key: '', label: 'All users', count: counts.all },
           { key: 'technician', label: 'Technicians', count: counts.technician },
