@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import { Button, Chip, Typography } from '@mui/material';
+import { Button, Chip, LinearProgress, Typography } from '@mui/material';
+import { getPartRequests } from '../api/sparePartsApi';
+import { useLoadMore } from '../hooks/useLoadMore';
+import ErrorAlert from './ErrorAlert';
 import RequestCard from './RequestCard';
 
 const COLUMN_PAGE_SIZE = 8;
 
-const RequestColumn = ({ label, requests, movingId, onMove }) => {
-  const [visibleCount, setVisibleCount] = useState(COLUMN_PAGE_SIZE);
-  const hiddenCount = requests.length - visibleCount;
+const RequestColumn = ({ status, label, search, movingId, onMove }) => {
+  const requests = useLoadMore(getPartRequests, { status, search }, COLUMN_PAGE_SIZE);
+  const hiddenCount = requests.total - requests.items.length;
 
   return (
     <section className="request-column" aria-label={label}>
@@ -14,14 +16,16 @@ const RequestColumn = ({ label, requests, movingId, onMove }) => {
         <Typography variant="subtitle2" component="h3">
           {label}
         </Typography>
-        <Chip label={requests.length} className="request-column-count" />
+        <Chip label={requests.total} className="request-column-count" />
       </div>
-      {requests.length === 0 && (
+      {requests.isLoading && <LinearProgress />}
+      {requests.error && <ErrorAlert message={requests.error} />}
+      {!requests.isLoading && requests.total === 0 && (
         <Typography variant="caption" color="text.secondary" className="request-column-empty">
           Nothing here.
         </Typography>
       )}
-      {requests.slice(0, visibleCount).map((request) => (
+      {requests.items.map((request) => (
         <RequestCard
           key={request.id}
           request={request}
@@ -29,8 +33,8 @@ const RequestColumn = ({ label, requests, movingId, onMove }) => {
           onMove={onMove}
         />
       ))}
-      {hiddenCount > 0 && (
-        <Button size="small" onClick={() => setVisibleCount(visibleCount + COLUMN_PAGE_SIZE)}>
+      {requests.hasMore && (
+        <Button size="small" disabled={requests.isLoading} onClick={requests.loadMore}>
           Show {Math.min(hiddenCount, COLUMN_PAGE_SIZE)} more
         </Button>
       )}
