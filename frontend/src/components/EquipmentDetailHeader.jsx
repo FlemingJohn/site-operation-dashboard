@@ -4,7 +4,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { EQUIPMENT_TYPE_LABELS } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import EquipmentDrawing from './EquipmentDrawing';
-import SiteChip from './SiteChip';
+import RecordChip from './RecordChip';
 import ServiceDueLine from './ServiceDueLine';
 import StatusChip from './StatusChip';
 
@@ -31,7 +31,7 @@ const EquipmentDetailHeader = ({ unit, action }) => (
           <StatusChip status={unit.status} />
         </div>
         {unit.siteId ? (
-          <SiteChip siteId={unit.siteId} siteName={unit.siteName} />
+          <RecordChip label={unit.siteName} path={`/sites/${unit.siteId}`} icon={SiteIcon} />
         ) : (
           <Typography variant="body2" color="text.secondary" className="entity-card-meta">
             <SiteIcon fontSize="inherit" />
