@@ -14,10 +14,10 @@ const describePart = (part, openRequests) => {
 export const answerLowStock = async () => {
   const [parts, requests] = await Promise.all([
     getSpareParts({ limit: MAX_SELECT_OPTIONS }),
-    getPartRequests(),
+    getPartRequests({ limit: MAX_SELECT_OPTIONS }),
   ]);
   const lowParts = parts.data.filter((part) => part.stockLevel !== 'stocked');
-  const openRequests = requests.filter((request) => OPEN_STATUSES.includes(request.status));
+  const openRequests = requests.data.filter((request) => OPEN_STATUSES.includes(request.status));
 
   const intro = `${pluralize(lowParts.length, 'part')} ${lowParts.length === 1 ? 'is' : 'are'} running low.`;
   const text = lowParts.length
