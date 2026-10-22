@@ -1,9 +1,10 @@
 import { Link as RouterLink } from 'react-router-dom';
-import { Button, Card, CardContent, Link, Typography } from '@mui/material';
+import { Button, Card, CardContent, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { EQUIPMENT_TYPE_LABELS } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import EquipmentDrawing from './EquipmentDrawing';
+import SiteChip from './SiteChip';
 import ServiceDueLine from './ServiceDueLine';
 import StatusChip from './StatusChip';
 
@@ -29,16 +30,14 @@ const EquipmentDetailHeader = ({ unit, action }) => (
           </Typography>
           <StatusChip status={unit.status} />
         </div>
-        <Typography variant="body2" color="text.secondary" className="entity-card-meta">
-          <SiteIcon fontSize="inherit" />
-          {unit.siteId ? (
-            <Link component={RouterLink} to={`/sites/${unit.siteId}`}>
-              {unit.siteName}
-            </Link>
-          ) : (
-            'In the warehouse'
-          )}
-        </Typography>
+        {unit.siteId ? (
+          <SiteChip siteId={unit.siteId} siteName={unit.siteName} />
+        ) : (
+          <Typography variant="body2" color="text.secondary" className="entity-card-meta">
+            <SiteIcon fontSize="inherit" />
+            In the warehouse
+          </Typography>
+        )}
         <ServiceDueLine unit={unit} />
         {action && <div className="detail-actions">{action}</div>}
       </div>
