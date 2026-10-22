@@ -1,6 +1,6 @@
 # Database
 
-The Site Operations Dashboard stores its data in PostgreSQL. Three normalized tables hold the business data: `users`, `sites` and `installations`. Four more hold the assets: `equipment`, `service_records`, `spare_parts` and `part_requests`. `activity_log` keeps the history of every change, and `idempotency_keys` supports the API. Neither of those two has relationships.
+The Site Operations Dashboard stores its data in PostgreSQL. Three normalized tables hold the business data: `users`, `sites` and `installations`. Four more hold the assets: `equipment`, `service_records`, `spare_parts` and `part_requests`. `activity_log` keeps the history of every change, and `idempotency_keys` supports the API. Neither of those two has relationships. `chat_sessions` and `chat_messages` keep Ask SiteOps chats.
 
 ## Entity relationship diagram
 
@@ -14,6 +14,7 @@ erDiagram
     SPARE_PARTS ||--o{ PART_REQUESTS : "is asked for in"
     EQUIPMENT |o--o{ PART_REQUESTS : "needs"
     USERS |o--o{ PART_REQUESTS : "asks"
+    CHAT_SESSIONS ||--o{ CHAT_MESSAGES : "holds"
 
     SITES {
         serial id PK
@@ -106,6 +107,26 @@ erDiagram
         varchar after_text "NULL, max 200"
         jsonb change "NULL, before and after values"
         varchar note "NULL, max 500"
+    }
+
+    CHAT_SESSIONS {
+        uuid id PK
+        uuid visitor_id "NOT NULL, the browser that owns it"
+        varchar title "NOT NULL, max 120"
+        timestamptz created_at "default NOW()"
+        timestamptz updated_at "set by trigger on update"
+    }
+
+    CHAT_MESSAGES {
+        bigserial id PK
+        uuid session_id FK "NOT NULL, chat_sessions.id, ON DELETE CASCADE"
+        varchar role "user | assistant"
+        varchar text "NOT NULL, max 4000"
+        jsonb card "NULL"
+        jsonb records "default []"
+        jsonb sources "default []"
+        varchar status "done | error | stopped, default done"
+        timestamptz created_at "default NOW()"
     }
 ```
 
@@ -340,6 +361,32 @@ erDiagram
 | `note` | `VARCHAR(500)` | Optional, such as the check-up notes |
 
 Indexes on the asset tables: `equipment (site_id)`, `equipment (next_service_on, id)`, `service_records (equipment_id, done_on DESC)`, `part_requests (status, requested_on DESC)` and each foreign key, `activity_log (occurred_at DESC, id DESC)` and `activity_log (target_path, occurred_at DESC)`. Row Level Security is on for every new table, as for the others.
+
+### `chat_sessions`
+
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `UUID` | Primary key, `gen_random_uuid()` |
+| `visitor_id` | `UUID` | Required. The browser that owns the chat; every query filters by it |
+| `title` | `VARCHAR(120)` | Required, not blank. Starts as the first question, cut to 60 characters |
+| `created_at` | `TIMESTAMPTZ` | Defaults to `NOW()` |
+| `updated_at` | `TIMESTAMPTZ` | Refreshed by a trigger and after every answer; the list is sorted by it |
+
+### `chat_messages`
+
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `BIGSERIAL` | Primary key; messages are read back in this order |
+| `session_id` | `UUID` | Required, references `chat_sessions.id`, deleted with the chat |
+| `role` | `VARCHAR(10)` | `user` or `assistant` |
+| `text` | `VARCHAR(4000)` | Required |
+| `card` | `JSONB` | The card or form under an answer, or `NULL` |
+| `records` | `JSONB` | Record links, defaults to `[]` |
+| `sources` | `JSONB` | Where the answer came from, in plain words, defaults to `[]` |
+| `status` | `VARCHAR(10)` | `done`, `error` or `stopped`, defaults to `done` |
+| `created_at` | `TIMESTAMPTZ` | Defaults to `NOW()` |
+
+Indexes: `chat_sessions (visitor_id, updated_at DESC)` and `chat_messages (session_id, id)`. Row Level Security is on for both. The chat tables have no links to the other tables: a chat mentions machines and parts only inside its JSON, so deleting a machine never breaks an old chat.
 
 ### Constraints and indexes
 
