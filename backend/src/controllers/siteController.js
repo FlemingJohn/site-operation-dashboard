@@ -20,3 +20,7 @@ export const remove = async (req, res) => {
   await siteService.remove(req.validated.params.id);
   res.status(204).end();
 };
+
+export const counts = async (req, res) => {
+  res.json(await siteService.countAll(req.validated.query));
+};
