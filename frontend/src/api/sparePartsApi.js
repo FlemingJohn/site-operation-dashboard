@@ -2,6 +2,8 @@ import { request } from './client';
 
 export const getSpareParts = (params) => request('/spare-parts', { params });
 
+export const getSparePartCounts = (params) => request('/spare-parts/counts', { params });
+
 export const getPartRequests = (params) => request('/part-requests', { params });
 
 export const requestPart = (partRequest, idempotencyKey) =>
