@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import ViewListOutlinedIcon from '@mui/icons-material/ViewListOutlined';
-import { getServiceDue } from '../api/serviceApi';
+import { getEquipmentCounts } from '../api/equipmentApi';
 import MarkDoneDialog from '../components/MarkDoneDialog';
 import PageIntro from '../components/PageIntro';
 import SearchField from '../components/SearchField';
@@ -13,17 +13,13 @@ import ViewToggle from '../components/ViewToggle';
 import { SERVICE_STATES } from '../constants';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useFlashMessage } from '../hooks/useFlashMessage';
-import { useListCounts } from '../hooks/useListCounts';
+import { useCounts } from '../hooks/useCounts';
 import { useStoredChoice } from '../hooks/useStoredChoice';
 
 const SERVICE_VIEWS = [
   { value: 'list', label: 'List', icon: ViewListOutlinedIcon },
   { value: 'calendar', label: 'Calendar', icon: CalendarMonthOutlinedIcon },
 ];
-
-const STATE_COUNT_QUERIES = Object.fromEntries(
-  SERVICE_STATES.map(({ value }) => [value, { state: value }])
-);
 
 const GROUP_EMPTY_MESSAGES = {
   late: 'Nothing is overdue.',
@@ -38,7 +34,7 @@ const ServicePage = () => {
   const search = useDebouncedValue(searchInput.trim());
   const [version, setVersion] = useState(0);
   const [selectedUnit, setSelectedUnit] = useState(null);
-  const counts = useListCounts(getServiceDue, STATE_COUNT_QUERIES, { search }, version);
+  const counts = useCounts(getEquipmentCounts, { search }, version);
 
   const handleSaved = (unit) => {
     setSelectedUnit(null);
