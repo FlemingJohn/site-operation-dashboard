@@ -40,6 +40,7 @@ const SiteDetailPage = () => {
       <SiteDetailHeader site={site.record} onDelete={() => deletion.open(site.record)} />
 
       <SummaryStrip
+        area="installations"
         items={INSTALLATION_STATUS_TABS.map(({ value, label }) => ({
           key: value,
           label: value === 'all' ? 'Installations' : label,
