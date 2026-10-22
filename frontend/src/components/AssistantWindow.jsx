@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Chip, IconButton, Paper, Tooltip, Typography } from '@mui/material';
+import { IconButton, Paper, Tooltip, Typography } from '@mui/material';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import MinimizeIcon from '@mui/icons-material/Minimize';
@@ -28,7 +28,6 @@ const AssistantWindow = ({ chat, onMinimise, onClose, onOpenRecord }) => {
         <Typography variant="subtitle2" component="h2" className="assistant-title">
           Ask SiteOps
         </Typography>
-        <Chip label="Preview" className="assistant-preview" />
         <Tooltip title="Minimise">
           <IconButton size="small" aria-label="Minimise" onClick={onMinimise}>
             <MinimizeIcon fontSize="small" />
@@ -50,7 +49,7 @@ const AssistantWindow = ({ chat, onMinimise, onClose, onOpenRecord }) => {
 
       <AssistantComposer isDisabled={chat.isAnswering} onSend={chat.ask} />
       <Typography variant="caption" color="text.secondary" className="assistant-footnote">
-        Answers come from this dashboard&apos;s data and can be wrong. Check the linked records.
+        Gemini answers from this dashboard&apos;s data and can be wrong. Check the linked records.
       </Typography>
     </Paper>
   );
