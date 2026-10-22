@@ -29,6 +29,7 @@ const StockPanel = ({ onChange }) => {
   return (
     <>
       <SummaryStrip
+        area="stock"
         items={[
           { key: '', label: 'All parts', count: counts.all },
           ...STOCK_LEVELS.map(({ value, label }) => ({ key: value, label, count: counts[value] })),
