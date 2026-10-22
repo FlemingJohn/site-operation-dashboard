@@ -1,17 +1,18 @@
 import { MenuItem, TextField } from '@mui/material';
 import { useTechnicians } from '../hooks/useTechnicians';
 
-const TechnicianSelect = ({ id, label, value, onChange }) => {
+const TechnicianSelect = ({ id, label, value, onChange, helperText }) => {
   const { technicians, error } = useTechnicians();
+  const isKnown = technicians.some((technician) => technician.id === value);
 
   return (
     <TextField
       id={id}
       select
       label={label}
-      value={value}
+      value={isKnown ? value : ''}
       onChange={(event) => onChange(event.target.value)}
-      helperText={error}
+      helperText={error || helperText}
       error={Boolean(error)}
     >
       {technicians.map((technician) => (
