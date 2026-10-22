@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PAGE_SIZE_OPTIONS, SEARCH_DELAY_MS } from '../constants';
 
+const isPastLastPage = (result, page) =>
+  result.data.length === 0 && result.pagination.total > 0 && page > 0;
+
 export const usePaginatedList = (
   fetchList,
   initialFilters,
@@ -51,6 +54,10 @@ export const usePaginatedList = (
     fetchList({ ...filters, ...sort, page: page + 1, limit: rowsPerPage })
       .then((result) => {
         if (!isCurrent) return;
+        if (isPastLastPage(result, page)) {
+          setPage(result.pagination.totalPages - 1);
+          return;
+        }
         setRows(result.data);
         setTotal(result.pagination.total);
         setError('');
