@@ -19,6 +19,8 @@ export const equipmentListQuery = z.object({
   status: optionalChoice(EQUIPMENT_STATUSES, 'Choose a valid status.'),
   state: optionalChoice(SERVICE_STATES, 'Choose a valid check-up state.'),
   siteId: positiveId('Choose a valid site.').optional(),
+  dueFrom: z.iso.date({ error: 'Pick a valid start date.' }).optional(),
+  dueTo: z.iso.date({ error: 'Pick a valid end date.' }).optional(),
 });
 
 export const serviceRecordBody = z.object({
