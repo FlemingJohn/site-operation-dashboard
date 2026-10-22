@@ -1,6 +1,7 @@
 import { pool } from '../config/database.js';
-import { INSTALLATION_SORT_COLUMNS, MESSAGES } from '../constants.js';
+import { INSTALLATION_SORT_COLUMNS, INSTALLATION_STATUSES, MESSAGES } from '../constants.js';
 import { HttpError } from '../utils/HttpError.js';
+import { countEach } from '../utils/countEach.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
 import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
 import { withTransaction } from '../utils/withTransaction.js';
@@ -103,3 +104,13 @@ export const remove = (id) =>
     await client.query('DELETE FROM installations WHERE id = $1', [id]);
     await installationActivity.recordDeleted(client, installation);
   });
+
+export const countAll = async (query) => {
+  const { where, values } = buildFilters({ ...query, status: undefined });
+  const { rows } = await pool.query(
+    `SELECT COUNT(*)::int AS "all", ${countEach('i.status', INSTALLATION_STATUSES)}
+     ${INSTALLATION_FROM} ${where}`,
+    values
+  );
+  return rows[0];
+};
