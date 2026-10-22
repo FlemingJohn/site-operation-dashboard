@@ -1,11 +1,13 @@
+import { z } from 'zod';
 import { MESSAGES } from '../constants.js';
 import { HttpError } from '../utils/HttpError.js';
 
-const collectFieldErrors = (issues, source, errors) => {
-  issues.forEach((issue) => {
-    const field = issue.path.join('.') || source;
-    errors[field] ??= issue.message;
+const collectFieldErrors = (error, source, errors) => {
+  const { formErrors, fieldErrors } = z.flattenError(error);
+  Object.entries(fieldErrors).forEach(([field, messages]) => {
+    errors[field] ??= messages[0];
   });
+  if (formErrors.length > 0) errors[source] ??= formErrors[0];
 };
 
 export const validate = (schemas) => (req, res, next) => {
@@ -20,7 +22,7 @@ export const validate = (schemas) => (req, res, next) => {
     } else if (source === 'params') {
       throw new HttpError(400, result.error.issues[0].message);
     } else {
-      collectFieldErrors(result.error.issues, source, errors);
+      collectFieldErrors(result.error, source, errors);
     }
   });
 
