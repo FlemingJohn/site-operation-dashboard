@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Card, LinearProgress } from '@mui/material';
-import { getSpareParts } from '../api/sparePartsApi';
+import { getSparePartCounts, getSpareParts } from '../api/sparePartsApi';
 import { STOCK_LEVELS } from '../constants';
-import { useListCounts } from '../hooks/useListCounts';
+import { useCounts } from '../hooks/useCounts';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import EmptyState from './EmptyState';
 import ErrorAlert from './ErrorAlert';
@@ -15,14 +15,10 @@ import SummaryStrip from './SummaryStrip';
 const INITIAL_FILTERS = { stockLevel: '' };
 const NO_SORT = {};
 const NO_FILTERS = {};
-const LEVEL_COUNT_QUERIES = Object.fromEntries([
-  ['all', {}],
-  ...STOCK_LEVELS.map(({ value }) => [value, { stockLevel: value }]),
-]);
 
 const StockPanel = ({ onChange }) => {
   const parts = usePaginatedList(getSpareParts, INITIAL_FILTERS, NO_SORT);
-  const counts = useListCounts(getSpareParts, LEVEL_COUNT_QUERIES, NO_FILTERS);
+  const counts = useCounts(getSparePartCounts, NO_FILTERS);
   const [reorderPart, setReorderPart] = useState(null);
 
   const handleSaved = (part) => {
