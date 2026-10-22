@@ -481,6 +481,12 @@ Full request and response examples, validation rules, error codes, idempotency a
 erDiagram
     SITES ||--o{ INSTALLATIONS : "has"
     USERS |o--o{ INSTALLATIONS : "is assigned"
+    SITES |o--o{ EQUIPMENT : "holds"
+    EQUIPMENT ||--o{ SERVICE_RECORDS : "is checked in"
+    USERS |o--o{ SERVICE_RECORDS : "does"
+    SPARE_PARTS ||--o{ PART_REQUESTS : "is asked for in"
+    EQUIPMENT |o--o{ PART_REQUESTS : "needs"
+    USERS |o--o{ PART_REQUESTS : "asks"
 
     SITES {
         serial id PK
@@ -511,6 +517,61 @@ erDiagram
         varchar role
         timestamptz created_at
     }
+
+    EQUIPMENT {
+        serial id PK
+        varchar serial UK
+        varchar type
+        varchar status
+        integer site_id FK
+        date next_service_on
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    SERVICE_RECORDS {
+        serial id PK
+        integer equipment_id FK
+        integer technician_id FK
+        date done_on
+        varchar notes
+        timestamptz created_at
+    }
+
+    SPARE_PARTS {
+        serial id PK
+        varchar name UK
+        integer stock
+        integer reorder_at
+        integer capacity
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    PART_REQUESTS {
+        serial id PK
+        integer part_id FK
+        integer equipment_id FK
+        integer requested_by FK
+        integer quantity
+        varchar status
+        date requested_on
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    ACTIVITY_LOG {
+        bigserial id PK
+        varchar kind
+        timestamptz occurred_at
+        varchar actor_name
+        varchar verb
+        varchar target_label
+        varchar target_path
+        varchar after_text
+        jsonb change
+        varchar note
+    }
 ```
 
 | Relationship | Type |
@@ -518,16 +579,13 @@ erDiagram
 | `sites` → `installations` | One-to-many, required. Deleting a site deletes its installations. |
 | `users` → `installations` | One-to-many, optional. Deleting a user keeps the installations as unassigned. |
 | `sites` ↔ `users` | Many-to-many through `installations` |
-
-The asset tables for machines, check-ups and spare parts:
-
-| Table | Holds |
-|---|---|
-| `equipment` | A machine, optionally at a site; set to no site when the site is deleted |
-| `service_records` | A check-up of one machine by an optional technician; a machine with check-ups cannot be deleted |
-| `spare_parts` | A part with its stock, reorder level and shelf capacity |
-| `part_requests` | A request for one part, optionally for a machine and by a user; a part with requests cannot be deleted |
-| `activity_log` | Who changed what; no foreign keys, so the history stays after a record is deleted |
+| `sites` → `equipment` | One-to-many, optional. Deleting a site moves its machines to the warehouse. |
+| `equipment` → `service_records` | One-to-many, required. A machine with check-ups cannot be deleted. |
+| `users` → `service_records` | One-to-many, optional. Deleting a technician keeps the check-ups without a name. |
+| `spare_parts` → `part_requests` | One-to-many, required. A part with requests cannot be deleted. |
+| `equipment` → `part_requests` | One-to-many, optional. A request can be for the shelf rather than a machine. |
+| `users` → `part_requests` | One-to-many, optional. Deleting a user keeps the requests without a name. |
+| `activity_log` | No foreign keys, so the history stays after a record is deleted. |
 
 Example queries demonstrating joins and aggregations are in `database/queries`. Column rules, constraints, the `idempotency_keys` table and normalization notes are in [docs/database.md](docs/database.md).
 
