@@ -21,6 +21,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import PrecisionManufacturingOutlinedIcon from '@mui/icons-material/PrecisionManufacturingOutlined';
 import { useStoredFlag } from '../hooks/useStoredFlag';
+import AskSiteOps from './AskSiteOps';
 import ErrorBoundary from './ErrorBoundary';
 import SidebarNav from './SidebarNav';
 
@@ -135,6 +136,8 @@ const Layout = () => {
           </ErrorBoundary>
         </div>
       </main>
+
+      <AskSiteOps />
     </div>
   );
 };
