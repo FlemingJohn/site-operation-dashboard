@@ -7,4 +7,5 @@ import { userBody, userListQuery } from '../validators/userSchemas.js';
 export const userRoutes = Router();
 
 userRoutes.get('/', validate({ query: userListQuery }), userController.list);
+userRoutes.get('/counts', validate({ query: userListQuery }), userController.counts);
 userRoutes.post('/', validate({ body: userBody }), idempotency, userController.create);
