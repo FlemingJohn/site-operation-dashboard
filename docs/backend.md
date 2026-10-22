@@ -126,6 +126,15 @@ flowchart LR
 | DELETE | `/api/installations/:id` | Delete an installation | 204 |
 | GET | `/api/users` | Paginated list of users | 200 |
 | POST | `/api/users` | Create a user | 201 |
+| GET | `/api/equipment` | Paginated list of machines with their next check-up | 200 |
+| GET | `/api/equipment/:id` | One machine with its check-ups and part requests | 200 |
+| POST | `/api/equipment/:id/service-records` | Record a check-up and move the next date 90 days on | 201 |
+| GET | `/api/spare-parts` | Paginated list of parts, lowest stock first | 200 |
+| GET | `/api/part-requests` | Paginated list of part requests, newest first | 200 |
+| POST | `/api/part-requests` | Ask for a part | 201 |
+| PATCH | `/api/part-requests/:id` | Move a request to `ordered` or `delivered` | 200 |
+| GET | `/api/activity` | Paginated activity log, newest first | 200 |
+| GET | `/api/activity/people` | Names that appear in the activity log | 200 |
 
 ### GET /api/health
 
@@ -376,6 +385,32 @@ Headers: `Content-Type: application/json`, `Idempotency-Key: <uuid>` (see [Idemp
 
 Responds `201` with the created user. Responds `409` if the email is already used. Users have no password: they are staff records for assigning installations, not login accounts.
 
+### Asset endpoints
+
+| Endpoint | Query or body | Notes |
+|---|---|---|
+| `GET /api/equipment` | `page`, `limit`, `search` (serial or site), `type`, `status`, `siteId`, `state` (`late`, `this_week`, `later`), `dueFrom`, `dueTo`, `sortBy` (`serial`, `type`, `siteName`, `status`, `nextServiceOn`), `order` | Each row has `serviceState`, worked out in SQL from `next_service_on`, and the latest check-up date and technician. The Service page asks for one `state` at a time; the calendar asks for one month with `dueFrom` and `dueTo` |
+| `POST /api/equipment/:id/service-records` | `{ doneOn, technicianId, notes }` | `doneOn` cannot be in the future. Runs in one transaction: locks the machine, saves the check-up, sets `next_service_on` to `doneOn + 90`, writes the activity row. Needs an `Idempotency-Key` |
+| `GET /api/spare-parts` | `page`, `limit`, `search`, `stockLevel` (`out`, `low`, `stocked`) | `stockLevel` is worked out in SQL from `stock` and `reorder_at` |
+| `GET /api/part-requests` | `page`, `limit`, `search` (part, serial or site), `status` | The board asks for one `status` per column, 8 at a time |
+| `POST /api/part-requests` | `{ partId, equipmentId?, requestedBy, quantity }` | `quantity` is 1 to 1000. Needs an `Idempotency-Key` |
+| `PATCH /api/part-requests/:id` | `{ status }`, `ordered` or `delivered` | Sends the status to move to, not "next". The update only matches the step before it, so a double click changes nothing and a request cannot skip a step. Delivered adds the quantity to the stock, up to the shelf capacity |
+| `GET /api/activity` | `page`, `limit`, `search`, `kind`, `actor`, `days` (`7` or `30`), `path` | `path` returns the history of one record, such as `/sites/3` or `/equipment/5` |
+
+### Activity log
+
+Every write adds one row to `activity_log` inside the same transaction as the change, so a change and its history are saved together or not at all.
+
+| Change | Sentence shown |
+|---|---|
+| Site added, edited, set inactive, deleted | "added the site Chennai Plant in Chennai", "set Kochi Port Yard to Inactive" |
+| Installation added, moved, edited, deleted | "moved the installation HVAC Unit at Pune Warehouse to Completed" |
+| User added | "added Priya Nair as a technician" |
+| Check-up recorded | "Ravi Kumar recorded a check-up on Blade Yoke BY-204 at Chennai Plant" |
+| Part asked for or moved | "Anita Sharma asked for 2 × Sensor kit for MR-3", "marked as delivered" |
+
+The wording lives in `services/siteActivity.js` and `services/installationActivity.js` and in the asset services. There is no sign-in yet, so changes to sites, installations and users have no person; check-ups and part requests name the technician who did them.
+
 ## Errors
 
 Every error response has the same shape:
@@ -396,7 +431,12 @@ Every error response has the same shape:
 |---|---|---|
 | Body, query or route parameter fails validation | 400 | `Please fix the highlighted fields.` |
 | Referenced site or user does not exist (PostgreSQL `23503`) | 400 | `The selected site or technician no longer exists.` |
-| Record does not exist | 404 | `This site no longer exists.` / `This installation no longer exists.` |
+| Record does not exist | 404 | `This site no longer exists.`, `This installation no longer exists.`, `This machine no longer exists.`, `This request no longer exists.` |
+| Part, machine or person in the body does not exist (PostgreSQL `23503`, by constraint name) | 400 | `This part no longer exists.`, `This machine no longer exists.`, `The selected person no longer exists.` |
+| Deleting a machine with check-ups or a part with requests (`ON DELETE RESTRICT`) | 409 | `This machine has check-up history, so it can't be deleted.`, `This part has requests, so it can't be deleted.` |
+| Stock would go below zero (PostgreSQL `23514`) | 400 | `Stock can't go below zero.` |
+| Part request already moved by someone else | 409 | `Someone else already moved this request. The board has been refreshed.` |
+| Duplicate machine serial or part name | 409 | `A machine with this serial number already exists.` / `A part with this name already exists.` with the field error |
 | Unknown route | 404 | `Route not found.` |
 | Duplicate site name (PostgreSQL `23505`) | 409 | `A site with this name already exists.` with `errors.name` set to the same text |
 | Duplicate user email (PostgreSQL `23505`) | 409 | `A user with this email already exists.` with `errors.email` set to the same text |
@@ -455,6 +495,7 @@ sequenceDiagram
 | New key | The request runs normally. The status and body are stored with the key. |
 | Same key, same request, finished | The stored status and body are returned. Nothing is written. Response header `Idempotent-Replayed: true`. |
 | Same key, same request, still running | `409`. The client can retry shortly. |
+| Same key, still marked running after one minute | The server stopped mid-request, for example on a restart. The next retry takes the key over and runs the request. |
 | Same key, different method, path or body | `422`. A key belongs to exactly one request. |
 | Request failed validation (`4xx`) | The key is released, so the corrected request can reuse it. |
 | No header | The request runs without idempotency protection. |
@@ -477,7 +518,7 @@ The key is reserved with `INSERT ... ON CONFLICT (key) DO NOTHING`. Only one of 
 
 ### Where it applies
 
-The `idempotency` middleware is attached to `POST /api/sites`, `POST /api/installations` and `POST /api/users`. The frontend generates the key with `crypto.randomUUID()` when a form opens and sends the same key for every submit of that form, so a retried submit is recognised as the same request.
+The `idempotency` middleware is attached to `POST /api/sites`, `POST /api/installations`, `POST /api/users`, `POST /api/equipment/:id/service-records` and `POST /api/part-requests`. The frontend generates the key with `crypto.randomUUID()` when a form or dialog opens and sends the same key for every submit of it, so a retried submit is recognised as the same request. `PATCH /api/part-requests/:id` needs no key because it names the status to move to.
 
 ### Database scripts
 
@@ -486,7 +527,8 @@ The migration and seed scripts are also safe to run repeatedly:
 | Script | Why it is safe |
 |---|---|
 | Migrations | `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, `CREATE OR REPLACE FUNCTION` and `CREATE OR REPLACE TRIGGER` |
-| Seeds | `000_reset.sql` empties the tables and restarts the ids first, so every run produces the same data |
+| Seeds | `000_reset.sql` empties the tables and restarts the ids first, so every run produces the same data. **Never run it against the live database** |
+| Asset seeds | `database/asset-seeds` only inserts into the asset tables and skips rows that already exist, so it is safe on the live database |
 
 ## Logging
 
@@ -624,4 +666,5 @@ On Azure App Service the same variables are set as Application Settings. `.env` 
 | `npm run dev` | Starts the API with `node --watch` and pretty logs |
 | `npm start` | Starts the API for production |
 | `npm run db:migrate` | Runs `database/migrations/*.sql` in filename order |
-| `npm run db:seed` | Runs `database/seeds/*.sql` in filename order |
+| `npm run db:seed` | Empties every table and loads the sample data from `database/seeds`. Local databases only |
+| `npm run db:seed:assets` | Adds the sample machines, check-ups, parts, requests and activity from `database/asset-seeds`. Leaves existing data alone |
