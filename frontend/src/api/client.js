@@ -47,23 +47,30 @@ export const getErrorMessage = (response, data) => {
 };
 
 export const sendRequest = async (url, options, timeoutMs = REQUEST_TIMEOUT_MS) => {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
   try {
-    return await fetch(url, { ...options, signal: AbortSignal.timeout(timeoutMs) });
+    return await fetch(url, { ...options, signal });
   } catch (error) {
+    if (options.signal?.aborted) throw error;
     const message = error.name === 'TimeoutError' ? MESSAGES.timeout : MESSAGES.network;
     throw new ApiError(message, 0);
   }
 };
 
-const buildHeaders = ({ body, idempotencyKey }) => ({
+export const buildHeaders = ({ body, idempotencyKey, visitorId }) => ({
   ...(body && { 'Content-Type': 'application/json' }),
   ...(idempotencyKey && { 'Idempotency-Key': idempotencyKey }),
+  ...(visitorId && { 'X-Visitor-Id': visitorId }),
 });
 
-export const request = async (path, { method = 'GET', body, params, idempotencyKey } = {}) => {
+export const request = async (
+  path,
+  { method = 'GET', body, params, idempotencyKey, visitorId } = {}
+) => {
   const response = await sendRequest(`${API_BASE_URL}/api${path}${buildQueryString(params)}`, {
     method,
-    headers: buildHeaders({ body, idempotencyKey }),
+    headers: buildHeaders({ body, idempotencyKey, visitorId }),
     body: body ? JSON.stringify(body) : undefined,
   });
 
