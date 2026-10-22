@@ -8,6 +8,12 @@ The Site Operations Dashboard stores its data in PostgreSQL. Three normalized ta
 erDiagram
     SITES ||--o{ INSTALLATIONS : "has"
     USERS |o--o{ INSTALLATIONS : "is assigned"
+    SITES |o--o{ EQUIPMENT : "holds"
+    EQUIPMENT ||--o{ SERVICE_RECORDS : "is checked in"
+    USERS |o--o{ SERVICE_RECORDS : "does"
+    SPARE_PARTS ||--o{ PART_REQUESTS : "is asked for in"
+    EQUIPMENT |o--o{ PART_REQUESTS : "needs"
+    USERS |o--o{ PART_REQUESTS : "asks"
 
     SITES {
         serial id PK
@@ -46,6 +52,61 @@ erDiagram
         jsonb response_body "stored response"
         timestamptz created_at "default NOW(), expires after 24 hours"
     }
+
+    EQUIPMENT {
+        serial id PK
+        varchar serial UK "NOT NULL, max 40"
+        varchar type "blade_yoke | tower_gripper | tagline_system | mobile_robot"
+        varchar status "deployed | in_service | in_stock, default in_stock"
+        integer site_id FK "NULL, sites.id, ON DELETE SET NULL"
+        date next_service_on "NOT NULL"
+        timestamptz created_at "default NOW()"
+        timestamptz updated_at "set by trigger on update"
+    }
+
+    SERVICE_RECORDS {
+        serial id PK
+        integer equipment_id FK "NOT NULL, equipment.id, ON DELETE RESTRICT"
+        integer technician_id FK "NULL, users.id, ON DELETE SET NULL"
+        date done_on "NOT NULL"
+        varchar notes "NULL, max 500"
+        timestamptz created_at "default NOW()"
+    }
+
+    SPARE_PARTS {
+        serial id PK
+        varchar name UK "NOT NULL, max 120"
+        integer stock "0 or more, default 0"
+        integer reorder_at "0 or more, default 0"
+        integer capacity "more than 0"
+        timestamptz created_at "default NOW()"
+        timestamptz updated_at "set by trigger on update"
+    }
+
+    PART_REQUESTS {
+        serial id PK
+        integer part_id FK "NOT NULL, spare_parts.id, ON DELETE RESTRICT"
+        integer equipment_id FK "NULL, equipment.id, ON DELETE SET NULL"
+        integer requested_by FK "NULL, users.id, ON DELETE SET NULL"
+        integer quantity "more than 0"
+        varchar status "requested | ordered | delivered, default requested"
+        date requested_on "default CURRENT_DATE"
+        timestamptz created_at "default NOW()"
+        timestamptz updated_at "set by trigger on update"
+    }
+
+    ACTIVITY_LOG {
+        bigserial id PK
+        varchar kind "installation | service | part | site | user"
+        timestamptz occurred_at "default NOW()"
+        varchar actor_name "NULL, max 100"
+        varchar verb "NOT NULL, max 100"
+        varchar target_label "NOT NULL, max 200"
+        varchar target_path "NOT NULL, max 200"
+        varchar after_text "NULL, max 200"
+        jsonb change "NULL, before and after values"
+        varchar note "NULL, max 500"
+    }
 ```
 
 The same diagram in plain text:
@@ -75,6 +136,54 @@ The same diagram in plain text:
 └───────────────────────────────┘
 ```
 
+The asset tables in plain text:
+
+```
+┌──────────────────────────────────┐                ┌──────────────────────────────────┐                ┌──────────────────────────────────┐
+│ sites                            │                │ equipment                        │                │ service_records                  │
+├──────────────────────────────────┤ 0..1         * ├──────────────────────────────────┤                ├──────────────────────────────────┤
+│ PK id               serial       ├────────────────┤ PK id               serial       │ 1            * │ PK id               serial       │
+│    ...                           │ site_id        │ UQ serial           varchar(40)  ├────────────────┤ FK equipment_id     integer      │
+└──────────────────────────────────┘                │    type             varchar(20)  │ equipment_id   │ FK technician_id    integer      │
+                                                    │    status           varchar(20)  │                │    done_on          date         │
+                                                    │ FK site_id          integer      │                │    notes            varchar(500) │
+                                                    │    next_service_on  date         │                │    created_at       timestamptz  │
+                                                    │    created_at       timestamptz  │                └─────────────────┬────────────────┘
+                                                    │    updated_at       timestamptz  │                                  │ *
+                                                    └─────────────────┬────────────────┘                                  │ technician_id
+                                                                      │ 0..1                                              │
+                                                                      │ equipment_id                                      │
+                                                                      │ *                                                 │ 0..1
+┌──────────────────────────────────┐                ┌─────────────────┴────────────────┐                ┌─────────────────┴────────────────┐
+│ spare_parts                      │                │ part_requests                    │                │ users                            │
+├──────────────────────────────────┤                ├──────────────────────────────────┤ *         0..1 ├──────────────────────────────────┤
+│ PK id               serial       │ 1            * │ PK id               serial       ├────────────────┤ PK id               serial       │
+│ UQ name             varchar(120) ├────────────────┤ FK part_id          integer      │ requested_by   │    ...                           │
+│    stock            integer      │ part_id        │ FK equipment_id     integer      │                └──────────────────────────────────┘
+│    reorder_at       integer      │                │ FK requested_by     integer      │
+│    capacity         integer      │                │    quantity         integer      │
+│    created_at       timestamptz  │                │    status           varchar(20)  │
+│    updated_at       timestamptz  │                │    requested_on     date         │
+└──────────────────────────────────┘                │    created_at       timestamptz  │
+                                                    │    updated_at       timestamptz  │
+                                                    └──────────────────────────────────┘
+
+┌────────────────────────────────┐
+│ activity_log                   │
+├────────────────────────────────┤
+│ PK id            bigserial     │
+│    kind          varchar(20)   │
+│    occurred_at   timestamptz   │
+│    actor_name    varchar(100)  │
+│    verb          varchar(100)  │
+│    target_label  varchar(200)  │
+│    target_path   varchar(200)  │
+│    after_text    varchar(200)  │
+│    change        jsonb         │
+│    note          varchar(500)  │
+└────────────────────────────────┘
+```
+
 | Notation | Meaning |
 |---|---|
 | `PK` | Primary key |
@@ -92,6 +201,14 @@ The same diagram in plain text:
 | One-to-many | `sites` → `installations` | `installations.site_id` (`NOT NULL`) | A site has zero or more installations. Every installation belongs to exactly one site. |
 | One-to-many | `users` → `installations` | `installations.technician_id` (nullable) | A technician is assigned zero or more installations. An installation has zero or one technician. |
 | Many-to-many | `sites` ↔ `users` | `installations` as the associative table | A technician works at many sites, and a site is served by many technicians. Each link also records the equipment, status and date. |
+| One-to-many | `sites` → `equipment` | `equipment.site_id` (nullable) | A site holds zero or more machines. A machine is at one site or in the warehouse. |
+| One-to-many | `equipment` → `service_records` | `service_records.equipment_id` (`NOT NULL`) | A machine has zero or more check-ups. Every check-up is of exactly one machine. |
+| One-to-many | `users` → `service_records` | `service_records.technician_id` (nullable) | A technician does zero or more check-ups. A check-up has zero or one technician. |
+| One-to-many | `spare_parts` → `part_requests` | `part_requests.part_id` (`NOT NULL`) | A part is asked for in zero or more requests. Every request is for exactly one part. |
+| One-to-many | `equipment` → `part_requests` | `part_requests.equipment_id` (nullable) | A machine needs zero or more requests. A request may be for no machine, such as restocking the shelf. |
+| One-to-many | `users` → `part_requests` | `part_requests.requested_by` (nullable) | A user asks for zero or more parts. A request has zero or one requester. |
+| Many-to-many | `equipment` ↔ `users` | `service_records` as the associative table | A machine is checked by many technicians, and a technician checks many machines. |
+| None | `activity_log`, `idempotency_keys` | — | No foreign keys. The history keeps its name and link after a record is deleted. |
 | One-to-one | — | — | Not used. No entity belongs to exactly one other entity, so a one-to-one table would add a join with no benefit. |
 
 The many-to-many relationship between sites and technicians, resolved by `installations`:
