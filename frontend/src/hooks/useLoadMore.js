@@ -1,17 +1,13 @@
 import { useEffect, useState } from 'react';
 
 export const useLoadMore = (fetchList, params, pageSize) => {
+  const paramsKey = JSON.stringify(params);
+  const [position, setPosition] = useState({ paramsKey, page: 1 });
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const paramsKey = JSON.stringify(params);
-
-  useEffect(() => {
-    setItems([]);
-    setPage(1);
-  }, [paramsKey]);
+  const page = position.paramsKey === paramsKey ? position.page : 1;
 
   useEffect(() => {
     let isCurrent = true;
@@ -42,6 +38,6 @@ export const useLoadMore = (fetchList, params, pageSize) => {
     isLoading,
     error,
     hasMore: items.length < total,
-    loadMore: () => setPage((current) => current + 1),
+    loadMore: () => setPosition({ paramsKey, page: page + 1 }),
   };
 };
