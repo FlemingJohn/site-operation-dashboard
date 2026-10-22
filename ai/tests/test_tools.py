@@ -7,11 +7,22 @@ from agents.tool_context import ToolContext
 from siteops_ai.agent.answer_context import AnswerContext
 from siteops_ai.backend.create_backend_client import create_backend_client
 from siteops_ai.tools.get_equipment import get_equipment
+from siteops_ai.tools.get_summary import get_summary
 from siteops_ai.tools.get_technician_workload import get_technician_workload
 from siteops_ai.tools.list_service_due import list_service_due
 from siteops_ai.tools.search_activity import search_activity
 
 API = "http://backend.test/api"
+SUMMARY = {
+    "totals": {"sites": 6},
+    "statusBreakdown": [],
+    "monthlyInstallations": [],
+    "installationsByTechnician": [
+        {"label": "Ravi", "pending": 0, "inProgress": 1, "completed": 3},
+        {"label": "Alan", "pending": 1, "inProgress": 0, "completed": 0},
+        {"label": "Priya", "pending": 0, "inProgress": 0, "completed": 2},
+    ],
+}
 
 
 async def invoke(tool, context: AnswerContext, arguments: dict):
@@ -24,12 +35,7 @@ async def invoke(tool, context: AnswerContext, arguments: dict):
 
 @respx.mock
 async def test_workload_reports_every_technician_tied_for_most_open_work():
-    rows = [
-        {"label": "Ravi", "pending": 0, "inProgress": 1, "completed": 3},
-        {"label": "Alan", "pending": 1, "inProgress": 0, "completed": 0},
-        {"label": "Priya", "pending": 0, "inProgress": 0, "completed": 2},
-    ]
-    respx.get(f"{API}/summary").respond(json={"installationsByTechnician": rows})
+    respx.get(f"{API}/summary").respond(json=SUMMARY)
     async with create_backend_client() as backend:
         context = AnswerContext(backend=backend)
         result = await invoke(get_technician_workload, context, {})
@@ -40,9 +46,22 @@ async def test_workload_reports_every_technician_tied_for_most_open_work():
 
 
 @respx.mock
+async def test_summary_leaves_out_the_per_technician_rows():
+    respx.get(f"{API}/summary").respond(json=SUMMARY)
+    async with create_backend_client() as backend:
+        result = await invoke(get_summary, AnswerContext(backend=backend), {})
+
+    assert result["totals"] == {"sites": 6}
+    assert "installationsByTechnician" not in result
+
+
+@respx.mock
 async def test_service_due_sends_the_state_and_the_service_key():
     route = respx.get(f"{API}/equipment").respond(
-        json={"data": [{"id": 3, "serial": "BY-204"}], "pagination": {"total": 1}}
+        json={
+            "data": [{"id": 3, "serial": "BY-204", "siteName": "Chennai Plant"}],
+            "pagination": {"total": 1},
+        }
     )
     async with create_backend_client() as backend:
         context = AnswerContext(backend=backend)
@@ -50,23 +69,26 @@ async def test_service_due_sends_the_state_and_the_service_key():
 
     request = route.calls.last.request
     assert request.url.params["state"] == "late"
+    assert request.url.params["limit"] == "20"
     assert "search" not in request.url.params
     assert request.headers["X-Service-Key"] == "s" * 40
-    assert result["total"] == 1
+    assert result["machines"][0]["siteName"] == "Chennai Plant"
     assert context.records[0].path == "/equipment/3"
 
 
 @respx.mock
 async def test_equipment_opens_the_exact_serial_match():
     respx.get(f"{API}/equipment").respond(
-        json={"data": [{"id": 3, "serial": "BY-204"}, {"id": 4, "serial": "BY-2041"}]}
+        json={
+            "data": [{"id": 3, "serial": "BY-204"}, {"id": 4, "serial": "BY-2041"}],
+            "pagination": {"total": 2},
+        }
     )
     respx.get(f"{API}/equipment/3").respond(
         json={"id": 3, "serial": "BY-204", "serviceRecords": [{"id": n} for n in range(8)]}
     )
     async with create_backend_client() as backend:
-        context = AnswerContext(backend=backend)
-        result = await invoke(get_equipment, context, {"serial": "by-204"})
+        result = await invoke(get_equipment, AnswerContext(backend=backend), {"serial": "by-204"})
 
     assert result["serial"] == "BY-204"
     assert len(result["serviceRecords"]) == 5
@@ -88,6 +110,7 @@ async def test_activity_is_turned_into_sentences():
         result = await invoke(search_activity, context, {"search": None, "kind": None, "days": "7"})
 
     assert result["events"][0]["sentence"] == "Someone set Kochi Port Yard to Inactive"
+    assert context.records[0].path == "/sites/5"
 
 
 @respx.mock
@@ -98,4 +121,16 @@ async def test_a_failing_backend_becomes_a_message_for_the_model():
         result = await invoke(get_technician_workload, context, {})
 
     assert isinstance(result, str)
+    assert context.sources == []
+
+
+@respx.mock
+async def test_a_renamed_api_field_fails_clearly_instead_of_guessing():
+    renamed = {**SUMMARY, "installationsByTechnician": [{"name": "Ravi", "open": 1}]}
+    respx.get(f"{API}/summary").respond(json=renamed)
+    async with create_backend_client() as backend:
+        context = AnswerContext(backend=backend)
+        result = await invoke(get_technician_workload, context, {})
+
+    assert result == "An error occurred while running the tool. Please try again."
     assert context.sources == []
