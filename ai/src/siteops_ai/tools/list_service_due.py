@@ -1,13 +1,16 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from agents import function_tool
 from pydantic import Field
 
 from siteops_ai.backend.get_json import get_json
+from siteops_ai.backend.models.machine import Machine
+from siteops_ai.backend.models.page import Page
+from siteops_ai.choices.service_state import ServiceState
+from siteops_ai.schemas.page_path import PagePath
 from siteops_ai.schemas.record_link import RecordLink
+from siteops_ai.settings import get_settings
 from siteops_ai.tools.tool_context import ToolContext
-
-RESULT_LIMIT = 20
 
 
 @function_tool(
@@ -18,17 +21,21 @@ RESULT_LIMIT = 20
 )
 async def list_service_due(
     context: ToolContext,
-    state: Literal["late", "this_week", "later"] | None,
+    state: ServiceState | None,
     search: Annotated[str | None, Field(description="Part of a serial number or site name")],
 ) -> dict:
-    result = await get_json(
-        context.context.backend, "/equipment", state=state, search=search, limit=RESULT_LIMIT
+    page = await get_json(
+        context.context.backend,
+        "/equipment",
+        Page[Machine],
+        state=state,
+        search=search,
+        limit=get_settings().tool_result_limit,
     )
-    machines = result["data"]
-    total = result["pagination"]["total"]
+    total = page.pagination.total
     context.context.remember(
         "list_service_due",
         f"Looked at {total} machines",
-        [RecordLink(label=unit["serial"], path=f"/equipment/{unit['id']}") for unit in machines],
+        [RecordLink(label=unit.serial, path=PagePath.machine(unit.id)) for unit in page.data],
     )
-    return {"total": total, "machines": machines}
+    return {"total": total, "machines": [unit.to_tool_result() for unit in page.data]}
