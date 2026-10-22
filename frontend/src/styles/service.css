@@ -12,13 +12,6 @@
   border-top: 1px solid var(--color-border);
 }
 
-.service-item-text {
-  display: grid;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-}
-
 .service-more {
   padding: 8px 16px;
   border-top: 1px solid var(--color-border);
