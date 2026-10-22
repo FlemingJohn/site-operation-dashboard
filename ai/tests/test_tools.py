@@ -42,7 +42,7 @@ async def test_workload_reports_every_technician_tied_for_most_open_work():
 
     assert result["mostOpen"] == ["Ravi", "Alan"]
     assert [row["open"] for row in result["technicians"]] == [1, 1, 0]
-    assert context.sources[0].tool == "get_technician_workload"
+    assert context.sources[0].label == "Counted open work for each technician"
 
 
 @respx.mock
@@ -134,3 +134,10 @@ async def test_a_renamed_api_field_fails_clearly_instead_of_guessing():
 
     assert result == "An error occurred while running the tool. Please try again."
     assert context.sources == []
+
+
+def test_every_tool_has_a_plain_source_label():
+    from siteops_ai.agent.source_labels import SOURCE_LABELS
+    from siteops_ai.agent.step_labels import STEP_LABELS
+
+    assert SOURCE_LABELS.keys() == STEP_LABELS.keys()
