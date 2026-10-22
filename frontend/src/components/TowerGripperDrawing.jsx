@@ -1,14 +1,15 @@
 const TowerGripperDrawing = () => (
-  <svg className="equipment-drawing" viewBox="0 0 220 150" aria-hidden="true">
-    <rect className="drawing-light" x="96" y="4" width="28" height="142" rx="4" />
-    <rect className="drawing-metal" x="104" y="4" width="12" height="142" />
-    <rect className="drawing-frame" x="60" y="56" width="100" height="38" rx="6" />
-    <rect className="drawing-accent" x="48" y="62" width="16" height="26" rx="3" />
-    <rect className="drawing-accent" x="156" y="62" width="16" height="26" rx="3" />
-    <rect className="drawing-frame-light" x="70" y="66" width="80" height="18" rx="9" />
-    <circle className="drawing-signal" cx="84" cy="75" r="4" />
-    <circle className="drawing-signal" cx="136" cy="75" r="4" />
-    <rect className="drawing-dark" x="108" y="36" width="4" height="20" />
+  <svg className="equipment-drawing" viewBox="0 0 48 48" aria-hidden="true">
+    <path className="drawing-line" d="M13 4a1 1 0 1 1 2 0v40h-2z" />
+    <path className="drawing-line" d="M42 7a1 1 0 1 1 0 2H6a1 1 0 0 1 0-2z" />
+    <path
+      className="drawing-line"
+      d="M7.5 8v5h2V8h2v6a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V8zM35 8v12h-2V8z"
+    />
+    <path
+      className="drawing-line"
+      d="M30 21v5h8v-5zm10 5a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2zM20 43a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2z"
+    />
   </svg>
 );
 
