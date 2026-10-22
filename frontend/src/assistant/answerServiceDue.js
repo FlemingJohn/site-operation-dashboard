@@ -1,5 +1,5 @@
 import { getServiceDue } from '../api/serviceApi';
-import { EQUIPMENT_TYPE_LABELS } from '../constants';
+import { EQUIPMENT_TYPE_LABELS, MAX_SELECT_OPTIONS } from '../constants';
 import { describeServiceDue } from '../lib/describeServiceDue';
 import { joinLines } from '../lib/joinLines';
 import { pluralize } from '../lib/pluralize';
@@ -10,7 +10,7 @@ const describeUnit = (unit) =>
   `${EQUIPMENT_TYPE_LABELS[unit.type]} ${unit.serial} at ${unit.siteName ?? 'the warehouse'}: ${lowerFirst(describeServiceDue(unit.nextServiceOn))}.`;
 
 export const answerServiceDue = async () => {
-  const units = await getServiceDue();
+  const { data: units, pagination } = await getServiceDue({ limit: MAX_SELECT_OPTIONS });
   const urgent = units.filter((unit) => unit.serviceState !== 'later');
   const late = urgent.filter((unit) => unit.serviceState === 'late');
 
@@ -24,7 +24,7 @@ export const answerServiceDue = async () => {
     text,
     records: urgent.map((unit) => ({ label: unit.serial, path: `/equipment/${unit.id}` })),
     sources: [
-      { tool: 'listServiceDue', summary: `Looked at ${pluralize(units.length, 'machine')}` },
+      { tool: 'listServiceDue', summary: `Looked at ${pluralize(pagination.total, 'machine')}` },
     ],
   };
 };
