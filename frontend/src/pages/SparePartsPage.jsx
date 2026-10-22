@@ -1,6 +1,5 @@
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
-import PageIntro from '../components/PageIntro';
 import PartRequestsPanel from '../components/PartRequestsPanel';
 import StockPanel from '../components/StockPanel';
 import SuccessSnackbar from '../components/SuccessSnackbar';
@@ -20,10 +19,6 @@ const SparePartsPage = () => {
   return (
     <>
       <div className="page-header">
-        <PageIntro>
-          What is on the shelf and what has been asked for. Parts running low show a Reorder button,
-          and requests move from asked to ordered to delivered.
-        </PageIntro>
         <div className="page-header-actions">
           <ViewToggle value={view ?? 'stock'} onChange={setView} options={PART_VIEWS} />
         </div>
