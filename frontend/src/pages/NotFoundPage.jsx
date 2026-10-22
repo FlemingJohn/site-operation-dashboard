@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Button, Card, CardContent, CardHeader } from '@mui/material';
+import EmptyIllustration from '../components/EmptyIllustration';
 
 const NotFoundPage = () => (
   <Card className="form-card">
+    <CardContent className="not-found-picture">
+      <EmptyIllustration />
+    </CardContent>
     <CardHeader
       title="Page not found"
       subheader="The page you are looking for does not exist or has been moved."
