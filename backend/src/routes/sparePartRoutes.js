@@ -6,3 +6,4 @@ import { sparePartListQuery } from '../validators/sparePartSchemas.js';
 export const sparePartRoutes = Router();
 
 sparePartRoutes.get('/', validate({ query: sparePartListQuery }), sparePartController.list);
+sparePartRoutes.get('/counts', validate({ query: sparePartListQuery }), sparePartController.counts);
