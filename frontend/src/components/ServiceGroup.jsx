@@ -3,6 +3,8 @@ import { Button, Card, CardHeader, LinearProgress } from '@mui/material';
 import { getServiceDue } from '../api/serviceApi';
 import { useLoadMore } from '../hooks/useLoadMore';
 import { pluralize } from '../lib/pluralize';
+import { STATE_ICONS } from '../stateIcons';
+import CardIcon from './CardIcon';
 import ErrorAlert from './ErrorAlert';
 import ServiceItem from './ServiceItem';
 
@@ -29,6 +31,7 @@ const ServiceGroup = ({
   return (
     <Card>
       <CardHeader
+        avatar={<CardIcon {...STATE_ICONS.service[state]} />}
         title={title}
         subheader={units.total ? pluralize(units.total, 'machine') : emptyMessage}
         action={toggleButton}
