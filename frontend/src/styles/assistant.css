@@ -33,17 +33,8 @@
 }
 
 .assistant-title {
-  font-weight: 600;
-}
-
-.assistant-preview {
   margin-right: auto;
-  background-color: var(--color-sidebar-hover);
-  color: var(--color-sidebar-text);
-}
-
-.assistant-preview::before {
-  display: none;
+  font-weight: 600;
 }
 
 .assistant-messages {
@@ -104,6 +95,10 @@
 
 .assistant-text {
   white-space: pre-line;
+}
+
+.assistant-text-error {
+  color: var(--color-danger);
 }
 
 .assistant-steps,
