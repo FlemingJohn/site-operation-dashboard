@@ -1,5 +1,9 @@
 import { Alert, Card, LinearProgress } from '@mui/material';
-import { deleteInstallation, getInstallations } from '../api/installationApi';
+import {
+  deleteInstallation,
+  getInstallationCounts,
+  getInstallations,
+} from '../api/installationApi';
 import DeleteDialog from '../components/DeleteDialog';
 import ErrorAlert from '../components/ErrorAlert';
 import InstallationTable from '../components/InstallationTable';
@@ -10,14 +14,13 @@ import StatusTabs from '../components/StatusTabs';
 import SuccessSnackbar from '../components/SuccessSnackbar';
 import {
   ALL_STATUSES_TAB,
-  INSTALLATION_COUNT_QUERIES,
   INSTALLATION_DEFAULT_SORT,
   INSTALLATION_STATUS_TABS,
 } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
 import { useFlashMessage } from '../hooks/useFlashMessage';
-import { useListCounts } from '../hooks/useListCounts';
+import { useCounts } from '../hooks/useCounts';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import { useSiteOptions } from '../hooks/useSiteOptions';
 
@@ -31,12 +34,7 @@ const InstallationsPage = () => {
     INSTALLATION_DEFAULT_SORT
   );
   const { search, siteId, status } = installations.filters;
-  const counts = useListCounts(
-    getInstallations,
-    INSTALLATION_COUNT_QUERIES,
-    { search, siteId },
-    installations.version
-  );
+  const counts = useCounts(getInstallationCounts, { search, siteId }, installations.version);
   const flash = useFlashMessage();
   const deletion = useDeleteConfirmation({
     deleteRequest: deleteInstallation,
