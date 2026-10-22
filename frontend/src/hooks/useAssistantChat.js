@@ -47,7 +47,7 @@ export const useAssistantChat = ({ isOpen }) => {
   };
 };
 
-const EMPTY_ANSWER = { steps: [], text: '', records: [], sources: [] };
+const EMPTY_ANSWER = { steps: [], text: '', card: null, records: [], sources: [] };
 
 const finishSteps = (steps) => steps.map((step) => ({ ...step, isDone: true }));
 
@@ -61,6 +61,7 @@ const applyEvent = (message, event) => {
     const text = message.text + event.text;
     return { ...message, status: 'writing', steps: finishSteps(message.steps), text };
   }
+  if (event.type === 'ui') return { ...message, card: event.card };
   if (event.type === 'error') {
     return { ...message, status: 'error', steps: finishSteps(message.steps), text: event.message };
   }
