@@ -1,5 +1,5 @@
 import { Card, LinearProgress } from '@mui/material';
-import { deleteSite, getSites } from '../api/siteApi';
+import { deleteSite, getSiteCounts, getSites } from '../api/siteApi';
 import CardGrid from '../components/CardGrid';
 import ErrorAlert from '../components/ErrorAlert';
 import ListPagination from '../components/ListPagination';
@@ -21,18 +21,12 @@ import {
 import { FIELD_ICONS } from '../fieldIcons';
 import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
 import { useFlashMessage } from '../hooks/useFlashMessage';
-import { useListCounts } from '../hooks/useListCounts';
+import { useCounts } from '../hooks/useCounts';
 import { useListView } from '../hooks/useListView';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 
 const INITIAL_FILTERS = { status: '', region: '' };
 const NO_FILTERS = {};
-const SITE_COUNT_QUERIES = {
-  all: {},
-  active: { status: 'active' },
-  inactive: { status: 'inactive' },
-};
-
 const SITE_FILTERS = [
   {
     name: 'status',
@@ -57,7 +51,7 @@ const SitesPage = () => {
     SITE_DEFAULT_SORT,
     LIST_PAGE_SIZE_OPTIONS
   );
-  const counts = useListCounts(getSites, SITE_COUNT_QUERIES, NO_FILTERS, sites.version);
+  const counts = useCounts(getSiteCounts, NO_FILTERS, sites.version);
   const [view, setView] = useListView('siteops.sitesView', counts.all);
   const flash = useFlashMessage();
   const deletion = useDeleteConfirmation({
