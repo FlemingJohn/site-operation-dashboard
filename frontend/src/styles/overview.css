@@ -58,6 +58,20 @@
   color: var(--color-ink);
 }
 
+.stat-icon-danger {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.stat-icon .equipment-drawing {
+  width: 22px;
+  height: 22px;
+}
+
+.stat-icon .drawing-line {
+  fill: currentColor;
+}
+
 .chart-card {
   height: 100%;
   display: flex;
