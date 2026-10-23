@@ -20,7 +20,7 @@ export const NEXT_REQUEST_STATUSES = ['ordered', 'delivered'];
 
 export const PREVIOUS_REQUEST_STATUS = { ordered: 'requested', delivered: 'ordered' };
 
-export const ACTIVITY_KINDS = ['installation', 'service', 'part', 'site', 'user'];
+export const ACTIVITY_KINDS = ['installation', 'service', 'part', 'site', 'user', 'machine'];
 
 export const ACTIVITY_PERIODS = ['7', '30'];
 
@@ -44,6 +44,9 @@ export const STATUS_LABELS = {
   requested: 'Requested',
   ordered: 'Ordered',
   delivered: 'Delivered',
+  deployed: 'Deployed',
+  in_service: 'In service',
+  in_stock: 'In stock',
 };
 
 export const CHAT_ROLES = ['user', 'assistant'];
@@ -111,6 +114,7 @@ export const MESSAGES = {
   machineHasHistory: "This machine has check-up history, so it can't be deleted.",
   partHasRequests: "This part has requests, so it can't be deleted.",
   stockBelowZero: "Stock can't go below zero.",
+  stockOverCapacity: "Stock can't be more than the shelf holds.",
   valueOutOfRange: 'One of the numbers is out of range.',
   routeNotFound: 'Route not found.',
   duplicateSite: 'A site with this name already exists.',
