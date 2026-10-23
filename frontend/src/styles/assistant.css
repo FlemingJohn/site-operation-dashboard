@@ -73,14 +73,6 @@
   display: flex;
 }
 
-.chat-row-menu-delete {
-  color: var(--color-danger);
-}
-
-.chat-row-menu-delete .MuiListItemIcon-root {
-  color: inherit;
-}
-
 .assistant-step {
   display: flex;
   align-items: center;
