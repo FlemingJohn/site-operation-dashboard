@@ -84,15 +84,16 @@ Production logs from the API: one JSON line per request with its request id, met
 ## Features
 
 - **Overview dashboard** with summary cards (a sparkline and a completion gauge), an installations-by-status donut chart, an installations chart that switches between month, site and technician, and the latest installations
-- **Sites**: list, search by name or city, filter by status and region, add, edit and delete
+- **Sites**: list, search by name or city, filter by status and region, add, edit and delete; deleting a site warns how many installations go with it and moves its machines to In stock
 - **Installations**: list, search by equipment or technician, filter by site and status, add, edit and delete
 - **Users**: list, search by name or email, filter by role, add admins and technicians with an optional phone number
 - **Machines**: cards or a table with a count per type; each machine page shows its drawing, site, next check-up, check-up history and parts asked for
 - **Service**: check-ups grouped into Needs service now, Coming up this week and Later, as a list or a month calendar, with Mark as done
 - **Spare parts**: stock levels with a reorder mark and Reorder, and a requests board (Requested, Ordered, Delivered)
 - **Map**: sites on a map beside a list, with search and filters
-- **Activity**: who changed what, grouped by day, with filters for kind, person and time
+- **Activity**: who changed what, as a timeline grouped by day with an icon per kind of change, and filters for kind, person and time
 - **Ask SiteOps**: an AI assistant in a chat window that can be resized by dragging or opened full screen. It answers from the dashboard's data, shows machines and low parts as cards (five at most, with See all), and turns "TL-88 was serviced today by Ravi" into a filled-in form that only the person can save. Chats are saved with their memory: start a new chat, pick an old one up later, rename it, delete it, or clear them all, each behind a warning
+- **Start-up card** while the free tier wakes the server, showing Server, Database and Assistant with a timer, and a waking banner in the chat while the assistant starts
 - **Filter menu** inside the search bar, with the active filters shown as removable chips
 - **Type-to-filter fields** (MUI Autocomplete) for site and technician in the installation form and the site filter
 - **Icons** in every table header and form field, and an empty state with a Clear filters button
@@ -108,7 +109,7 @@ Production logs from the API: one JSON line per request with its request id, met
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19, Vite, React Router 7, Material UI 9, MUI X Charts, Leaflet, re-resizable |
+| Frontend | React 19, Vite, React Router 7, Material UI 9, MUI X Charts, MUI X Chat, MUI Lab (Timeline), Leaflet, re-resizable, Zod |
 | Backend | Node.js 20+, Express 5, `pg`, Zod, Pino, Helmet, express-rate-limit |
 | AI service | Python 3.12, FastAPI, OpenAI Agents SDK, gpt-4o on Azure OpenAI, Pydantic |
 | Database | PostgreSQL hosted on Supabase |
@@ -128,7 +129,7 @@ Production logs from the API: one JSON line per request with its request id, met
 | **Backend:** logging | Pino with one line per request, level by status code, request ids, redacted secrets |
 | **Database:** normalized `Sites`, `Installations`, `Users` tables | Third normal form with foreign keys, check constraints and delete rules |
 | **Database:** joins, aggregations, optimized queries | Joins across all three tables, `WITH` queries, `COUNT ... FILTER`, window functions, `generate_series`; indexes on every filtered, sorted and joined column, index-friendly date ranges, SQL-side pagination and aggregation, parallel queries. See [Query optimization](docs/database.md#query-optimization) |
-| **Azure:** deployment with environment variables | Frontend on Static Web Apps, backend on App Service; all configuration through environment variables |
+| **Azure:** deployment with environment variables | Frontend on Static Web Apps, backend and AI service on one App Service plan (F1); all configuration through environment variables |
 | **API:** GET/POST for sites and installations plus a summary endpoint | `/api/sites`, `/api/installations`, `/api/summary` |
 | **Beyond the brief:** machines, check-ups, spare parts, map, activity and an AI assistant | Pages, endpoints and tables listed below; the assistant is described in [docs/ai.md](docs/ai.md) |
 | **Source control:** Git and README | This repository and README; commits follow the Conventional Commits style |
@@ -641,13 +642,13 @@ erDiagram
 | `sites` → `installations` | One-to-many, required. Deleting a site deletes its installations. |
 | `users` → `installations` | One-to-many, optional. Deleting a user keeps the installations as unassigned. |
 | `sites` ↔ `users` | Many-to-many through `installations` |
-| `sites` → `equipment` | One-to-many, optional. Deleting a site moves its machines to the warehouse. |
+| `sites` → `equipment` | One-to-many, optional. Deleting a site moves its machines to In stock, in the warehouse, so none is left Deployed with no site. |
 | `equipment` → `service_records` | One-to-many, required. A machine with check-ups cannot be deleted. |
 | `users` → `service_records` | One-to-many, optional. Deleting a technician keeps the check-ups without a name. |
 | `spare_parts` → `part_requests` | One-to-many, required. A part with requests cannot be deleted. |
 | `equipment` → `part_requests` | One-to-many, optional. A request can be for the shelf rather than a machine. |
 | `users` → `part_requests` | One-to-many, optional. Deleting a user keeps the requests without a name. |
-| `activity_log` | No foreign keys, so the history stays after a record is deleted. |
+| `activity_log` | No foreign keys, so the history stays after a record is deleted. When a site is deleted, its entries link to the Sites list instead of the deleted page. |
 | `chat_sessions` → `chat_messages` | One-to-many, required. Deleting a chat deletes its messages. Each chat belongs to one browser through `visitor_id`. |
 
 Example queries demonstrating joins and aggregations are in `database/queries`. Column rules, constraints, the `idempotency_keys` table and normalization notes are in [docs/database.md](docs/database.md).
