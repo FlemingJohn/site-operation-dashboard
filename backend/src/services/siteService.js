@@ -6,6 +6,7 @@ import { buildPagination, getOffset } from '../utils/pagination.js';
 import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
 import { withTransaction } from '../utils/withTransaction.js';
 import * as siteActivity from './siteActivity.js';
+import * as siteEquipment from './siteEquipment.js';
 
 const SITE_SELECT = `
   SELECT
@@ -15,6 +16,7 @@ const SITE_SELECT = `
     s.region,
     s.status,
     COUNT(i.id)::int AS "installationCount",
+    (SELECT COUNT(*)::int FROM equipment e WHERE e.site_id = s.id) AS "machineCount",
     s.created_at AS "createdAt",
     s.updated_at AS "updatedAt"
   FROM sites s
@@ -87,6 +89,8 @@ export const update = (id, { name, city, region, status }) =>
 export const remove = (id) =>
   withTransaction(async (client) => {
     const site = await findById(id, client);
+    await siteEquipment.moveToStock(client, id);
+    await siteActivity.unlinkSitePage(client, site);
     await client.query('DELETE FROM sites WHERE id = $1', [id]);
     await siteActivity.recordDeleted(client, site);
   });
