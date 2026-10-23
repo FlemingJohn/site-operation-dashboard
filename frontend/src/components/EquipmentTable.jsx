@@ -2,18 +2,21 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from
 import { EQUIPMENT_TYPE_LABELS } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import EmptyTableRow from './EmptyTableRow';
+import EquipmentMenu from './EquipmentMenu';
 import RowTitle from './RowTitle';
 import ServiceDueLine from './ServiceDueLine';
 import StatusChip from './StatusChip';
 import TableHeaderCell from './TableHeaderCell';
 
-const COLUMN_COUNT = 5;
+const COLUMN_COUNT = 6;
 
 const EquipmentTable = ({
   equipment,
   isLoading = false,
   emptyMessage,
   onClearFilters,
+  onMoveToStock,
+  onDelete,
   ...sortProps
 }) => (
   <TableContainer>
@@ -40,6 +43,7 @@ const EquipmentTable = ({
             icon={FIELD_ICONS.service}
             {...sortProps}
           />
+          <TableCell align="right">Actions</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -55,6 +59,14 @@ const EquipmentTable = ({
             </TableCell>
             <TableCell>
               <ServiceDueLine unit={unit} />
+            </TableCell>
+            <TableCell align="right">
+              <EquipmentMenu
+                unit={unit}
+                onMoveToStock={onMoveToStock}
+                onDelete={onDelete}
+                className="table-row-menu"
+              />
             </TableCell>
           </TableRow>
         ))}
