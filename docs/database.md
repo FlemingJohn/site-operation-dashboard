@@ -89,6 +89,7 @@ erDiagram
         integer part_id FK "NOT NULL, spare_parts.id, ON DELETE RESTRICT"
         integer equipment_id FK "NULL, equipment.id, ON DELETE SET NULL"
         integer requested_by FK "NULL, users.id, ON DELETE SET NULL"
+        varchar equipment_serial "NULL, the serial kept when the machine is deleted"
         integer quantity "more than 0"
         varchar status "requested | ordered | delivered, default requested"
         date requested_on "default CURRENT_DATE"
@@ -247,8 +248,8 @@ erDiagram
 | Delete a site | `ON DELETE CASCADE` removes its installations | An installation cannot exist without its site. The app asks for the site name before deleting a site that has installations, and suggests setting it to Inactive instead to keep the history. |
 | Delete a user | `ON DELETE SET NULL` keeps the installations as unassigned | Installation history is kept when a technician leaves. |
 | Delete a site with machines | `equipment.site_id` `ON DELETE SET NULL`, and the backend sets `status = 'in_stock'` in the same transaction | The machine still exists and shows as In stock, "In the warehouse". Without the status change it would read Deployed with no site. The delete dialog says how many machines will move. |
-| Delete a machine with check-ups | `service_records.equipment_id` `ON DELETE RESTRICT` | Check-up history cannot be lost by accident. The API answers `409`. |
-| Delete a machine with part requests | `part_requests.equipment_id` `ON DELETE SET NULL` | The request stays, for the store. |
+| Delete a machine with check-ups | `service_records.equipment_id` `ON DELETE RESTRICT` | Check-up history cannot be lost by accident. The API answers `409` before trying, and the dialog offers Move to In stock instead. |
+| Delete a machine with part requests | `part_requests.equipment_id` `ON DELETE SET NULL`, and the serial is copied to `equipment_serial` first | The request stays and reads "For BY-208, a machine since deleted" rather than "For the store". |
 | Delete a part with requests | `part_requests.part_id` `ON DELETE RESTRICT` | A request must always say which part. The API answers `409`. |
 | Delete a user who did check-ups or asked for parts | `ON DELETE SET NULL` | The records stay without a name. |
 | Delete anything | `activity_log` has no foreign keys | The history keeps the names it had, even after the record is gone. |
@@ -343,6 +344,7 @@ erDiagram
 | `id` | `SERIAL` | Primary key |
 | `part_id` | `INTEGER` | Required, references `spare_parts.id`, `RESTRICT` on delete |
 | `equipment_id` | `INTEGER` | Optional, references `equipment.id`, set to `NULL` when the machine is deleted |
+| `equipment_serial` | `VARCHAR(40)` | Empty while the machine exists. The backend copies the serial here just before deleting a machine, so the request still says which machine it was for |
 | `requested_by` | `INTEGER` | Optional, references `users.id`, set to `NULL` when the user is deleted |
 | `quantity` | `INTEGER` | More than 0 |
 | `status` | `VARCHAR(20)` | `requested`, `ordered` or `delivered`, defaults to `requested` |
@@ -354,7 +356,7 @@ erDiagram
 | Column | Type | Rules |
 |---|---|---|
 | `id` | `BIGSERIAL` | Primary key |
-| `kind` | `VARCHAR(20)` | `installation`, `service`, `part`, `site` or `user` |
+| `kind` | `VARCHAR(20)` | `installation`, `service`, `part`, `site`, `user` or `machine` |
 | `occurred_at` | `TIMESTAMPTZ` | Defaults to `NOW()` |
 | `actor_name` | `VARCHAR(100)` | Who did it, copied as text |
 | `verb`, `target_label`, `target_path`, `after_text` | `VARCHAR` | The sentence and the link, copied as text so they survive deletes |
@@ -430,7 +432,11 @@ database/
 │   ├── 006_create_idempotency_keys.sql
 │   ├── 007_enable_row_level_security.sql
 │   ├── 008_create_query_indexes.sql
-│   └── 009_add_user_phone.sql
+│   ├── 009_add_user_phone.sql
+│   ├── 010_create_equipment.sql … 015_prepare_asset_tables.sql
+│   ├── 016_create_chat_sessions.sql … 018_prepare_chat_tables.sql
+│   ├── 019_add_machine_activity_kind.sql
+│   └── 020_keep_deleted_machine_serial.sql
 ├── seeds/
 │   ├── 000_reset.sql
 │   ├── 001_users.sql
