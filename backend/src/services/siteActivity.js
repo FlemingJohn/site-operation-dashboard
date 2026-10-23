@@ -2,7 +2,17 @@ import { STATUS_LABELS } from '../constants.js';
 import { pluralize } from '../utils/pluralize.js';
 import * as activityService from './activityService.js';
 
+const SITE_LIST_PATH = '/sites';
+
 const toTarget = (site) => ({ label: site.name, path: `/sites/${site.id}` });
+
+const describeDeleted = (site) =>
+  [
+    site.installationCount > 0 && `and its ${pluralize(site.installationCount, 'installation')}`,
+    site.machineCount > 0 && `${pluralize(site.machineCount, 'machine')} moved to In stock`,
+  ]
+    .filter(Boolean)
+    .join('; ') || null;
 
 export const recordAdded = (client, site) =>
   activityService.record(client, {
@@ -28,9 +38,9 @@ export const recordDeleted = (client, site) =>
   activityService.record(client, {
     kind: 'site',
     verb: 'deleted the site',
-    target: { label: site.name, path: '/sites' },
-    after:
-      site.installationCount > 0
-        ? `and its ${pluralize(site.installationCount, 'installation')}`
-        : null,
+    target: { label: site.name, path: SITE_LIST_PATH },
+    after: describeDeleted(site),
   });
+
+export const unlinkSitePage = (client, site) =>
+  activityService.moveTargetPath(client, toTarget(site).path, SITE_LIST_PATH);
