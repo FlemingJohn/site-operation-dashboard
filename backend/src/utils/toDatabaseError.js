@@ -30,6 +30,7 @@ const MISSING_REFERENCES = {
   part_requests_requested_by_fkey: MESSAGES.missingPerson,
   service_records_equipment_id_fkey: MESSAGES.equipmentNotFound,
   service_records_technician_id_fkey: MESSAGES.missingPerson,
+  equipment_site_id_fkey: MESSAGES.siteNotFound,
 };
 
 const RESTRICTED_DELETES = {
