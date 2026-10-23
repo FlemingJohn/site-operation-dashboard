@@ -17,45 +17,6 @@
   container-name: assistant;
 }
 
-.assistant-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 8px 10px 12px;
-  background-color: var(--color-sidebar);
-  color: var(--color-white);
-}
-
-.assistant-header .MuiIconButton-root {
-  color: var(--color-sidebar-text);
-}
-
-.assistant-mark {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background-color: var(--color-primary);
-  color: var(--color-white);
-}
-
-.assistant-heading {
-  display: grid;
-  margin-right: auto;
-  min-width: 0;
-}
-
-.assistant-title {
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.assistant-status {
-  color: var(--color-sidebar-text);
-  line-height: 1.2;
-}
-
 .assistant-chat {
   flex: 1;
   min-height: 0;
@@ -83,26 +44,29 @@
 }
 
 .chat-history {
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   height: 100%;
+  box-sizing: border-box;
   padding: 12px 8px;
   background-color: var(--color-surface);
 }
 
-.chat-history-new {
-  margin-inline: 4px;
-}
-
-.chat-history-list {
-  min-height: 0;
-  overflow-y: auto;
-}
-
+.chat-history-new,
 .chat-history-clear {
-  justify-self: stretch;
+  flex-shrink: 0;
   margin-inline: 4px;
+}
+
+.chat-history > .MuiChatConversationList-scroller {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 0;
+}
+
+.chat-history .chat-history-list {
+  overflow-y: auto;
 }
 
 .chat-row-menu {
