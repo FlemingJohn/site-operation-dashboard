@@ -6,9 +6,14 @@ import DeleteDialog from './DeleteDialog';
 
 const getMessage = (site, hasInstallations) => {
   if (!site) return '';
-  if (!hasInstallations) return `${site.name} will be permanently deleted.`;
-  return `This also deletes its ${pluralize(site.installationCount, 'installation record')}. This can't be undone.`;
+  if (!hasInstallations) return `${site.name} will be permanently deleted.${describeMachines(site)}`;
+  return `This also deletes its ${pluralize(site.installationCount, 'installation record')}. This can't be undone.${describeMachines(site)}`;
 };
+
+const describeMachines = (site) =>
+  site.machineCount > 0
+    ? ` Its ${pluralize(site.machineCount, 'machine')} will move to In stock.`
+    : '';
 
 const SiteDeleteDialog = ({ site, ...dialogProps }) => {
   const hasInstallations = site?.installationCount > 0;
