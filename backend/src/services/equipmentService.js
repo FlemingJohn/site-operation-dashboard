@@ -10,6 +10,8 @@ import { countEach } from '../utils/countEach.js';
 import { HttpError } from '../utils/HttpError.js';
 import { buildPagination, getOffset } from '../utils/pagination.js';
 import { buildOrderBy, buildWhereClause, toLikePattern } from '../utils/sql.js';
+import { withTransaction } from '../utils/withTransaction.js';
+import * as equipmentActivity from './equipmentActivity.js';
 import * as partRequestService from './partRequestService.js';
 
 const SERVICE_STATE = `
@@ -36,7 +38,9 @@ const EQUIPMENT_SELECT = `
     e.next_service_on AS "nextServiceOn",
     latest.done_on AS "lastServiceOn",
     latest.technician_name AS "lastServiceBy",
-    ${SERVICE_STATE} AS "serviceState"
+    ${SERVICE_STATE} AS "serviceState",
+    (SELECT COUNT(*)::int FROM service_records c WHERE c.equipment_id = e.id) AS "serviceCount",
+    (SELECT COUNT(*)::int FROM part_requests q WHERE q.equipment_id = e.id) AS "requestCount"
   ${EQUIPMENT_FROM}
   LEFT JOIN LATERAL (
     SELECT r.done_on, u.full_name AS technician_name
@@ -104,6 +108,51 @@ export const findById = async (id) => {
   ]);
   return { ...unit, serviceRecords, partRequests };
 };
+
+const toRow = ({ serial, type, status, siteId, nextServiceOn }) => [
+  serial,
+  type,
+  status,
+  siteId,
+  nextServiceOn,
+];
+
+export const create = (machine) =>
+  withTransaction(async (client) => {
+    const { rows } = await client.query(
+      `INSERT INTO equipment (serial, type, status, site_id, next_service_on)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+      toRow(machine)
+    );
+    const unit = await findSummary(rows[0].id, client);
+    await equipmentActivity.recordAdded(client, unit);
+    return unit;
+  });
+
+export const update = (id, machine) =>
+  withTransaction(async (client) => {
+    const before = await findSummary(id, client);
+    await client.query(
+      `UPDATE equipment
+       SET serial = $1, type = $2, status = $3, site_id = $4, next_service_on = $5
+       WHERE id = $6`,
+      [...toRow(machine), id]
+    );
+    const after = await findSummary(id, client);
+    await equipmentActivity.recordChanged(client, before, after);
+    return after;
+  });
+
+export const remove = (id) =>
+  withTransaction(async (client) => {
+    const unit = await findSummary(id, client);
+    if (unit.serviceCount > 0) throw new HttpError(409, MESSAGES.machineHasHistory);
+    await partRequestService.keepMachineSerial(client, unit);
+    await equipmentActivity.unlinkMachinePage(client, unit);
+    await client.query('DELETE FROM equipment WHERE id = $1', [id]);
+    await equipmentActivity.recordDeleted(client, unit);
+  });
 
 export const countAll = async (query) => {
   const { where, values } = buildFilters({ ...query, type: undefined, state: undefined });
