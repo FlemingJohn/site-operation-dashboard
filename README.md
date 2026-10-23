@@ -9,10 +9,10 @@ A full-stack dashboard for managing operational sites, tracking equipment instal
 | Application | https://orange-pebble-001c30b00.2.azurestaticapps.net |
 | API health check | https://siteops-dashboard-fj-api.azurewebsites.net/api/health |
 | API example | https://siteops-dashboard-fj-api.azurewebsites.net/api/summary |
+| Assistant status | https://siteops-dashboard-fj-api.azurewebsites.net/api/assistant/status |
+| AI service health check | https://siteops-dashboard-fj-ai.azurewebsites.net/health |
 
-The API and the AI service run on the App Service free tier (F1), which sleeps when idle. The first visit after a quiet period shows a start-up card with the server, database and assistant waking up, usually for 10–20 seconds; the assistant can take 30–60 seconds. Later requests are fast. See [Waking up on the free tier](docs/deployment.md#waking-up-on-the-free-tier).
-
-The live demo was deployed before the Machines, Service, Spare parts, Map and Activity pages and Ask SiteOps were added; those run locally until the next deployment.
+Every page and Ask SiteOps are live. The API and the AI service run on the App Service free tier (F1), which sleeps when idle. The first visit after a quiet period shows a start-up card with the server, database and assistant waking up, usually for 10–20 seconds; the assistant can take 30–60 seconds. Later requests are fast. See [Waking up on the free tier](docs/deployment.md#waking-up-on-the-free-tier).
 
 ## Screenshots
 
@@ -52,9 +52,14 @@ Who changed what, as a timeline with an icon for each kind of change.
 ![Activity](docs/screenshots/activity.png)
 
 ### Ask SiteOps
-The AI assistant in full screen: saved chats on the left, the welcome screen with suggestions, and the input with its hint and counter.
+The AI assistant in full screen on the live site: saved chats on the left, an answer with a machine card and Mark as done, where the answer came from, and the input with its hint and counter.
 
 ![Ask SiteOps](docs/screenshots/ask-siteops.png)
+
+### Start-up card
+Shown while the free tier wakes the server: Server, Database and Assistant, each waking, waiting or ready, with a timer and progress bar. The page opens by itself when the server answers.
+
+![Start-up card](docs/screenshots/startup.png)
 
 ### Add site
 Every field starts with the same icon as its table column.
@@ -67,7 +72,7 @@ The dialog says how many installation records will also be deleted, offers Edit 
 ![Delete site confirmation](docs/screenshots/delete-site.png)
 
 ### Azure resources
-The App Service plan and the API in Southeast Asia, and the Static Web App for the frontend, all in the `rg-siteops` resource group.
+The App Service plan and the API in Southeast Asia, and the Static Web App for the frontend, all in the `rg-siteops` resource group. The AI service web app, `siteops-dashboard-fj-ai`, was added to the same plan after this screenshot was taken.
 
 ![Azure resources](docs/screenshots/azure-resources.png)
 
