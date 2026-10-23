@@ -233,6 +233,7 @@ Remove-Item dist -Recurse
 cd ..
 ```
 
+- `frontend/.env` must hold `VITE_MAP_TILE_KEY`, the CARTO Basemaps key; `npm run build` reads it from there. Without it the map shows "API key required".
 - `VITE_API_URL` is the backend address **without** `/api`. Vite writes it into the build, so the frontend must be rebuilt whenever the backend URL changes.
 - The deployment token authorises the upload. It is kept in a variable for this session only and never written to a file.
 - `staticwebapp.config.json` is part of the build and sends every route to `index.html`, so refreshing a page such as `/sites/3/edit` works.
@@ -330,5 +331,6 @@ The Supabase database is not affected.
 | Log shows `ENOENT` for `certs/supabase-ca.crt` | The certificate was not in the zip | Save it in `backend/certs/` and repeat step 6 |
 | Log shows `Cannot connect to the database` | Wrong connection string, or the Supabase project is paused | Check `DATABASE_URL`; restore the project in the Supabase dashboard |
 | Browser console shows a CORS error | `CORS_ORIGIN` does not match the frontend URL exactly | Set it to `$webUrl`, with no trailing slash |
+| The map shows "API key required" or "Access blocked" | The frontend was built without `VITE_MAP_TILE_KEY` in `frontend/.env` | Add the CARTO key and repeat step 7 |
 | Frontend calls `localhost` or shows "Cannot reach the server" | The frontend was built without `VITE_API_URL` | Repeat step 7 |
 | Refreshing a page shows 404 | `staticwebapp.config.json` missing from the build | It lives in `frontend/public`; rebuild and redeploy |
