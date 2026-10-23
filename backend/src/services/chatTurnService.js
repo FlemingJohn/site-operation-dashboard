@@ -14,6 +14,3 @@ export const finishTurn = async (sessionId, answer) => {
   await chatMessageService.add(sessionId, answer);
   await chatSessionService.touch(sessionId);
 };
-
-export const failTurn = (sessionId, message) =>
-  finishTurn(sessionId, { role: 'assistant', text: message, status: 'error' });
