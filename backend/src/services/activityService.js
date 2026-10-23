@@ -58,6 +58,12 @@ export const findPeople = async () => {
   return rows.map((row) => row.name);
 };
 
+export const moveTargetPath = (client, fromPath, toPath) =>
+  client.query('UPDATE activity_log SET target_path = $2 WHERE target_path = $1', [
+    fromPath,
+    toPath,
+  ]);
+
 export const record = (client, { kind, actorName, verb, target, after, change, note }) =>
   client.query(
     `INSERT INTO activity_log (kind, actor_name, verb, target_label, target_path, after_text, change, note)
