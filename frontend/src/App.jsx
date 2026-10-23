@@ -12,6 +12,8 @@ const UsersPage = lazy(() => import('./pages/UsersPage'));
 const UserFormPage = lazy(() => import('./pages/UserFormPage'));
 const EquipmentPage = lazy(() => import('./pages/EquipmentPage'));
 const EquipmentDetailPage = lazy(() => import('./pages/EquipmentDetailPage'));
+const EquipmentFormPage = lazy(() => import('./pages/EquipmentFormPage'));
+const SparePartFormPage = lazy(() => import('./pages/SparePartFormPage'));
 const ServicePage = lazy(() => import('./pages/ServicePage'));
 const SparePartsPage = lazy(() => import('./pages/SparePartsPage'));
 const ActivityPage = lazy(() => import('./pages/ActivityPage'));
@@ -33,8 +35,12 @@ const App = () => (
       <Route path="users/new" element={<UserFormPage />} />
       <Route path="service" element={<ServicePage />} />
       <Route path="equipment" element={<EquipmentPage />} />
+      <Route path="equipment/new" element={<EquipmentFormPage />} />
       <Route path="equipment/:id" element={<EquipmentDetailPage />} />
+      <Route path="equipment/:id/edit" element={<EquipmentFormPage />} />
       <Route path="spare-parts" element={<SparePartsPage />} />
+      <Route path="spare-parts/new" element={<SparePartFormPage />} />
+      <Route path="spare-parts/:id/edit" element={<SparePartFormPage />} />
       <Route path="map" element={<MapPage />} />
       <Route path="activity" element={<ActivityPage />} />
       <Route path="*" element={<NotFoundPage />} />
