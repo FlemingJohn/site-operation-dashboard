@@ -24,7 +24,7 @@ const PartRequestListCard = ({ requests }) => (
           >
             <ListItemText
               primary={`${request.quantity} × ${request.partName}`}
-              secondary={`Asked by ${request.requestedBy} on ${formatDate(request.requestedOn)}`}
+              secondary={`Asked by ${request.requestedBy ?? 'someone'} on ${formatDate(request.requestedOn)}`}
             />
           </ListItem>
         ))}
