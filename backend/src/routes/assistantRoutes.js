@@ -7,6 +7,8 @@ import { assistantBody } from '../validators/assistantSchemas.js';
 
 export const assistantRoutes = Router();
 
+assistantRoutes.get('/status', assistantController.status);
+
 assistantRoutes.post(
   '/',
   assistantLimit,
