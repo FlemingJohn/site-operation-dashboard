@@ -7,8 +7,16 @@ A full-stack dashboard for managing operational sites, tracking equipment instal
 | | URL |
 |---|---|
 | Application | https://orange-pebble-001c30b00.2.azurestaticapps.net |
+| Machines (add, edit, move to stock, delete) | https://orange-pebble-001c30b00.2.azurestaticapps.net/equipment |
+| Add a machine | https://orange-pebble-001c30b00.2.azurestaticapps.net/equipment/new |
+| Spare parts (add, edit, adjust stock, delete) | https://orange-pebble-001c30b00.2.azurestaticapps.net/spare-parts |
+| Add a spare part | https://orange-pebble-001c30b00.2.azurestaticapps.net/spare-parts/new |
+| Map | https://orange-pebble-001c30b00.2.azurestaticapps.net/map |
+| Activity | https://orange-pebble-001c30b00.2.azurestaticapps.net/activity |
 | API health check | https://siteops-dashboard-fj-api.azurewebsites.net/api/health |
 | API example | https://siteops-dashboard-fj-api.azurewebsites.net/api/summary |
+| API: machines | https://siteops-dashboard-fj-api.azurewebsites.net/api/equipment |
+| API: spare parts | https://siteops-dashboard-fj-api.azurewebsites.net/api/spare-parts |
 | Assistant status | https://siteops-dashboard-fj-api.azurewebsites.net/api/assistant/status |
 | AI service health check | https://siteops-dashboard-fj-ai.azurewebsites.net/health |
 
