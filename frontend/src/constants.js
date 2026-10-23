@@ -132,6 +132,7 @@ export const ACTIVITY_KINDS = [
   { value: 'part', label: 'Spare parts' },
   { value: 'site', label: 'Sites' },
   { value: 'user', label: 'Users' },
+  { value: 'machine', label: 'Machines' },
 ];
 
 export const ACTIVITY_PERIODS = [
