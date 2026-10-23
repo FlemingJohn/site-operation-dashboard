@@ -1,11 +1,13 @@
-import { Card, LinearProgress } from '@mui/material';
-import { getEquipment, getEquipmentCounts } from '../api/equipmentApi';
+import { Alert, Card, LinearProgress } from '@mui/material';
+import { deleteEquipment, getEquipment, getEquipmentCounts } from '../api/equipmentApi';
 import CardGrid from '../components/CardGrid';
 import EquipmentCard from '../components/EquipmentCard';
+import EquipmentDeleteDialog from '../components/EquipmentDeleteDialog';
 import EquipmentTable from '../components/EquipmentTable';
 import ErrorAlert from '../components/ErrorAlert';
 import ListPagination from '../components/ListPagination';
 import ListToolbar from '../components/ListToolbar';
+import SuccessSnackbar from '../components/SuccessSnackbar';
 import SummaryStrip from '../components/SummaryStrip';
 import ViewToggle from '../components/ViewToggle';
 import {
@@ -17,7 +19,10 @@ import {
 } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import { useCounts } from '../hooks/useCounts';
+import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
+import { useFlashMessage } from '../hooks/useFlashMessage';
 import { useListView } from '../hooks/useListView';
+import { useMoveToStock } from '../hooks/useMoveToStock';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 
 const INITIAL_FILTERS = { type: '', status: '' };
@@ -49,6 +54,20 @@ const EquipmentPage = () => {
   );
   const counts = useCounts(getEquipmentCounts, NO_FILTERS, equipment.version);
   const [view, setView] = useListView('siteops.equipmentView', counts.all);
+  const flash = useFlashMessage();
+  const deletion = useDeleteConfirmation({
+    deleteRequest: deleteEquipment,
+    onDeleted: (unit) => {
+      flash.showMessage(`${unit.serial} deleted`);
+      equipment.refreshAfterDelete();
+    },
+  });
+  const stock = useMoveToStock((unit) => {
+    deletion.dialogProps.onCancel();
+    flash.showMessage(`${unit.serial} moved to In stock`);
+    equipment.reload();
+  });
+  const rowActions = { onMoveToStock: stock.move, onDelete: deletion.open };
   const emptyMessage = equipment.clearFilters
     ? 'No machines match these filters.'
     : 'No machines yet.';
@@ -88,13 +107,18 @@ const EquipmentPage = () => {
       />
 
       {equipment.error && <ErrorAlert message={equipment.error} onRetry={equipment.reload} />}
+      {stock.error && (
+        <Alert severity="error" onClose={stock.clearError}>
+          {stock.error}
+        </Alert>
+      )}
 
       <Card className={view === LIST_VIEWS.cards ? 'card-list' : undefined}>
         {equipment.isLoading && <LinearProgress />}
         {view === LIST_VIEWS.cards ? (
           <CardGrid
             items={equipment.rows}
-            renderItem={(unit) => <EquipmentCard key={unit.id} unit={unit} />}
+            renderItem={(unit) => <EquipmentCard key={unit.id} unit={unit} {...rowActions} />}
             isLoading={equipment.isLoading}
             emptyMessage={emptyMessage}
             onClearFilters={equipment.clearFilters}
@@ -105,11 +129,21 @@ const EquipmentPage = () => {
             isLoading={equipment.isLoading}
             emptyMessage={emptyMessage}
             onClearFilters={equipment.clearFilters}
+            {...rowActions}
             {...equipment.sortProps}
           />
         )}
         <ListPagination label="Per page:" {...equipment.paginationProps} />
       </Card>
+
+      <EquipmentDeleteDialog
+        unit={deletion.item}
+        onMoveToStock={stock.move}
+        isMoving={stock.isMoving}
+        {...deletion.dialogProps}
+      />
+
+      <SuccessSnackbar message={flash.message} onClose={flash.clearMessage} />
     </>
   );
 };
