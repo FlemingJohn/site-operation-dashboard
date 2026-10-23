@@ -12,4 +12,7 @@
 @import './map.css';
 @import './assistant.css';
 @import './assistant-shell.css';
+@import './assistant-chat.css';
+@import './assistant-welcome.css';
+@import './assistant-composer.css';
 @import './assistant-cards.css';
