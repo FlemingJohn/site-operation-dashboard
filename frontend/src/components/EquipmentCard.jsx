@@ -3,13 +3,14 @@ import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import { EQUIPMENT_TYPE_LABELS } from '../constants';
 import { FIELD_ICONS } from '../fieldIcons';
 import EquipmentDrawing from './EquipmentDrawing';
+import EquipmentMenu from './EquipmentMenu';
 import ServiceDueLine from './ServiceDueLine';
 import StatusChip from './StatusChip';
 
 const SiteIcon = FIELD_ICONS.site;
 
-const EquipmentCard = ({ unit }) => (
-  <Card className="entity-card">
+const EquipmentCard = ({ unit, onMoveToStock, onDelete }) => (
+  <Card className="entity-card entity-card-with-menu">
     <CardActionArea
       component={RouterLink}
       to={`/equipment/${unit.id}`}
@@ -37,6 +38,12 @@ const EquipmentCard = ({ unit }) => (
         </div>
       </CardContent>
     </CardActionArea>
+    <EquipmentMenu
+      unit={unit}
+      onMoveToStock={onMoveToStock}
+      onDelete={onDelete}
+      className="entity-card-menu"
+    />
   </Card>
 );
 
