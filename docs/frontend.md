@@ -153,7 +153,7 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `SearchField` | Text field with a search icon and an optional button at the end | `ListToolbar` |
 | `FilterSelect` | Dropdown with an "All …" option and a field icon. Filters marked `searchable` use `OptionAutocomplete` instead | `ListToolbar` |
 | `DeleteDialog` | Confirmation dialog with a deleting state and an inline error. With `confirmText`, Delete stays disabled until that exact text is typed | Both list pages |
-| `SiteDeleteDialog` | Site wording for `DeleteDialog`. A site with no installations gets a plain confirmation. A site with installations says how many records will also be deleted, links to Edit so the site can be set to Inactive instead, and asks for the site name before Delete is enabled | Sites page |
+| `SiteDeleteDialog` | Site wording for `DeleteDialog`. A site with no installations gets a plain confirmation. Either way it says how many machines will move to In stock. A site with installations says how many records will also be deleted, links to Edit so the site can be set to Inactive instead, and asks for the site name before Delete is enabled | Sites page |
 | `SuccessSnackbar` | Green confirmation message at the bottom of the screen | Both list pages |
 | `ErrorAlert` | Red message with optional Retry and Back buttons | Overview, list pages, form pages |
 | `ErrorBoundary` | Replaces a crashed page with a recovery message instead of a blank screen | `Layout` |
