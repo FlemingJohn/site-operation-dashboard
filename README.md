@@ -17,14 +17,44 @@ The live demo was deployed before the Machines, Service, Spare parts, Map and Ac
 ## Screenshots
 
 ### Overview
-Summary cards with a sparkline and a completion gauge, the status donut, the installations chart (by month, site or technician) and the latest installations.
+Summary cards with a sparkline and a completion gauge, the status donut, the installations chart (by month, site or technician), the check-ups due with each machine's picture, the spare parts running low with their stock meters, and the latest installations.
 
 ![Overview page](docs/screenshots/overview.png)
 
 ### Sites
-Sortable columns with icons, status chips, installation counts, and the search bar with its filter menu.
+Count tiles with icons that filter the list, site cards (or a table) with status chips and installation counts, and the search bar with its filter menu.
 
 ![Sites list](docs/screenshots/sites.png)
+
+### Machines
+A count per machine type, then each machine with its picture, status, site and next check-up.
+
+![Machines](docs/screenshots/equipment.png)
+
+### Service
+Check-ups grouped into Needs service now, Coming up this week and Later, each machine opening from its row, with Mark as done.
+
+![Service](docs/screenshots/service.png)
+
+### Spare parts
+Stock levels with a part icon, a stock meter showing the count and the reorder level, and Reorder for parts running low.
+
+![Spare parts](docs/screenshots/spare-parts.png)
+
+### Map
+Every site on a map beside a list, coloured by status.
+
+![Map](docs/screenshots/map.png)
+
+### Activity
+Who changed what, as a timeline with an icon for each kind of change.
+
+![Activity](docs/screenshots/activity.png)
+
+### Ask SiteOps
+The AI assistant in full screen: saved chats on the left, the welcome screen with suggestions, and the input with its hint and counter.
+
+![Ask SiteOps](docs/screenshots/ask-siteops.png)
 
 ### Add site
 Every field starts with the same icon as its table column.
@@ -32,7 +62,7 @@ Every field starts with the same icon as its table column.
 ![Add site form](docs/screenshots/add-site.png)
 
 ### Delete a site with installations
-The dialog says how many installation records will also be deleted, points to Edit for marking the site inactive instead, and keeps Delete disabled until the site name is typed.
+The dialog says how many installation records will also be deleted, offers Edit site instead for marking the site inactive, and keeps Delete disabled until the site name is typed.
 
 ![Delete site confirmation](docs/screenshots/delete-site.png)
 
