@@ -47,6 +47,10 @@
   background-color: var(--color-avatar-3);
 }
 
+.activity-dot-machine {
+  background-color: var(--color-avatar-6);
+}
+
 .activity-connector {
   background-color: var(--color-border);
 }
