@@ -47,8 +47,8 @@ export const getErrorMessage = (response, data) => {
 };
 
 export const sendRequest = async (url, options, timeoutMs = REQUEST_TIMEOUT_MS) => {
-  const timeout = AbortSignal.timeout(timeoutMs);
-  const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
+  const signals = [options.signal, timeoutMs && AbortSignal.timeout(timeoutMs)].filter(Boolean);
+  const signal = signals.length > 0 ? AbortSignal.any(signals) : undefined;
   try {
     return await fetch(url, { ...options, signal });
   } catch (error) {
@@ -66,13 +66,17 @@ export const buildHeaders = ({ body, idempotencyKey, visitorId }) => ({
 
 export const request = async (
   path,
-  { method = 'GET', body, params, idempotencyKey, visitorId } = {}
+  { method = 'GET', body, params, idempotencyKey, visitorId, timeoutMs } = {}
 ) => {
-  const response = await sendRequest(`${API_BASE_URL}/api${path}${buildQueryString(params)}`, {
-    method,
-    headers: buildHeaders({ body, idempotencyKey, visitorId }),
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const response = await sendRequest(
+    `${API_BASE_URL}/api${path}${buildQueryString(params)}`,
+    {
+      method,
+      headers: buildHeaders({ body, idempotencyKey, visitorId }),
+      body: body ? JSON.stringify(body) : undefined,
+    },
+    timeoutMs
+  );
 
   if (response.status === 204) return null;
 
