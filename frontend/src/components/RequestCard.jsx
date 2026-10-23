@@ -5,10 +5,12 @@ import CardIcon from './CardIcon';
 
 const NEXT_STEP_LABELS = { requested: 'Mark as ordered', ordered: 'Mark as delivered' };
 
-const describeRequestFor = (request) =>
-  request.serial
+const describeRequestFor = (request) => {
+  if (request.isForDeletedMachine) return `For ${request.serial}, a machine since deleted`;
+  return request.serial
     ? `For ${request.serial} at ${request.siteName ?? 'the warehouse'}`
     : 'For the store';
+};
 
 const RequestCard = ({ request, isMoving, onMove }) => (
   <Card variant="outlined" className="request-card">
