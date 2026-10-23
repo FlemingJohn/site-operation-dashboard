@@ -246,12 +246,13 @@ erDiagram
 |---|---|---|
 | Delete a site | `ON DELETE CASCADE` removes its installations | An installation cannot exist without its site. The app asks for the site name before deleting a site that has installations, and suggests setting it to Inactive instead to keep the history. |
 | Delete a user | `ON DELETE SET NULL` keeps the installations as unassigned | Installation history is kept when a technician leaves. |
-| Delete a site with machines | `equipment.site_id` `ON DELETE SET NULL` | The machine still exists; it shows as "In the warehouse". |
+| Delete a site with machines | `equipment.site_id` `ON DELETE SET NULL`, and the backend sets `status = 'in_stock'` in the same transaction | The machine still exists and shows as In stock, "In the warehouse". Without the status change it would read Deployed with no site. The delete dialog says how many machines will move. |
 | Delete a machine with check-ups | `service_records.equipment_id` `ON DELETE RESTRICT` | Check-up history cannot be lost by accident. The API answers `409`. |
 | Delete a machine with part requests | `part_requests.equipment_id` `ON DELETE SET NULL` | The request stays, for the store. |
 | Delete a part with requests | `part_requests.part_id` `ON DELETE RESTRICT` | A request must always say which part. The API answers `409`. |
 | Delete a user who did check-ups or asked for parts | `ON DELETE SET NULL` | The records stay without a name. |
-| Delete anything | `activity_log` has no foreign keys | The history keeps the name and link it had, even after the record is gone. |
+| Delete anything | `activity_log` has no foreign keys | The history keeps the names it had, even after the record is gone. |
+| Delete a site, its activity links | The backend points entries for `/sites/<id>` at `/sites` | The entries stay, and their chips open the Sites list instead of a page that no longer exists. |
 
 ## Tables
 
