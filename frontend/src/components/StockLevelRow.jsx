@@ -1,10 +1,11 @@
 import { Button, Typography } from '@mui/material';
 import { STATE_ICONS } from '../stateIcons';
 import CardIcon from './CardIcon';
+import SparePartMenu from './SparePartMenu';
 import StatusChip from './StatusChip';
 import StockMeter from './StockMeter';
 
-const StockLevelRow = ({ part, onReorder }) => (
+const StockLevelRow = ({ part, onReorder, onAdjust, onDelete }) => (
   <li className="stock-row">
     <CardIcon {...STATE_ICONS.stock[part.stockLevel]} />
     <div className="stock-row-text">
@@ -23,6 +24,7 @@ const StockLevelRow = ({ part, onReorder }) => (
           Reorder
         </Button>
       )}
+      {onAdjust && <SparePartMenu part={part} onAdjust={onAdjust} onDelete={onDelete} />}
     </div>
   </li>
 );
