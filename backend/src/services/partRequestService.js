@@ -20,7 +20,8 @@ const REQUEST_SELECT = `
     pr.part_id AS "partId",
     p.name AS "partName",
     pr.equipment_id AS "equipmentId",
-    e.serial,
+    COALESCE(e.serial, pr.equipment_serial) AS serial,
+    (pr.equipment_id IS NULL AND pr.equipment_serial IS NOT NULL) AS "isForDeletedMachine",
     s.name AS "siteName",
     pr.quantity,
     pr.status,
@@ -36,7 +37,7 @@ const buildFilters = ({ search, status }) =>
     {
       value: search && toLikePattern(search),
       clause: (param) =>
-        `(p.name ILIKE ${param} OR e.serial ILIKE ${param} OR s.name ILIKE ${param})`,
+        `(p.name ILIKE ${param} OR COALESCE(e.serial, pr.equipment_serial) ILIKE ${param} OR s.name ILIKE ${param})`,
     },
     { value: status, clause: (param) => `pr.status = ${param}` },
   ]);
@@ -74,8 +75,16 @@ export const findById = async (id, executor = pool) => {
   return rows[0];
 };
 
-const describeRequestFor = (request) =>
-  request.serial ? `for ${request.serial}` : 'for the store';
+export const keepMachineSerial = (client, unit) =>
+  client.query('UPDATE part_requests SET equipment_serial = $2 WHERE equipment_id = $1', [
+    unit.id,
+    unit.serial,
+  ]);
+
+const describeRequestFor = (request) => {
+  if (request.isForDeletedMachine) return `for ${request.serial}, since deleted`;
+  return request.serial ? `for ${request.serial}` : 'for the store';
+};
 
 const recordRequestEvent = (client, request, verb, after) =>
   activityService.record(client, {
