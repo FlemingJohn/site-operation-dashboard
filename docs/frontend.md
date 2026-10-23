@@ -186,6 +186,9 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `AskSiteOps` | Round button at the bottom right of every page, with a dot when an answer arrived while the window was closed. Opens the window |
 | `AssistantWindow` | MUI X Chat's `ChatBox` with our parts in its slots: header, chat list, welcome screen, input and answer parts. Close keeps everything. Full screen on phones. Escape leaves full screen first, then closes |
 | `ChatHeader`, `ChatHeaderMark`, `ChatHeaderSubtitle`, `ChatHeaderActions` | The one navy header: the sparkle with a green ready dot or an amber spinner while answering, the chat's name, "Ask SiteOps · answers from your dashboard" or "answering…", and New chat, Full screen and Close. MUI adds ☰ or a back arrow when the chat list is hidden |
+| `ServerStartup`, `StartupCard`, `StartupFailedCard`, `StartupStatusRow` | Wraps every page: when the server has not answered after 2 s, a card shows Server, Database and Assistant waking, waiting or ready, with a timer and progress bar; the page opens when the server answers, and after 90 s it offers Try again |
+| `AssistantStatusProvider` | Asks `/api/assistant/status` when the app opens and again when the chat opens, and keeps asking every second while the assistant is waking |
+| `ChatWakeBanner` | Under the chat header while the assistant wakes or does not answer |
 | `ChatWelcome` | An empty chat: the sparkle, "What would you like to know?" and the four suggestions from `assistantSuggestions.js` as cards with icons; a card asks its question |
 | `ChatComposerInput`, `ChatSendButton`, `ChatComposerHint` | The input: a question icon, a box of up to five lines, a teal Send that turns into Stop while answering, and "Enter to send · Shift + Enter for a new line" with a 0 / 300 counter that turns red near the limit |
 | `ChatRowIcon`, `ChatRowTitle` | Each saved chat in the list: a chat icon, its name, and its time (or Yesterday, or the date) with the message count |
@@ -223,6 +226,9 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `useLoadMore(fetchList, params, pageSize)` | One server list that grows a page at a time; starts again when `params` change | `items`, `total`, `isLoading`, `error`, `hasMore`, `loadMore` |
 | `useDebouncedValue(value)` | The value 300 ms after it stops changing | The settled value |
 | `useChatSessions()` | The saved chats, the open chat, and new, rename, delete and clear all | `conversations`, `savedConversations`, `activeId`, `selectChat`, `startNewChat`, `renameChat`, `deleteChat`, `clearAllChats` |
+| `useServerStartup()` | Waits for `/api/health`, retrying every 2 s for up to 90 s | `phase` (`checking`, `waking`, `ready`, `failed`), `database`, `startedAt`, `retry` |
+| `useAssistantStatus()` | The assistant's state from `AssistantStatusProvider` | `status` (`checking`, `waking`, `ready`, `down`, `off`), `since`, `recheck` |
+| `useElapsedSeconds(startedAt, isRunning)` | Seconds since a moment, ticking every second | A number |
 | `useChatHistoryActions(chat, showMessage)` | Which warning is open, and running the action behind it | `startRename`, `startDelete`, `startClear`, `confirmDelete`, `confirmClear` |
 | `useAssistantSize()` | The chat window size, kept between 360×480 and 90% of the screen and remembered in the browser | `size`, `saveSize`, `resetSize` |
 
