@@ -93,8 +93,12 @@ Components never call the API, and the API layer never touches the UI. Each laye
 | `/users/new` | `UserFormPage` | Create a user |
 | `/service` | `ServicePage` | Check-ups grouped into Needs service now, Coming up this week and Later, as a list or a month calendar, with Mark as done |
 | `/equipment` | `EquipmentPage` | Machines as cards or a table, with a count per type, search, filters and pagination |
-| `/equipment/:id` | `EquipmentDetailPage` | One machine: drawing, site, next check-up, check-up history, parts asked for, history and Mark check-up as done |
-| `/spare-parts` | `SparePartsPage` | Stock levels with a reorder mark and Reorder, or the requests board (Requested, Ordered, Delivered) |
+| `/equipment/new` | `EquipmentFormPage` | Add a machine |
+| `/equipment/:id` | `EquipmentDetailPage` | One machine: drawing, site, next check-up, check-up history, parts asked for, history, Mark check-up as done, Edit and Delete |
+| `/equipment/:id/edit` | `EquipmentFormPage` | Edit a machine |
+| `/spare-parts` | `SparePartsPage` | Stock levels with a reorder mark, Reorder and a ⋯ menu (Adjust stock, Edit, Delete), or the requests board (Requested, Ordered, Delivered) |
+| `/spare-parts/new` | `SparePartFormPage` | Add a spare part |
+| `/spare-parts/:id/edit` | `SparePartFormPage` | Edit a spare part |
 | `/map` | `MapPage` | Sites on a map beside a list, with search and filters |
 | `/activity` | `ActivityPage` | Who changed what, grouped by day, with search and filters for kind, person and time |
 | any other URL | `NotFoundPage` | "Page not found" with a link back |
@@ -113,9 +117,11 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `UsersPage` | `usePaginatedList`, `useFlashMessage`, `UserTable` | Searchable, filterable, sortable, paginated users |
 | `UserFormPage` | `useEntityForm` | Full name, email, phone and role fields |
 | `ServicePage` | `useListCounts`, `useDebouncedValue`, `ServiceGroup`, `ServiceCalendar`, `MarkDoneDialog` | Machines due a check-up, most urgent first. Each group asks the server for its own state, 8 at a time, with Show more. Later is folded away. The calendar asks only for the month it shows |
-| `EquipmentPage` | `usePaginatedList`, `useListCounts`, `EquipmentCard`, `EquipmentTable` | Machines by type, with the next check-up on every card and row |
-| `EquipmentDetailPage` | `useRecord`, `EquipmentDetailHeader`, `ServiceHistoryCard`, `PartRequestListCard`, `HistoryCard` | One machine and everything done to it |
+| `EquipmentPage` | `usePaginatedList`, `useListCounts`, `useDeleteConfirmation`, `useMoveToStock`, `EquipmentCard`, `EquipmentTable` | Machines by type, with the next check-up on every card and row and a ⋯ menu on each: Edit, Move to In stock, Delete |
+| `EquipmentFormPage` | `useEntityForm`, `useSiteOptions`, `EquipmentFields` | Serial, type, status, site and next check-up (90 days from today by default). Choosing In stock clears the site and locks it, so a machine is never Deployed with no site |
+| `EquipmentDetailPage` | `useRecord`, `EquipmentDetailHeader`, `EquipmentDetailActions`, `ServiceHistoryCard`, `PartRequestListCard`, `HistoryCard` | One machine and everything done to it, with Mark check-up as done, Edit and Delete |
 | `SparePartsPage` | `StockPanel`, `PartRequestsPanel` | Stock or Requests, picked with a toggle that is remembered |
+| `SparePartFormPage` | `useEntityForm`, `SparePartFields` | Part name, stock now, reorder level and shelf capacity, with the shelf limits checked before saving |
 | `MapPage` | `usePaginatedList`, `SiteMap`, `MapSiteList` | Real sites placed by city. Picking one in the list flies the map to it and opens its popup with Open site |
 | `ActivityPage` | `usePaginatedList`, `ListToolbar`, `ActivityList` | 20 events a page, grouped under Today, Yesterday or the date |
 | `NotFoundPage` | — | Message and a link to the Overview |
@@ -152,7 +158,9 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `ListToolbar` | Search bar with a filter button inside it. The button opens a `Popover` of filters, shows a `Badge` with the number of active filters, and each active filter appears as a removable `Chip` under the bar. "Clear all" resets the filters and keeps the search text | All list pages |
 | `SearchField` | Text field with a search icon and an optional button at the end | `ListToolbar` |
 | `FilterSelect` | Dropdown with an "All …" option and a field icon. Filters marked `searchable` use `OptionAutocomplete` instead | `ListToolbar` |
-| `DeleteDialog` | Confirmation dialog with a deleting state and an inline error. With `confirmText`, Delete stays disabled until that exact text is typed | Both list pages |
+| `DeleteDialog` | Confirmation dialog with a deleting state and an inline error. With `confirmText`, Delete stays disabled until that exact text is typed. With `canDelete={false}` it only explains why the record can't be deleted, with a Close button | All delete dialogs |
+| `FormActions` | Cancel and Save buttons at the end of a form, with the saving state | Machine and spare part forms |
+| `ChoiceField` | Required dropdown with a field icon, wired to `useEntityForm` | Machine form |
 | `SiteDeleteDialog` | Site wording for `DeleteDialog`. A site with no installations gets a plain confirmation. Either way it says how many machines will move to In stock. A site with installations says how many records will also be deleted, links to Edit so the site can be set to Inactive instead, and asks for the site name before Delete is enabled | Sites page |
 | `SuccessSnackbar` | Green confirmation message at the bottom of the screen | Both list pages |
 | `ErrorAlert` | Red message with optional Retry and Back buttons | Overview, list pages, form pages |
@@ -164,14 +172,21 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 |---|---|---|
 | `EquipmentDrawing` | Picks `BladeYokeDrawing`, `TowerGripperDrawing`, `TaglineSystemDrawing` or `MobileRobotDrawing`. Each is a small inline SVG whose parts are coloured by CSS classes from the tokens | Equipment, Service |
 | `HealthRing` / `ServiceDueLine` | A ring that empties as a check-up gets closer, with the due date in words, such as "Check-up was due on 03 Oct 2026, 19 days ago" | Equipment, Service, Overview |
-| `EquipmentCard` / `EquipmentTable` | One machine as a card or a table row | Equipment |
-| `EquipmentDetailHeader` | Drawing, name, status, site link, next check-up and an action button | Machine page |
+| `EquipmentCard` / `EquipmentTable` | One machine as a card or a table row, each with `EquipmentMenu` | Equipment |
+| `EquipmentMenu` | ⋯ button with Edit, Move to In stock (hidden when already in stock) and Delete | Machine cards and table rows |
+| `EquipmentFields` | The machine form's fields; picking In stock clears and locks Site | Machine form |
+| `EquipmentDeleteDialog` | A machine with no check-ups gets a plain confirmation, plus a note when part requests will keep its serial. A machine with check-ups can't be deleted: the dialog says how many and offers Move to In stock | Equipment, Machine page |
+| `EquipmentDetailHeader` / `EquipmentDetailActions` | Drawing, name, status, site link, next check-up, and the Mark check-up as done, Edit and Delete buttons | Machine page |
+| `SparePartFields` | Part name and the three counts, each with a hint | Spare part form |
+| `SparePartMenu` | ⋯ button with Adjust stock, Edit and Delete | Stock rows |
+| `StockDialog` / `StockStepper` | Set the stock after a count with − and +, between 0 and the shelf capacity. The stock meter and status chip preview the new level; an optional reason goes into Activity | Spare parts |
+| `SparePartDeleteDialog` | A part with no requests gets a plain confirmation; a part with requests can't be deleted and the dialog says how many | Spare parts |
 | `ServiceHistoryCard` / `PartRequestListCard` | Check-ups done and parts asked for on one machine | Machine page |
 | `ServiceItem` / `ServiceGroup` | One machine due a check-up; a titled group of them that can be folded | Service |
 | `ServiceCalendar` | Month grid with each machine on its due date, coloured by urgency, with Previous, Next and This month | Service |
 | `MarkDoneDialog` | `MarkDoneForm` in a dialog: date, technician and notes; shows the next check-up date before saving | Service, Machine page |
 | `TechnicianSelect` | Dropdown of technicians | Check-up and reorder dialogs |
-| `StockPanel` / `StockLevelRow` / `StockBar` | Parts with a bar to the shelf capacity, a line at the reorder level and Reorder when low | Spare parts, Overview |
+| `StockPanel` / `StockLevelRow` / `StockBar` | Parts with a bar to the shelf capacity, a line at the reorder level, Reorder when low and, on the Spare parts page, the ⋯ menu | Spare parts, Overview |
 | `ReorderDialog` | `ReorderForm` in a dialog: how many and who asked | Spare parts |
 | `PartRequestsPanel` / `RequestBoard` / `RequestColumn` / `RequestCard` | Three columns of requests; a card moves forward with Mark as ordered or Mark as delivered. Each column shows 8 and then Show more | Spare parts |
 | `ServiceDueCard` / `LowStockCard` | The four most urgent check-ups and the four lowest parts | Overview |
@@ -214,6 +229,7 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | `usePaginatedList(fetchList, initialFilters, initialSort)` | Search text, filters, sort column and direction, page, page size, rows, loading and error state | `rows`, `filters`, `searchInput`, `setSearchInput`, `updateFilter`, `clearFilters` (only while a search or filter is active), `paginationProps`, `sortProps`, `reload`, `refreshAfterDelete` |
 | `useEntityForm(options)` | Form values, field errors, load and submit state, the idempotency key | `values`, `errors`, `isEditing`, `isLoading`, `loadError`, `submitError`, `isSubmitting`, `setFieldValue`, `handleChange`, `handleSubmit` |
 | `useDeleteConfirmation({ deleteRequest, onDeleted })` | The item being deleted, deleting state, error | `item`, `open`, `dialogProps` |
+| `useMoveToStock(onMoved)` | Moves a machine to In stock with no site, through `PUT /equipment/:id` | `move`, `isMoving`, `error`, `clearError` |
 | `useFlashMessage()` | A success message passed from another page | `message`, `showMessage`, `clearMessage` |
 | `useStoredFlag(key)` | A true/false value kept in `localStorage`; falls back to `false` when storage is unavailable | `[value, toggle]` |
 | `useStoredChoice(key)` | A text value kept in `localStorage` | `[choice, setChoice]` |
@@ -297,9 +313,9 @@ The Assets pages read the API like every other page:
 
 | Module | Endpoints |
 |---|---|
-| `equipmentApi` | `GET /equipment`, `GET /equipment/:id` |
+| `equipmentApi` | `GET /equipment`, `GET /equipment/:id`, `POST /equipment` with an `Idempotency-Key`, `PUT /equipment/:id`, `DELETE /equipment/:id` |
 | `serviceApi` | `GET /equipment` sorted by next check-up, `POST /equipment/:id/service-records` with an `Idempotency-Key` |
-| `sparePartsApi` | `GET /spare-parts`, `GET /part-requests`, `POST /part-requests` with an `Idempotency-Key`, `PATCH /part-requests/:id` |
+| `sparePartsApi` | `GET /spare-parts`, `GET /spare-parts/:id`, `POST /spare-parts` with an `Idempotency-Key`, `PUT /spare-parts/:id`, `PATCH /spare-parts/:id/stock`, `DELETE /spare-parts/:id`, `GET /part-requests`, `POST /part-requests` with an `Idempotency-Key`, `PATCH /part-requests/:id` |
 | `activityApi` | `GET /activity`, `GET /activity/people` |
 
 | Behaviour | Detail |
