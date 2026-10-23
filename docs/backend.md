@@ -129,8 +129,16 @@ flowchart LR
 | GET | `/api/sites/counts`, `/api/installations/counts`, `/api/users/counts`, `/api/equipment/counts`, `/api/spare-parts/counts` | Every summary count for a list in one query | 200 |
 | GET | `/api/equipment` | Paginated list of machines with their next check-up | 200 |
 | GET | `/api/equipment/:id` | One machine with its check-ups and part requests | 200 |
+| POST | `/api/equipment` | Add a machine | 201 |
+| PUT | `/api/equipment/:id` | Replace a machine's details, including moving it to In stock | 200 |
+| DELETE | `/api/equipment/:id` | Delete a machine with no check-ups; its part requests keep its serial | 204 |
 | POST | `/api/equipment/:id/service-records` | Record a check-up and move the next date 90 days on | 201 |
 | GET | `/api/spare-parts` | Paginated list of parts, lowest stock first | 200 |
+| GET | `/api/spare-parts/:id` | One part | 200 |
+| POST | `/api/spare-parts` | Add a part | 201 |
+| PUT | `/api/spare-parts/:id` | Replace a part's name, stock, reorder level and shelf capacity | 200 |
+| PATCH | `/api/spare-parts/:id/stock` | Set the stock after a count, with an optional reason | 200 |
+| DELETE | `/api/spare-parts/:id` | Delete a part with no requests | 204 |
 | GET | `/api/part-requests` | Paginated list of part requests, newest first | 200 |
 | POST | `/api/part-requests` | Ask for a part | 201 |
 | PATCH | `/api/part-requests/:id` | Move a request to `ordered` or `delivered` | 200 |
@@ -404,8 +412,13 @@ Responds `201` with the created user. Responds `409` if the email is already use
 | Endpoint | Query or body | Notes |
 |---|---|---|
 | `GET /api/equipment` | `page`, `limit`, `search` (serial or site), `type`, `status`, `siteId`, `state` (`late`, `this_week`, `later`), `dueFrom`, `dueTo`, `sortBy` (`serial`, `type`, `siteName`, `status`, `nextServiceOn`), `order` | Each row has `serviceState`, worked out in SQL from `next_service_on`, and the latest check-up date and technician. The Service page asks for one `state` at a time; the calendar asks for one month with `dueFrom` and `dueTo` |
+| `POST /api/equipment`, `PUT /api/equipment/:id` | `{ serial, type, status, siteId, nextServiceOn }` | `serial` up to 40 characters and unique (`409` on the field otherwise). `status` defaults to `in_stock`. A deployed or in-service machine needs `siteId`; an in-stock one must not have one, so a machine is never Deployed with no site. `POST` needs an `Idempotency-Key`. Each change writes a `machine` activity row |
+| `DELETE /api/equipment/:id` | | Refused with `409` if the machine has check-ups, so its history is never lost; the app offers Move to In stock instead. Otherwise one transaction copies the serial onto its part requests (`equipment_serial`), points its activity links at `/equipment`, deletes it and writes the activity row |
 | `POST /api/equipment/:id/service-records` | `{ doneOn, technicianId, notes }` | `doneOn` cannot be in the future. Runs in one transaction: locks the machine, saves the check-up, sets `next_service_on` to `doneOn + 90`, writes the activity row. Needs an `Idempotency-Key` |
-| `GET /api/spare-parts` | `page`, `limit`, `search`, `stockLevel` (`out`, `low`, `stocked`) | `stockLevel` is worked out in SQL from `stock` and `reorder_at` |
+| `GET /api/spare-parts` | `page`, `limit`, `search`, `stockLevel` (`out`, `low`, `stocked`) | `stockLevel` is worked out in SQL from `stock` and `reorder_at`. Each row has `requestCount`, used by the delete dialog |
+| `POST /api/spare-parts`, `PUT /api/spare-parts/:id` | `{ name, stock, reorderAt, capacity }` | `name` up to 120 characters and unique. Whole numbers: `stock` and `reorderAt` 0 or more, `capacity` 1 or more. `stock` cannot be more than `capacity`, and `reorderAt` must be below it. `POST` needs an `Idempotency-Key` |
+| `PATCH /api/spare-parts/:id/stock` | `{ stock, reason? }` | Locks the row, refuses a count above the shelf capacity, and writes "set the stock of … from 2 to 5" with the reason as the note |
+| `DELETE /api/spare-parts/:id` | | Refused with `409` if any request uses the part, because a request must always say which part it was for |
 | `GET /api/part-requests` | `page`, `limit`, `search` (part, serial or site), `status` | The board asks for one `status` per column, 8 at a time |
 | `POST /api/part-requests` | `{ partId, equipmentId?, requestedBy, quantity }` | `quantity` is 1 to 1000. Needs an `Idempotency-Key` |
 | `PATCH /api/part-requests/:id` | `{ status }`, `ordered` or `delivered` | Sends the status to move to, not "next". The update only matches the step before it, so a double click changes nothing and a request cannot skip a step. Delivered adds the quantity to the stock, up to the shelf capacity |
@@ -436,8 +449,10 @@ Every write adds one row to `activity_log` inside the same transaction as the ch
 | User added | "added Priya Nair as a technician" |
 | Check-up recorded | "Ravi Kumar recorded a check-up on Blade Yoke BY-204 at Chennai Plant" |
 | Part asked for or moved | "Anita Sharma asked for 2 × Sensor kit for MR-3", "marked as delivered" |
+| Machine added, edited, moved, deleted (kind `machine`) | "added the machine Blade Yoke BY-208 at Chennai Plant", "set Blade Yoke BY-204 to In stock, in the warehouse" |
+| Part added, edited, counted, deleted | "added the part Winch drum bearing with 3 in stock", "set the stock of Sensor kit from 1 to 4" with the reason as a note |
 
-The wording lives in `services/siteActivity.js` and `services/installationActivity.js` and in the asset services. There is no sign-in yet, so changes to sites, installations and users have no person; check-ups and part requests name the technician who did them.
+The wording lives in `services/siteActivity.js`, `services/installationActivity.js`, `services/equipmentActivity.js`, `services/sparePartActivity.js` and the other asset services. There is no sign-in yet, so changes to sites, installations, users, machines and parts have no person; check-ups and part requests name the technician who did them.
 
 ### Ask SiteOps
 
@@ -589,7 +604,7 @@ The key is reserved with `INSERT ... ON CONFLICT (key) DO NOTHING`. Only one of 
 
 ### Where it applies
 
-The `idempotency` middleware is attached to `POST /api/sites`, `POST /api/installations`, `POST /api/users`, `POST /api/equipment/:id/service-records` and `POST /api/part-requests`. The frontend generates the key with `crypto.randomUUID()` when a form or dialog opens and sends the same key for every submit of it, so a retried submit is recognised as the same request. `PATCH /api/part-requests/:id` needs no key because it names the status to move to.
+The `idempotency` middleware is attached to `POST /api/sites`, `POST /api/installations`, `POST /api/users`, `POST /api/equipment`, `POST /api/equipment/:id/service-records`, `POST /api/spare-parts` and `POST /api/part-requests`. The frontend generates the key with `crypto.randomUUID()` when a form or dialog opens and sends the same key for every submit of it, so a retried submit is recognised as the same request. `PATCH /api/part-requests/:id` needs no key because it names the status to move to.
 
 ### Database scripts
 
