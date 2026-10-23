@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { Card, LinearProgress } from '@mui/material';
-import { getSparePartCounts, getSpareParts } from '../api/sparePartsApi';
+import { deleteSparePart, getSparePartCounts, getSpareParts } from '../api/sparePartsApi';
 import { STOCK_LEVELS } from '../constants';
 import { useCounts } from '../hooks/useCounts';
+import { useDeleteConfirmation } from '../hooks/useDeleteConfirmation';
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import EmptyState from './EmptyState';
 import ErrorAlert from './ErrorAlert';
 import ListPagination from './ListPagination';
 import ReorderDialog from './ReorderDialog';
 import SearchField from './SearchField';
+import SparePartDeleteDialog from './SparePartDeleteDialog';
+import StockDialog from './StockDialog';
 import StockLevelRow from './StockLevelRow';
 import SummaryStrip from './SummaryStrip';
 
@@ -18,12 +21,26 @@ const NO_FILTERS = {};
 
 const StockPanel = ({ onChange }) => {
   const parts = usePaginatedList(getSpareParts, INITIAL_FILTERS, NO_SORT);
-  const counts = useCounts(getSparePartCounts, NO_FILTERS);
+  const counts = useCounts(getSparePartCounts, NO_FILTERS, parts.version);
   const [reorderPart, setReorderPart] = useState(null);
+  const [adjustPart, setAdjustPart] = useState(null);
+  const deletion = useDeleteConfirmation({
+    deleteRequest: deleteSparePart,
+    onDeleted: (part) => {
+      onChange(`${part.name} deleted`);
+      parts.refreshAfterDelete();
+    },
+  });
 
-  const handleSaved = (part) => {
+  const handleReordered = (part) => {
     setReorderPart(null);
     onChange(`Request for ${part.name} sent`);
+  };
+
+  const handleAdjusted = (part, previousStock) => {
+    setAdjustPart(null);
+    onChange(`${part.name} stock set from ${previousStock} to ${part.stock}`);
+    parts.reload();
   };
 
   return (
@@ -58,7 +75,13 @@ const StockPanel = ({ onChange }) => {
         ) : (
           <ul className="stock-list">
             {parts.rows.map((part) => (
-              <StockLevelRow key={part.id} part={part} onReorder={setReorderPart} />
+              <StockLevelRow
+                key={part.id}
+                part={part}
+                onReorder={setReorderPart}
+                onAdjust={setAdjustPart}
+                onDelete={deletion.open}
+              />
             ))}
           </ul>
         )}
@@ -69,9 +92,17 @@ const StockPanel = ({ onChange }) => {
         <ReorderDialog
           part={reorderPart}
           onClose={() => setReorderPart(null)}
-          onSaved={handleSaved}
+          onSaved={handleReordered}
         />
       )}
+      {adjustPart && (
+        <StockDialog
+          part={adjustPart}
+          onClose={() => setAdjustPart(null)}
+          onSaved={handleAdjusted}
+        />
+      )}
+      <SparePartDeleteDialog part={deletion.item} {...deletion.dialogProps} />
     </>
   );
 };
