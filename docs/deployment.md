@@ -187,7 +187,9 @@ The Python AI service runs as a second web app on the **same App Service plan**,
 
 ```powershell
 $ai = "siteops-dashboard-fj-ai"
-$serviceKey = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+$keyBytes = [byte[]]::new(32)
+[Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($keyBytes)
+$serviceKey = -join ($keyBytes | ForEach-Object { $_.ToString("x2") })
 
 az webapp create --name $ai --resource-group $resourceGroup --plan $plan --runtime "PYTHON:3.12"
 
