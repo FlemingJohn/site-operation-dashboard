@@ -50,7 +50,7 @@ $plan = "plan-siteops"
 $api = "siteops-api-<your-name>"
 $web = "siteops-web-<your-name>"
 $webLocation = "eastasia"
-$sku = "B1"
+$sku = "F1"
 ```
 
 | Variable | Meaning |
@@ -61,7 +61,7 @@ $sku = "B1"
 | `$api` | The backend app; becomes `https://<name>.azurewebsites.net` |
 | `$web` | The frontend app |
 | `$webLocation` | Static Web Apps is offered in a few regions only; East Asia is the closest. The files are served from a global network, so the region matters little |
-| `$sku` | App Service tier: `B1` or `F1` (see [Cost](#cost)) |
+| `$sku` | App Service tier: `F1` (free, used here) or `B1` (see [Cost](#cost)) |
 
 ## 3. Create the resources
 
@@ -183,7 +183,7 @@ Expected result: `status: ok`, `database: connected`. The first request after a 
 
 ## 6b. Deploy the AI service
 
-The Python AI service runs as a second web app on the **same App Service plan**, so it adds no hosting cost on B1.
+The Python AI service runs as a second web app on the **same App Service plan**, so it adds no hosting cost: on F1 both apps are free. It runs one worker (`-w 1`), which is enough for its async code and keeps its memory and CPU use low on the free tier.
 
 ```powershell
 $ai = "siteops-dashboard-fj-ai"
@@ -200,7 +200,7 @@ az webapp config appsettings set --name $ai --resource-group $resourceGroup --ou
   SCM_DO_BUILD_DURING_DEPLOYMENT=true
 
 az webapp config set --name $ai --resource-group $resourceGroup --output none `
-  --startup-file "gunicorn --chdir src -k uvicorn.workers.UvicornWorker --timeout 120 siteops_ai.main:app"
+  --startup-file "gunicorn --chdir src -k uvicorn.workers.UvicornWorker -w 1 --timeout 120 siteops_ai.main:app"
 
 tar -a -c -f ai.zip -C ai src requirements.txt
 az webapp deploy --name $ai --resource-group $resourceGroup --src-path ai.zip --type zip
@@ -282,7 +282,28 @@ The app restarts automatically after a settings change.
 | App Service | B1 Basic | About US $13 per month | Always available, no daily limit, health checks fully supported |
 | Supabase | Free | $0 | Pauses after 7 days without activity |
 
-To use the free tier, set `$sku = "F1"` in step 2. B1 is recommended while the project is being reviewed.
+The project runs on F1. Move the plan to B1 (`az appservice plan update --name $plan --resource-group $resourceGroup --sku B1`) if the slow first load after a quiet period matters, or if people use it every day. Moving back to F1 works the same way.
+
+## Waking up on the free tier
+
+On F1 both web apps sleep after about 20 minutes without requests. The next request wakes them:
+
+| Part | Typical wake-up | Why |
+|---|---|---|
+| Backend (Node) | 10–20 s | Azure starts the container; Node itself loads in under a second |
+| AI service (Python) | about 30–60 s | Loading the OpenAI Agents SDK and Pydantic takes about 5 s even on a fast machine, and longer on the free tier's shared CPU |
+
+The app shows this instead of failing:
+
+| Situation | What happens |
+|---|---|
+| The site is opened while the backend sleeps | If `/api/health` has not answered after 2 s, a start-up card replaces the page: Server, Database and Assistant, each waking, waiting or ready, with a timer. The page opens by itself when the server answers. After 90 s it shows "SiteOps couldn't start" with Try again |
+| The backend starts | It calls the AI service's `/health` straight away, so both wake together instead of one after the other |
+| The chat is opened while the AI service sleeps | `GET /api/assistant/status` reports `waking`. The header shows "Waking up the assistant…" with a timer, an amber banner says how long it usually takes, and the chat button has an amber dot |
+| A question is sent while the AI service sleeps | The backend starts the answer at once with a "Waking up the assistant" step, keeps retrying for up to 2 minutes, then streams the answer as usual |
+| An answer stalls | The browser only gives up after 60 s with nothing arriving, not after a fixed total |
+
+To measure the real wake-up time after deploying, leave the site alone for 25 minutes, then time `curl -w "%{time_total}\n" -o NUL https://<ai-app>.azurewebsites.net/health`. Each web app's **Quotas** page in the portal shows how much of the 60 daily CPU minutes has been used.
 
 ## Removing everything
 
