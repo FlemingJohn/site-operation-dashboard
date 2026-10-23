@@ -139,6 +139,14 @@
   text-decoration: underline;
 }
 
+.menu-item-danger {
+  color: var(--color-danger);
+}
+
+.menu-item-danger .MuiListItemIcon-root {
+  color: inherit;
+}
+
 @media (max-width: 599px) {
   .view-toggle-label {
     display: none;
