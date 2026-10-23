@@ -137,6 +137,7 @@ flowchart LR
 | GET | `/api/activity` | Paginated activity log, newest first | 200 |
 | GET | `/api/activity/people` | Names that appear in the activity log | 200 |
 | POST | `/api/assistant` | Ask SiteOps: saves the question, forwards it with the chat's memory to the AI service, streams the answer as JSON lines and saves it | 200 |
+| GET | `/api/assistant/status` | Wakes the AI service if needed and says whether it is `ready`, `waking`, `down` or `off` (answers within about 4 s) | 200 |
 | GET | `/api/chat-sessions` | This browser's saved chats, newest first, with the last message and a message count | 200 |
 | GET | `/api/chat-sessions/:id/messages` | One chat's messages, with their cards, record links and sources | 200 |
 | PATCH | `/api/chat-sessions/:id` | Rename a chat | 200 |
@@ -441,6 +442,12 @@ The wording lives in `services/siteActivity.js` and `services/installationActivi
 3. Saves the question.
 
 The question and memory go to the Python AI service at `AI_SERVICE_URL/ask` with the `X-Service-Key` header. Node writes a `session` line first, then passes the AI service's `application/x-ndjson` stream straight back while `utils/collectAnswer.js` reads it, and saves the answer with its card, record links, sources and status when the stream ends. How answers are made is described in [ai.md](ai.md).
+
+### Waking the AI service
+
+On the free tier the AI service sleeps. `services/assistantWakeService.js` calls its `/health`, retrying through `utils/fetchWhileStarting.js` (a refused connection or a 502, 503 or 504 means it is still starting) for up to 2 minutes; calls made at the same time share one wake-up. `server.js` starts it as soon as the backend is up, so both apps wake together.
+
+`POST /api/assistant` writes the `session` line straight away. If the AI service has not answered after 1.5 s it adds a "Waking up the assistant" step, keeps retrying for up to 2 minutes, then relays the answer. `utils/createDeadline.js` gives up only after 60 s with no new data, so a long answer is never cut off. A failure arrives as an `error` line in the stream and is saved as the chat's answer.
 
 ### Chat history
 
