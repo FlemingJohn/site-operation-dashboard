@@ -1,0 +1,97 @@
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 6px 8px 12px;
+  box-sizing: border-box;
+  background-color: var(--color-sidebar);
+  color: var(--color-white);
+}
+
+.chat-header .MuiIconButton-root {
+  color: var(--color-sidebar-text);
+}
+
+.chat-header .MuiIconButton-root:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+.chat-header-mark {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.chat-header-ready {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--color-sidebar);
+  background-color: var(--color-sidebar-accent);
+}
+
+.chat-header-busy {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  background-color: var(--color-sidebar);
+  color: var(--color-warning);
+}
+
+.chat-header .MuiChatConversation-headerInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-header .MuiChatConversation-title {
+  overflow: hidden;
+  color: var(--color-white);
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-header-subtitle {
+  display: block;
+  overflow: hidden;
+  color: var(--color-sidebar-text);
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-header-actions {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.chat-row-icon {
+  flex-shrink: 0;
+  color: var(--color-muted);
+}
+
+.MuiChatConversationList-itemSelected .chat-row-icon,
+.MuiChatConversationList-itemSelected .chat-row-name {
+  color: var(--color-primary-text);
+}
+
+.chat-row-title {
+  display: grid;
+  min-width: 0;
+}
+
+.MuiChatConversationList-itemSelected .chat-row-name {
+  font-weight: 600;
+}
