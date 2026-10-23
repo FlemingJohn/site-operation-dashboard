@@ -391,7 +391,7 @@ npm run dev
 
 Open `http://localhost:5173`. The Overview page shows the summary cards and charts from the sample data.
 
-No `.env` file is needed locally: Vite forwards every `/api` request to `http://localhost:5000`. `VITE_API_URL` in `frontend/.env.example` is only used for deployment, where it points to the deployed API.
+For the map, copy `frontend/.env.example` to `frontend/.env` and set `VITE_MAP_TILE_KEY` to a free CARTO Basemaps key (request one at https://carto.com/basemaps; it arrives by email). Without it the map shows "API key required". Leave `VITE_API_URL` empty locally: Vite forwards every `/api` request to `http://localhost:5000`. It is only set for deployment, where it points to the deployed API.
 
 ### 4. AI service setup (optional)
 
@@ -665,7 +665,7 @@ The application is deployed with the Azure CLI:
 | Model | Azure OpenAI, gpt-4o |
 | Database | Supabase PostgreSQL (not on Azure) |
 
-All configuration is passed through environment variables: App Service application settings for the backend and the AI service, and `VITE_API_URL` at build time for the frontend.
+All configuration is passed through environment variables: App Service application settings for the backend and the AI service, and `VITE_API_URL` and `VITE_MAP_TILE_KEY` at build time for the frontend.
 
 Outline:
 
