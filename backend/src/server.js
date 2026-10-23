@@ -1,6 +1,7 @@
 import { app } from './app.js';
 import { checkDatabaseConnection, pool } from './config/database.js';
 import { env } from './config/env.js';
+import { wakeAssistant } from './services/assistantWakeService.js';
 import { logger } from './utils/logger.js';
 
 const SHUTDOWN_TIMEOUT_MS = 10000;
@@ -40,3 +41,4 @@ try {
 }
 
 registerShutdown(listen());
+wakeAssistant();
