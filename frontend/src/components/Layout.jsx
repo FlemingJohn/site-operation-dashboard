@@ -46,8 +46,18 @@ const NAV_GROUPS = [
     label: 'Assets',
     sections: [
       { path: '/service', label: 'Service', icon: HandymanOutlinedIcon },
-      { path: '/equipment', label: 'Equipment', icon: PrecisionManufacturingOutlinedIcon },
-      { path: '/spare-parts', label: 'Spare parts', icon: Inventory2OutlinedIcon },
+      {
+        path: '/equipment',
+        label: 'Equipment',
+        icon: PrecisionManufacturingOutlinedIcon,
+        addLabel: 'Add machine',
+      },
+      {
+        path: '/spare-parts',
+        label: 'Spare parts',
+        icon: Inventory2OutlinedIcon,
+        addLabel: 'Add part',
+      },
       { path: '/map', label: 'Map', icon: MapOutlinedIcon },
       { path: '/activity', label: 'Activity', icon: HistoryOutlinedIcon },
     ],
