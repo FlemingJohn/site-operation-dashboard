@@ -10,7 +10,7 @@ A full-stack dashboard for managing operational sites, tracking equipment instal
 | API health check | https://siteops-dashboard-fj-api.azurewebsites.net/api/health |
 | API example | https://siteops-dashboard-fj-api.azurewebsites.net/api/summary |
 
-The API runs on the App Service free tier, which sleeps when idle. The first request after a quiet period can take 10–20 seconds; later requests are fast.
+The API and the AI service run on the App Service free tier (F1), which sleeps when idle. The first visit after a quiet period shows a start-up card with the server, database and assistant waking up, usually for 10–20 seconds; the assistant can take 30–60 seconds. Later requests are fast. See [Waking up on the free tier](docs/deployment.md#waking-up-on-the-free-tier).
 
 The live demo was deployed before the Machines, Service, Spare parts, Map and Activity pages and Ask SiteOps were added; those run locally until the next deployment.
 
@@ -486,6 +486,7 @@ All endpoints are under `/api` and use JSON.
 | PATCH | `/part-requests/:id` | Move a request to its next status |
 | GET | `/activity` | Recent changes with `search`, `kind`, `actor` and `days` |
 | GET | `/activity/people` | People who appear in the activity |
+| GET | `/assistant/status` | Whether the AI service is `ready`, `waking`, `down` or `off`; wakes it if it is asleep |
 | POST | `/assistant` | Ask SiteOps a question in a new or saved chat; the answer streams back as JSON lines and is saved |
 | GET | `/chat-sessions` | This browser's saved chats |
 | GET | `/chat-sessions/:id/messages` | One chat's messages |
@@ -665,7 +666,7 @@ Outline:
 ```powershell
 az login
 az group create --name rg-siteops --location southeastasia
-az appservice plan create --name plan-siteops --resource-group rg-siteops --is-linux --sku B1
+az appservice plan create --name plan-siteops --resource-group rg-siteops --is-linux --sku F1
 az webapp create --name <api-name> --resource-group rg-siteops --plan plan-siteops --runtime "NODE:24-lts"
 az staticwebapp create --name <web-name> --resource-group rg-siteops --location eastasia --sku Free
 az webapp config appsettings set --name <api-name> --resource-group rg-siteops --settings NODE_ENV=production ...
