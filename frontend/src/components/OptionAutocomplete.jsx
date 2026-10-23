@@ -13,9 +13,11 @@ const OptionAutocomplete = ({
   error,
   helperText,
   size,
+  disabled,
 }) => (
   <Autocomplete
     id={id}
+    disabled={disabled}
     options={options}
     value={options.find((option) => option.value === value) ?? null}
     onChange={(event, option) => onChange(option?.value ?? '')}
