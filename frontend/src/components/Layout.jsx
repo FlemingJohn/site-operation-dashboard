@@ -22,7 +22,9 @@ import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import PrecisionManufacturingOutlinedIcon from '@mui/icons-material/PrecisionManufacturingOutlined';
 import { useStoredFlag } from '../hooks/useStoredFlag';
 import AskSiteOps from './AskSiteOps';
+import AssistantStatusProvider from './AssistantStatusProvider';
 import ErrorBoundary from './ErrorBoundary';
+import ServerStartup from './ServerStartup';
 import SidebarNav from './SidebarNav';
 
 const NAV_GROUPS = [
@@ -68,77 +70,81 @@ const Layout = () => {
   const showAddButton = activeSection.addLabel && pathname === activeSection.path;
 
   return (
-    <div className="app">
-      <nav
-        className={`app-nav${isCollapsed ? ' app-nav-collapsed' : ''}`}
-        aria-label="Main navigation"
-      >
-        <Drawer
-          variant="temporary"
-          open={isMenuOpen}
-          onClose={() => setIsMenuOpen(false)}
-          className="app-drawer-mobile"
-          classes={{ paper: 'app-drawer-paper' }}
+    <AssistantStatusProvider>
+      <div className="app">
+        <nav
+          className={`app-nav${isCollapsed ? ' app-nav-collapsed' : ''}`}
+          aria-label="Main navigation"
         >
-          <SidebarNav
-            groups={NAV_GROUPS}
-            activePath={activeSection.path}
-            onNavigate={() => setIsMenuOpen(false)}
-          />
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          open
-          className="app-drawer-desktop"
-          classes={{ paper: 'app-drawer-paper' }}
-        >
-          <SidebarNav
-            groups={NAV_GROUPS}
-            activePath={activeSection.path}
-            isCollapsed={isCollapsed}
-            onToggle={toggleCollapsed}
-          />
-        </Drawer>
-      </nav>
+          <Drawer
+            variant="temporary"
+            open={isMenuOpen}
+            onClose={() => setIsMenuOpen(false)}
+            className="app-drawer-mobile"
+            classes={{ paper: 'app-drawer-paper' }}
+          >
+            <SidebarNav
+              groups={NAV_GROUPS}
+              activePath={activeSection.path}
+              onNavigate={() => setIsMenuOpen(false)}
+            />
+          </Drawer>
+          <Drawer
+            variant="permanent"
+            open
+            className="app-drawer-desktop"
+            classes={{ paper: 'app-drawer-paper' }}
+          >
+            <SidebarNav
+              groups={NAV_GROUPS}
+              activePath={activeSection.path}
+              isCollapsed={isCollapsed}
+              onToggle={toggleCollapsed}
+            />
+          </Drawer>
+        </nav>
 
-      <main className="app-main">
-        <AppBar position="sticky">
-          <Toolbar>
-            <IconButton
-              edge="start"
-              className="app-menu-button"
-              aria-label="Open menu"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" component="h1" className="app-page-title">
-              {activeSection.label}
-            </Typography>
-            {showAddButton && (
-              <Button
-                component={Link}
-                to={`${activeSection.path}/new`}
-                variant="contained"
-                startIcon={<AddIcon />}
+        <main className="app-main">
+          <AppBar position="sticky">
+            <Toolbar>
+              <IconButton
+                edge="start"
+                className="app-menu-button"
+                aria-label="Open menu"
+                onClick={() => setIsMenuOpen(true)}
               >
-                {activeSection.addLabel}
-              </Button>
-            )}
-          </Toolbar>
-        </AppBar>
+                <MenuIcon />
+              </IconButton>
+              <Typography variant="h6" component="h1" className="app-page-title">
+                {activeSection.label}
+              </Typography>
+              {showAddButton && (
+                <Button
+                  component={Link}
+                  to={`${activeSection.path}/new`}
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                >
+                  {activeSection.addLabel}
+                </Button>
+              )}
+            </Toolbar>
+          </AppBar>
 
-        <div className="app-content">
-          <ErrorBoundary key={pathname}>
-            <Suspense fallback={<LinearProgress />}>
-              <Outlet />
-            </Suspense>
-          </ErrorBoundary>
-        </div>
-      </main>
+          <div className="app-content">
+            <ErrorBoundary key={pathname}>
+              <Suspense fallback={<LinearProgress />}>
+                <ServerStartup>
+                  <Outlet />
+                </ServerStartup>
+              </Suspense>
+            </ErrorBoundary>
+          </div>
+        </main>
 
-      <AskSiteOps />
-    </div>
+        <AskSiteOps />
+      </div>
+    </AssistantStatusProvider>
   );
 };
 
