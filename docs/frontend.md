@@ -184,8 +184,12 @@ Every page is loaded with `React.lazy`, so the browser downloads a page's code, 
 | Component | Purpose |
 |---|---|
 | `AskSiteOps` | Round button at the bottom right of every page, with a dot when an answer arrived while the window was closed. Opens the window |
-| `AssistantWindow` | Our header (Full screen, Close) above MUI X Chat's `ChatBox`, which draws the chat list, the conversation, suggestions and the composer. Close keeps everything. Full screen on phones. Escape leaves full screen first, then closes |
-| `ChatHistoryPanel` | The chat list: New chat, the saved chats with a ⋯ menu each, and Clear all chats |
+| `AssistantWindow` | MUI X Chat's `ChatBox` with our parts in its slots: header, chat list, welcome screen, input and answer parts. Close keeps everything. Full screen on phones. Escape leaves full screen first, then closes |
+| `ChatHeader`, `ChatHeaderMark`, `ChatHeaderSubtitle`, `ChatHeaderActions` | The one navy header: the sparkle with a green ready dot or an amber spinner while answering, the chat's name, "Ask SiteOps · answers from your dashboard" or "answering…", and New chat, Full screen and Close. MUI adds ☰ or a back arrow when the chat list is hidden |
+| `ChatWelcome` | An empty chat: the sparkle, "What would you like to know?" and the four suggestions from `assistantSuggestions.js` as cards with icons; a card asks its question |
+| `ChatComposerInput`, `ChatSendButton`, `ChatComposerHint` | The input: a question icon, a box of up to five lines, a teal Send that turns into Stop while answering, and "Enter to send · Shift + Enter for a new line" with a 0 / 300 counter that turns red near the limit |
+| `ChatRowIcon`, `ChatRowTitle` | Each saved chat in the list: a chat icon, its name, and its time (or Yesterday, or the date) with the message count |
+| `ChatHistoryPanel` | The chat list: New chat at the top, the saved chats with a ⋯ menu each in the middle, scrolling when long, and Clear all chats at the bottom |
 | `ChatRowMenu` | Rename and Delete for one chat |
 | `RenameChatDialog`, `DeleteChatDialog`, `ClearChatsDialog`, `ChatHistoryDialogs` | The warnings: deleting one chat asks once; clearing all says how many messages go and needs DELETE typed |
 | `ChatAvatar` | The Ask SiteOps mark beside each answer |
