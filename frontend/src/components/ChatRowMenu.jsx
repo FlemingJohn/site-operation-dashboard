@@ -34,7 +34,7 @@ const ChatRowMenu = ({ conversation, onRename, onDelete, isDisabled }) => {
           </ListItemIcon>
           <ListItemText>Rename</ListItemText>
         </MenuItem>
-        <MenuItem onClick={choose(onDelete)} className="chat-row-menu-delete">
+        <MenuItem onClick={choose(onDelete)} className="menu-item-danger">
           <ListItemIcon>
             <DeleteOutlinedIcon fontSize="small" />
           </ListItemIcon>
