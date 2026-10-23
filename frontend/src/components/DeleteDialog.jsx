@@ -17,6 +17,7 @@ const DeleteDialog = ({
   message,
   confirmText,
   confirmLabel = 'Delete',
+  canDelete = true,
   children,
   error,
   isDeleting,
@@ -63,16 +64,18 @@ const DeleteDialog = ({
           disabled={isDeleting}
           autoFocus
         >
-          Cancel
+          {canDelete ? 'Cancel' : 'Close'}
         </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={onConfirm}
-          disabled={isDeleting || !isConfirmed}
-        >
-          {isDeleting ? 'Deleting…' : confirmLabel}
-        </Button>
+        {canDelete && (
+          <Button
+            variant="contained"
+            color="error"
+            onClick={onConfirm}
+            disabled={isDeleting || !isConfirmed}
+          >
+            {isDeleting ? 'Deleting…' : confirmLabel}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );
