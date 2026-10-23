@@ -1,0 +1,76 @@
+.chat-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  gap: 10px;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 24px 20px;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.chat-welcome-mark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.chat-welcome-title {
+  font-weight: 600;
+}
+
+.chat-welcome-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 560px;
+  margin-top: 6px;
+}
+
+.chat-welcome-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  text-align: left;
+}
+
+.chat-welcome-card:hover,
+.chat-welcome-card.Mui-focusVisible {
+  border-color: var(--color-primary);
+}
+
+@container assistant (max-width: 560px) {
+  .chat-welcome {
+    gap: 8px;
+    padding: 16px 12px;
+  }
+
+  .chat-welcome-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .chat-welcome-hint {
+    display: none;
+  }
+
+  .chat-welcome-card {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px;
+  }
+}
