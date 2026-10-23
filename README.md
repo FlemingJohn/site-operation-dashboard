@@ -27,9 +27,19 @@ Count tiles with icons that filter the list, site cards (or a table) with status
 ![Sites list](docs/screenshots/sites.png)
 
 ### Machines
-A count per machine type, then each machine with its picture, status, site and next check-up.
+A count per machine type, then each machine with its picture, status, site and next check-up. Add machine is at the top right; the ⋯ on each card has Edit, Move to In stock and Delete.
 
 ![Machines](docs/screenshots/equipment.png)
+
+### Add machine
+Serial, type, status, site and next check-up, which starts 90 days from today. A deployed machine needs a site; choosing In stock clears the site and locks it.
+
+![Add machine form](docs/screenshots/add-machine.png)
+
+### Delete a machine with check-ups
+Deleting would lose its check-up history, so the dialog says how many check-ups it has and offers Move to In stock instead.
+
+![Machine delete refused](docs/screenshots/delete-machine.png)
 
 ### Service
 Check-ups grouped into Needs service now, Coming up this week and Later, each machine opening from its row, with Mark as done.
@@ -37,9 +47,14 @@ Check-ups grouped into Needs service now, Coming up this week and Later, each ma
 ![Service](docs/screenshots/service.png)
 
 ### Spare parts
-Stock levels with a part icon, a stock meter showing the count and the reorder level, and Reorder for parts running low.
+Stock levels with a part icon, a stock meter showing the count and the reorder level, and Reorder for parts running low. Add part is at the top right; the ⋯ on each row has Adjust stock, Edit and Delete.
 
 ![Spare parts](docs/screenshots/spare-parts.png)
+
+### Adjust stock
+After counting the shelf, set the new count with − and +. The meter and status preview the new level before saving, and the reason goes into Activity.
+
+![Adjust stock dialog](docs/screenshots/adjust-stock.png)
 
 ### Map
 Every site on a map beside a list, coloured by status.
@@ -87,9 +102,9 @@ Production logs from the API: one JSON line per request with its request id, met
 - **Sites**: list, search by name or city, filter by status and region, add, edit and delete; deleting a site warns how many installations go with it and moves its machines to In stock
 - **Installations**: list, search by equipment or technician, filter by site and status, add, edit and delete
 - **Users**: list, search by name or email, filter by role, add admins and technicians with an optional phone number
-- **Machines**: cards or a table with a count per type; each machine page shows its drawing, site, next check-up, check-up history and parts asked for
+- **Machines**: cards or a table with a count per type; add, edit, move to In stock and delete. A machine with check-ups can't be deleted (its history would be lost), so the dialog offers Move to In stock; part requests for a deleted machine keep its serial. Each machine page shows its drawing, site, next check-up, check-up history and parts asked for
 - **Service**: check-ups grouped into Needs service now, Coming up this week and Later, as a list or a month calendar, with Mark as done
-- **Spare parts**: stock levels with a reorder mark and Reorder, and a requests board (Requested, Ordered, Delivered)
+- **Spare parts**: stock levels with a reorder mark and Reorder; add, edit and delete parts, and Adjust stock after a count with − and + and an optional reason. A part with requests can't be deleted. A requests board (Requested, Ordered, Delivered)
 - **Map**: sites on a map beside a list, with search and filters
 - **Activity**: who changed what, as a timeline grouped by day with an icon per kind of change, and filters for kind, person and time
 - **Ask SiteOps**: an AI assistant in a chat window that can be resized by dragging or opened full screen. It answers from the dashboard's data, shows machines and low parts as cards (five at most, with See all), and turns "TL-88 was serviced today by Ravi" into a filled-in form that only the person can save. Chats are saved with their memory: start a new chat, pick an old one up later, rename it, delete it, or clear them all, each behind a warning
@@ -121,7 +136,7 @@ Production logs from the API: one JSON line per request with its request id, met
 |---|---|
 | **Frontend:** responsive dashboard with summary cards | Overview page with four summary cards and two charts; layout adapts from desktop sidebar to mobile menu |
 | **Frontend:** site listing page, search, filtering | Sites page with debounced search, status and region filters, server-side pagination |
-| **Frontend:** form-based data entry | Add and edit forms for sites and installations with field-level validation |
+| **Frontend:** form-based data entry | Add and edit forms for sites, installations, users, machines and spare parts, with field-level validation |
 | **Frontend:** React Hooks and REST API integration | `useState`, `useEffect`, `useCallback` plus custom hooks (`usePaginatedList`, `useEntityForm`, `useDeleteConfirmation`, `useFlashMessage`) calling the API through a single `fetch` client |
 | **Backend:** REST CRUD for sites and installations | `GET`, `POST`, `PUT`, `DELETE` on `/api/sites` and `/api/installations` |
 | **Backend:** validation | Zod schemas for every body, query string and route parameter |
@@ -484,9 +499,17 @@ All endpoints are under `/api` and use JSON.
 | GET | `/equipment` | Paginated machines with `search`, `type`, `status`, check-up `state`, `siteId`, `dueFrom`, `dueTo` |
 | GET | `/equipment/counts` | Counts per type and check-up state, with the same filters |
 | GET | `/equipment/:id` | One machine with its check-ups and part requests |
+| POST | `/equipment` | Add a machine (`Idempotency-Key` supported) |
+| PUT | `/equipment/:id` | Update a machine, including moving it to In stock |
+| DELETE | `/equipment/:id` | Delete a machine with no check-ups |
 | POST | `/equipment/:id/service-records` | Record a finished check-up (`Idempotency-Key` supported) |
 | GET | `/spare-parts` | Parts with their stock level, filtered by `stockLevel` |
 | GET | `/spare-parts/counts` | Counts per stock level |
+| GET | `/spare-parts/:id` | One part |
+| POST | `/spare-parts` | Add a part (`Idempotency-Key` supported) |
+| PUT | `/spare-parts/:id` | Update a part |
+| PATCH | `/spare-parts/:id/stock` | Set the stock after a count, with an optional reason |
+| DELETE | `/spare-parts/:id` | Delete a part with no requests |
 | GET | `/part-requests` | Requests filtered by `status` |
 | POST | `/part-requests` | Ask for a part (`Idempotency-Key` supported) |
 | PATCH | `/part-requests/:id` | Move a request to its next status |
@@ -596,6 +619,7 @@ erDiagram
         integer part_id FK
         integer equipment_id FK
         integer requested_by FK
+        varchar equipment_serial
         integer quantity
         varchar status
         date requested_on
@@ -646,7 +670,7 @@ erDiagram
 | `equipment` → `service_records` | One-to-many, required. A machine with check-ups cannot be deleted. |
 | `users` → `service_records` | One-to-many, optional. Deleting a technician keeps the check-ups without a name. |
 | `spare_parts` → `part_requests` | One-to-many, required. A part with requests cannot be deleted. |
-| `equipment` → `part_requests` | One-to-many, optional. A request can be for the shelf rather than a machine. |
+| `equipment` → `part_requests` | One-to-many, optional. A request can be for the shelf rather than a machine. Deleting a machine keeps its requests and copies its serial onto them. |
 | `users` → `part_requests` | One-to-many, optional. Deleting a user keeps the requests without a name. |
 | `activity_log` | No foreign keys, so the history stays after a record is deleted. When a site is deleted, its entries link to the Sites list instead of the deleted page. |
 | `chat_sessions` → `chat_messages` | One-to-many, required. Deleting a chat deletes its messages. Each chat belongs to one browser through `visitor_id`. |
