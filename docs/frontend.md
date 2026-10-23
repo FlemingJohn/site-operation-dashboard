@@ -16,7 +16,7 @@ Ask SiteOps answers questions with gpt-4o through the Python AI service, which r
 | Charts | `@mui/x-charts` | Donut, stacked bar, sparkline and gauge on the Overview page |
 | Styling engine | `@emotion/react`, `@emotion/styled` | Required by Material UI |
 | Validation | `zod` 4 | Form schemas that mirror the backend's |
-| Map | `leaflet`, `react-leaflet` 5 | Site map with OpenStreetMap tiles |
+| Map | `leaflet`, `react-leaflet` 5 | Site map with CARTO's light tiles, drawn from OpenStreetMap data |
 
 HTTP requests use the browser's built-in `fetch`; no extra HTTP library is needed.
 
@@ -26,7 +26,7 @@ HTTP requests use the browser's built-in `fetch`; no extra HTTP library is neede
 frontend/
 ├── index.html                    HTML entry, loads Albert Sans
 ├── vite.config.js                React plugin and /api proxy to localhost:5000
-├── .env.example                  VITE_API_URL for deployed builds
+├── .env.example                  VITE_API_URL for deployed builds, VITE_MAP_TILE_KEY for the map
 ├── public/
 │   ├── favicon.svg
 │   └── staticwebapp.config.json  Azure Static Web Apps route fallback
@@ -417,8 +417,9 @@ Material UI 9 removed shortcut style props such as `flexGrow`, `fontWeight`, `al
 | Variable | When | Purpose |
 |---|---|---|
 | `VITE_API_URL` | Production builds only | Backend address without `/api`, for example `https://siteops-dashboard-fj-api.azurewebsites.net`. Vite writes it into the build, so the frontend is rebuilt when it changes |
+| `VITE_MAP_TILE_KEY` | Always, in `frontend/.env` | CARTO Basemaps key for the map tiles. Free, requested at https://carto.com/basemaps and sent by email. Without it CARTO draws "API key required" over the map |
 
-Locally no `.env` file is needed: `vite.config.js` forwards `/api` to `http://localhost:5000`.
+Copy `frontend/.env.example` to `frontend/.env` and fill in `VITE_MAP_TILE_KEY`. `VITE_API_URL` stays empty locally: `vite.config.js` forwards `/api` to `http://localhost:5000`. The key ends up in the built JavaScript, as every browser map key does; restrict it to the site's address in the CARTO dashboard if it offers that.
 
 ## Scripts
 
