@@ -10,8 +10,11 @@ import StatusChip from './StatusChip';
 
 const INDIA_CENTER = [21.15, 79.09];
 const INDIA_ZOOM = 5;
-const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-const TILE_ATTRIBUTION = '&copy; OpenStreetMap contributors';
+const MAP_TILE_KEY = import.meta.env.VITE_MAP_TILE_KEY ?? '';
+const TILE_URL = `https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png?key=${MAP_TILE_KEY}`;
+const TILE_SUBDOMAINS = 'abcd';
+const TILE_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
 const getMarkerStyle = (site, isSelected) => ({
   color: COLORS.white,
@@ -30,7 +33,7 @@ const SiteMap = ({ sites, selectedId, onSelect }) => {
 
   return (
     <MapContainer center={INDIA_CENTER} zoom={INDIA_ZOOM} className="site-map" scrollWheelZoom>
-      <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
+      <TileLayer url={TILE_URL} subdomains={TILE_SUBDOMAINS} attribution={TILE_ATTRIBUTION} />
       <MapFocus points={sites.map((site) => site.coordinates)} focusPoint={selected?.coordinates} />
       {sites.map((site) => (
         <CircleMarker
