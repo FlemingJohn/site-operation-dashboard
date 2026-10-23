@@ -1,0 +1,49 @@
+.assistant-chat .MuiChatComposer-root {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'icon input send' 'hint hint hint';
+  align-items: center;
+  gap: 4px 8px;
+  padding: 10px 12px 12px;
+}
+
+.chat-composer-icon {
+  grid-area: icon;
+  color: var(--color-muted);
+}
+
+.assistant-chat .MuiChatComposer-textArea {
+  grid-area: input;
+  height: auto !important;
+  max-height: 8.5em;
+  field-sizing: content;
+}
+
+.assistant-chat .MuiChatComposer-toolbar {
+  grid-area: send;
+}
+
+.chat-composer-hint {
+  grid-area: hint;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chat-send {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.chat-send:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.chat-stop {
+  background-color: var(--color-ink);
+  color: var(--color-white);
+}
+
+.chat-stop:hover {
+  background-color: var(--color-muted);
+}
