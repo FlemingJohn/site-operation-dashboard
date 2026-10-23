@@ -67,7 +67,7 @@ Every field starts with the same icon as its table column.
 ![Add site form](docs/screenshots/add-site.png)
 
 ### Delete a site with installations
-The dialog says how many installation records will also be deleted, offers Edit site instead for marking the site inactive, and keeps Delete disabled until the site name is typed.
+The dialog says how many installation records will also be deleted and how many machines will move to In stock, offers Edit site instead for marking the site inactive, and keeps Delete disabled until the site name is typed.
 
 ![Delete site confirmation](docs/screenshots/delete-site.png)
 
@@ -470,7 +470,7 @@ All endpoints are under `/api` and use JSON.
 | GET | `/sites/:id` | One site |
 | POST | `/sites` | Create a site |
 | PUT | `/sites/:id` | Update a site |
-| DELETE | `/sites/:id` | Delete a site and its installations |
+| DELETE | `/sites/:id` | Delete a site and its installations; its machines move to In stock |
 | GET | `/installations` | Paginated list with `search`, `siteId`, `status`, `sortBy`, `order` |
 | GET | `/installations/counts` | Counts for the summary strip, with the same filters |
 | GET | `/installations/:id` | One installation |
