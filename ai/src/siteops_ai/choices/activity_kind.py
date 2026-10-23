@@ -1,3 +1,3 @@
-from typing import Literal
+﻿from typing import Literal
 
-ActivityKind = Literal["installation", "service", "part", "site", "user"]
+ActivityKind = Literal["installation", "service", "part", "site", "user", "machine"]
