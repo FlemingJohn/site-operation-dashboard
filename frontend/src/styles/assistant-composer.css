@@ -30,6 +30,10 @@
   gap: 8px;
 }
 
+.chat-composer-hint > :last-child {
+  white-space: nowrap;
+}
+
 .chat-send {
   background-color: var(--color-primary);
   color: var(--color-white);
