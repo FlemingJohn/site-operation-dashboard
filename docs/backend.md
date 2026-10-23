@@ -118,7 +118,7 @@ flowchart LR
 | GET | `/api/sites/:id` | One site | 200 |
 | POST | `/api/sites` | Create a site | 201 |
 | PUT | `/api/sites/:id` | Replace a site's details | 200 |
-| DELETE | `/api/sites/:id` | Delete a site and its installations | 204 |
+| DELETE | `/api/sites/:id` | Delete a site and its installations; its machines move to In stock | 204 |
 | GET | `/api/installations` | Paginated list of installations | 200 |
 | GET | `/api/installations/:id` | One installation | 200 |
 | POST | `/api/installations` | Create an installation | 201 |
@@ -236,6 +236,7 @@ Example: `GET /api/sites?page=1&limit=10&search=pune&status=active&region=West&s
       "region": "West",
       "status": "active",
       "installationCount": 14,
+      "machineCount": 3,
       "createdAt": "2026-10-07T09:12:00.000Z",
       "updatedAt": "2026-10-07T09:12:00.000Z"
     }
@@ -244,7 +245,7 @@ Example: `GET /api/sites?page=1&limit=10&search=pune&status=active&region=West&s
 }
 ```
 
-`installationCount` comes from a `LEFT JOIN` with `COUNT`, so sites without installations return `0`. The page of rows and the total count run in parallel.
+`installationCount` comes from a `LEFT JOIN` with `COUNT`, so sites without installations return `0`. `machineCount` is the number of machines at the site, used by the delete dialog. The page of rows and the total count run in parallel.
 
 ### GET /api/sites/:id
 
@@ -273,7 +274,12 @@ Same body and rules as `POST /api/sites`. Responds `200` with the updated site, 
 
 ### DELETE /api/sites/:id
 
-Responds `204` with no body. The site's installations are deleted by `ON DELETE CASCADE`. Responds `404` if the id does not exist.
+Responds `204` with no body. Responds `404` if the id does not exist. In one transaction:
+
+1. The site's machines move to In stock and lose their site (`services/siteEquipment.js`), so none is left Deployed with no site.
+2. Activity entries that link to `/sites/<id>` are pointed at `/sites`, so their chips don't open a deleted page.
+3. The site is deleted; its installations go with it through `ON DELETE CASCADE`.
+4. A "deleted the site" entry is added, naming the installations deleted and the machines moved.
 
 ### GET /api/installations
 
