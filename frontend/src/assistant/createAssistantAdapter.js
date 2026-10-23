@@ -4,7 +4,7 @@ import { createChunkMapper } from './createChunkMapper';
 import { isDraftChatId } from './draftChatId';
 import { toChatMessage } from './toChatMessage';
 
-export const createAssistantAdapter = ({ onSession, onStart }) => ({
+export const createAssistantAdapter = ({ onSession }) => ({
   async listMessages({ conversationId }) {
     if (isDraftChatId(conversationId)) return { messages: [], hasMore: false };
     const { data } = await getChatMessages(conversationId);
@@ -13,7 +13,6 @@ export const createAssistantAdapter = ({ onSession, onStart }) => ({
 
   async sendMessage({ conversationId, message, signal }) {
     const question = readQuestion(message);
-    onStart();
     const sessionId = isDraftChatId(conversationId) ? undefined : conversationId;
     const mapper = createChunkMapper({ messageId: crypto.randomUUID(), onSession });
 
